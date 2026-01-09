@@ -1,0 +1,256 @@
+#distanceLegendDiv {
+  display: block;
+  position: absolute;
+  right: calc(50vw - 120px / 2);
+  bottom: 15px;
+  z-index: 101;
+}
+
+.distance-legend {
+  // display: block;
+  display: none;
+  position: relative;
+  padding: 2px 2px 2px 2px;
+  width: 120px;
+  height: max-content;
+  height: 20px;
+  text-align: center;
+  // color: white;
+  // background: rgba(42, 42, 42, 0.8);
+  background-color: var(--theme-ui-background-color);
+  border-radius: 15px;
+  box-sizing: content-box;
+  pointer-events: auto;
+}
+
+.distance-legend-label {
+  position: absolute;
+  top: 3px;
+  width: 120px;
+  font: var(--theme-font-medium);
+  color: var(--theme-color);
+  border-radius: 15px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.distance-legend-scale-bar {
+  display: inline-block;
+  margin-top: 8px;
+  height: 10px;
+  border: 1px solid var(--theme-color);
+  border-top: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Нужны, чтобы перебить встроенные в миксин стили */
+// @media (max-width: 1450px) {
+//   #distanceLegendDiv {
+//     right: calc(50vw - 120px / 2);
+//   }
+// }
+// @media print {
+//   .distance-legend {
+//     display: block;
+//   }
+// }
+// @media screen and (max-width: 700px), screen and (max-height: 420px) {
+//   .distance-legend {
+//     display: block;
+//   }
+// }
+
+@media screen and (max-width: 700px), screen and (max-height: 420px) {
+  // .navigation-controls,
+  .compass {
+    display: block;
+  }
+}
+// ------------------------------------------------------------------ //
+
+.compass {
+  transform: scale(0.8);
+  position: absolute;
+  right: -22px;
+  bottom: 152px;
+  width: 150px;
+  height: 150px;
+  pointer-events: auto;
+  z-index: 101;
+}
+
+.compass-outer-ring {
+  position: absolute;
+  width: 142px;
+  height: 142px;
+  pointer-events: none;
+}
+
+.compass-outer-ring-background {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 66px;
+  height: 66px;
+  border: 18px solid var(--theme-ui-background-color);
+  border-radius: 66px;
+  box-sizing: content-box;
+}
+
+.compass-outer-ring-background:hover {
+  border-color: var(--theme-focus-background-color);
+  transition: 0.2s ease-out;
+  cursor: grab;
+}
+
+.compass-outer-ring-background:active {
+  border-color: var(--theme-focus-text-color);
+  filter: contrast(50%);
+  transition: 0.2s ease-out;
+  cursor: grabbing;
+}
+
+.compass-outer-ring svg {
+  // fill: var(--theme-ui-background-color);
+  stroke: var(--theme-color);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  // stroke-width: 1px;
+  opacity: 50%;
+}
+
+.compass-gyro {
+  position: absolute;
+  top: 0;
+  width: 142px;
+  height: 142px;
+  pointer-events: none;
+}
+
+.compass-gyro svg {
+  fill: var(--theme-color);
+  stroke: var(--theme-color);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 0.5px;
+  opacity: 75%;
+}
+
+.compass-gyro-background {
+  position: absolute;
+  top: 46px;
+  left: 46px;
+  width: 50px;
+  height: 50px;
+  background-color: var(--theme-ui-background-color);
+  border-radius: 50px;
+}
+
+.compass-gyro-background:hover {
+  background-color: var(--theme-focus-background-color);
+  transition: 0.2s ease-out;
+  cursor: grab;
+}
+
+.compass-gyro-background:active {
+  background-color: var(--theme-focus-background-color);
+  transition: 0.2s ease-out;
+  cursor: move;
+}
+
+.compass-gyro-background:active + .compass-gyro > svg {
+  fill: var(--theme-focus-text-color);
+  stroke: var(--theme-focus-text-color);
+  transition: 0.2s ease-out;
+}
+
+.compass-rotation-marker {
+  position: absolute;
+  width: 142px;
+  height: 142px;
+  fill: var(--theme-focus-text-color);
+  top: 0;
+}
+
+// ----------------------------------------- //
+
+.navigation-controls {
+  position: absolute;
+  bottom: 70px;
+  right: 40px;
+  width: var(--regular-btn-size);
+  height: max-content;
+  font-weight: 300;
+  color: white;
+  background-color: var(--theme-ui-background-color);
+  border-radius: 10px;
+  overflow: hidden;
+  pointer-events: auto;
+  user-select: none;
+  outline: 1px solid var(--theme-outline-color);
+  z-index: 101;
+}
+
+.navigation-control {
+  border-bottom: 1px solid var(--theme-border-color);
+}
+
+.navigation-control svg {
+  fill: var(--theme-color);
+  opacity: 75%;
+}
+
+.navigation-control,
+.navigation-control-last {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: var(--regular-btn-size);
+  color: var(--theme-color);
+}
+
+.navigation-control:hover,
+.navigation-control:focus,
+.navigation-control-last:hover,
+.navigation-control-last:focus {
+  background-color: var(--theme-focus-background-color);
+  transition: 0.2s ease-out;
+  cursor: pointer;
+}
+.navigation-control:active,
+.navigation-control-last:active {
+  background-color: var(--theme-focus-text-color);
+  filter: contrast(50%);
+  transition: 0.2s ease-out;
+  cursor: pointer;
+}
+
+.navigation-control:focus-visible,
+.navigation-control-last:focus-visible {
+  outline: var(--theme-outline-color) auto 1px;
+  transition: 0.2s ease-out;
+}
+
+.navigation-control:first-of-type {
+  div {
+    margin-top: 4px;
+  }
+}
+.navigation-control-last {
+  div {
+    margin-bottom: 7px;
+  }
+}
+
+.navigation-control-icon-zoom-in,
+.navigation-control-icon-zoom-out {
+  position: relative;
+  font-size: 30px;
+  opacity: 75%;
+}
+
+.navigation-control-icon-reset {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}

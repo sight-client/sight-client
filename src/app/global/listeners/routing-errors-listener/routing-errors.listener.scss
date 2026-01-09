@@ -1,0 +1,17 @@
+.routing-error-banner-wrapper {
+  position: fixed;
+  z-index: 999;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+}
+.routing-error-banner {
+  width: max-content;
+  height: max-content;
+  padding: 2rem 4rem 2rem 4rem;
+  background-color: var(--mat-sys-error-container);
+  border: 1px solid var(--mat-sys-error);
+}

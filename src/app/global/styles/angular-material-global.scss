@@ -1,0 +1,54 @@
+@use '@angular/material' as mat;
+@use '../configs/angular-material.config.scss' as config;
+@use 'material-design-icons/iconfont/material-icons.css';
+
+/* ---------------------------- default preset (start) ---------------------------- */
+html {
+  @include mat.theme(
+    (
+      // Палитры устанавливаются посредством angular-material.config.scss
+      // color: (
+      //   primary: mat.$azure-palette,
+      //   tertiary: mat.$blue-palette,
+      // ),
+      typography: Roboto,
+      density: 0
+    )
+  );
+}
+
+body {
+  // Установлено в :root в common-global.scss
+  // color-scheme: light dark;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+// (?) Также устанолено по умолчанию: (?)
+// body {
+//   // margin: 0;
+//   font-family: Roboto, 'Helvetica Neue', sans-serif;
+// }
+/* ---------------------------- default preset (end) ------------------------------ */
+
+// Предустановка селекторов тем приложения для planet.ts и theme-color-changer.ts
+@each $name-chank-primary, $name-chank-tertiary, $primary-palette,
+  $tertiary-palette in config.$theme-poletts-list
+{
+  .#{$name-chank-primary}-#{$name-chank-tertiary}-theme {
+    @include mat.theme(
+      (
+        color: (
+          primary: $primary-palette,
+          tertiary: $tertiary-palette,
+        ),
+      )
+    );
+  }
+}

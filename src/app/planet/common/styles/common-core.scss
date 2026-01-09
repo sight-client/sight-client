@@ -1,0 +1,88 @@
+@charset 'utf-8';
+
+// Путь до дирректории импорта общих scss-файлов находится в angular.json в опции:
+// projects.[имя проекта].architect.build.options.stylePreprocessorOptions.includePaths[]
+@use './fonts-core';
+@use './variables-core';
+@use './extends-core';
+@use './mixins-core';
+@use './functions-core';
+@use './animations-core';
+@use 'media-breakpoints-global';
+
+:root {
+  --main-tabs-content-width: 300px;
+}
+
+/* Отработка медиа запросов, зависящик от размера экрана: */
+@include media-breakpoints-global.desktop-large {
+  // body {
+  //     outline: 1rem solid orange;
+  // }
+}
+
+@include media-breakpoints-global.desktop-small {
+  // body {
+  //     outline: 1rem solid green;
+  // }
+}
+
+@include media-breakpoints-global.laptop {
+  .camera-height-container {
+    left: 86px !important;
+    top: 15px;
+  }
+  #osmCopyright {
+    right: 186px !important;
+    top: 21px;
+  }
+  .measuring-tools-container {
+    left: 50% !important;
+    transform: translate(-50%, 0%);
+  }
+  // body {
+  //     outline: 1rem solid yellow;
+  // }
+}
+
+@include media-breakpoints-global.tablet {
+  // body {
+  //     outline: 1rem solid gray;
+  // }
+}
+
+@include media-breakpoints-global.mobile {
+  // body {
+  //     outline: 1rem solid pink;
+  // }
+}
+
+// ----------------------------------------------------------------------- //
+// Размещено здесь, т.к. это стандартный элемент UI Cesium
+.cesium-viewer-fullscreenContainer {
+  position: absolute;
+  right: 40px;
+  bottom: 15px;
+  width: var(--regular-btn-size);
+  height: var(--regular-btn-size);
+  border-radius: 8px;
+  outline: 1px solid var(--theme-outline-color);
+  z-index: 101;
+}
+
+.cesium-button.cesium-fullscreenButton {
+  background-color: var(--theme-ui-background-color);
+  border: none;
+  border-radius: 8px;
+  pointer-events: auto;
+  svg {
+    fill: var(--theme-color);
+  }
+}
+
+.cesium-button.cesium-fullscreenButton:hover,
+.cesium-button.cesium-fullscreenButton:focus {
+  background-color: var(--theme-focus-background-color);
+  box-shadow: none;
+  border: none;
+}

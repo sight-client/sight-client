@@ -1,0 +1,71 @@
+#cesiumContainer,
+#okoUiContainer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  overflow: hidden;
+  min-width: 746px;
+  min-height: 350px;
+}
+
+#cesiumContainer {
+  // z-index: 1; // если оставить, окно ошибок цесиума будет под UI
+  display: block;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+}
+#okoUiContainer {
+  z-index: 100;
+  display: block;
+  pointer-events: none;
+}
+
+#okoUiContainer > * {
+  width: max-content;
+  height: max-content;
+  pointer-events: auto;
+}
+
+#osmCopyright {
+  position: absolute;
+  right: 104px;
+  bottom: 15px;
+  padding-inline: 5px;
+  background-color: var(--theme-ui-background-color);
+  border-radius: 5px;
+  outline: 1px solid var(--theme-outline-color);
+  p {
+    margin: 0;
+  }
+}
+
+.map-left-navbar-wrapper {
+  position: absolute;
+  z-index: 101;
+  left: 15px;
+  top: 15px;
+  .to-landing-page-button {
+    padding: 0px;
+    min-width: var(--regular-btn-size);
+    width: var(--regular-btn-size);
+    height: var(--regular-btn-size);
+    border-radius: 6px;
+    outline: 1px solid var(--theme-outline-color);
+    mat-icon {
+      padding: 0;
+      margin: 0;
+      width: 24px;
+      height: 24px;
+      svg {
+        opacity: 0.8;
+      }
+    }
+  }
+}

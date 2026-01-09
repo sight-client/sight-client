@@ -1,0 +1,49 @@
+:host {
+  --header-height: calc(15px + var(--regular-btn-size) + 15px);
+  --footer-height: calc(15px + var(--regular-btn-size) + 15px);
+}
+
+header {
+  //   background-color: aqua;
+  display: block;
+  min-width: 100%;
+  height: var(--header-height);
+  overflow: hidden;
+  .to-map-button {
+    margin: 15px 0px 0px 15px;
+    padding: 0px;
+    min-width: var(--regular-btn-size);
+    width: var(--regular-btn-size);
+    height: var(--regular-btn-size);
+    border-radius: 6px;
+    outline: 1px solid var(--theme-outline-color);
+    mat-icon {
+      padding: 0;
+      margin: 0;
+      width: 24px;
+      height: 24px;
+      svg {
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+main {
+  //   background-color: burlywood;
+  display: block;
+  min-width: 100%;
+  height: calc(100% - var(--header-height) - var(--footer-height));
+  overflow: auto;
+  .greeting-container {
+    padding: 10px 10px 10px 5vw;
+  }
+}
+
+footer {
+  //   background-color: yellow;
+  display: block;
+  min-width: 100%;
+  height: var(--header-height);
+  overflow: hidden;
+}

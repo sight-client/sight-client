@@ -1,0 +1,59 @@
+@use "@angular/material" as mat;
+@use "sass:list";
+
+/* ---------------------------- themes palettes (start) --------------------------- */
+$theme-poletts-list: (
+  "azure" "blue" mat.$azure-palette mat.$blue-palette,
+  "rose" "red" mat.$rose-palette mat.$red-palette,
+  "magenta" "violet" mat.$magenta-palette mat.$violet-palette,
+  "cyan" "orange" mat.$cyan-palette mat.$orange-palette
+);
+
+// Предустановленные пары палитр Angular Material (v.20.2.0, как на их сайте):
+// mat.$rose-palette
+// mat.$red-palette
+
+// mat.$azure-palette
+// mat.$blue-palette
+
+// mat.$magenta-palette
+// mat.$violet-palette
+
+// mat.$cyan-palette
+// mat.$orange-palette
+
+// Непредсказуемы (v.20.2.0) при dark mode (как и "orange"):
+// mat.$green-palette
+// mat.$yellow-palette
+// mat.$chartreuse-palette
+// mat.$spring-green-palette
+
+$default-theme-palettes-for-css: #{list.nth(
+    list.nth($theme-poletts-list, 1),
+    1
+  )}-#{list.nth(list.nth($theme-poletts-list, 1), 2)};
+
+$theme-palettes-for-css: "";
+@for $i from 1 through list.length($theme-poletts-list) {
+  @if ($i != list.length($theme-poletts-list)) {
+    $theme-palettes-for-css: #{$theme-palettes-for-css +
+      list.nth(list.nth($theme-poletts-list, $i), 1)}-#{list.nth(
+        list.nth($theme-poletts-list, $i),
+        2
+      ) +
+      " "};
+  } @else {
+    $theme-palettes-for-css: #{$theme-palettes-for-css +
+      list.nth(list.nth($theme-poletts-list, $i), 1)}-#{list.nth(
+        list.nth($theme-poletts-list, $i),
+        2
+      )};
+  }
+}
+
+:root {
+  --theme-palettes-default: #{$default-theme-palettes-for-css}; // "azure-blue" by default
+  --theme-palettes-list: #{$theme-palettes-for-css}; // "azure-blue rose-red magenta-violet cyan-orange"  by default
+}
+
+/* ---------------------------- themes palettes (end) ----------------------------- */

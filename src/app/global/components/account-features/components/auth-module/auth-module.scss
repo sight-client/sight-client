@@ -1,0 +1,49 @@
+.user-registration-container,
+.user-login-container {
+  --form-items-margin: 10px;
+  width: 400px;
+  overflow: auto;
+  mat-form-field {
+    margin-inline: var(--form-items-margin);
+    width: calc(100% - var(--form-items-margin) * 2);
+    .mdc-button {
+      min-width: 150px;
+    }
+  }
+  .email-input-in-reg-form:placeholder-shown {
+    opacity: 0.5;
+  }
+  .reg-form-buttons-container,
+  .log-form-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-self: center;
+    justify-content: space-between;
+    margin: var(--form-items-margin);
+    width: calc(100% - var(--form-items-margin) * 2);
+  }
+}
+
+.auth-module-input-success {
+  color: var(--theme-focus-text-color);
+}
+
+.auth-module-errors-info-conteiner {
+  width: 100%;
+}
+
+// ------------------------------------------------------ //
+
+.user-registration-container-enter-animation,
+.user-login-container-enter-animation {
+  animation: fade-enter 0.8s;
+}
+
+@keyframes fade-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

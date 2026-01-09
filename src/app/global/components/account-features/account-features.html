@@ -1,0 +1,33 @@
+<div class="auth-module-main-buttons-container">
+  @if ($userDataService.userName()) {
+    <button
+      class="user-main-button"
+      title="Личный кабинет"
+      matButton="tonal"
+      [matMenuTriggerFor]="userMenu"
+      [attr.aria-label]="'User menu'"
+    >
+      <!-- account_box, portrait, person, person_outline -->
+      <mat-icon>account_box</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button class="user-name-in-user-menu" mat-menu-item disabled style="opacity: 0.8">
+        <span>{{ $userDataService.userName() }}</span>
+      </button>
+      <button mat-menu-item (click)="this.$userDataService.getLogoutSubscription()">
+        <mat-icon>exit_to_app</mat-icon>
+        <span style="text-decoration: underline">Выйти из профиля</span>
+      </button>
+    </mat-menu>
+  } @else {
+    <button
+      class="user-main-button"
+      title="Войти в профиль"
+      matButton="tonal"
+      (click)="openAuthModal($event)"
+      [attr.aria-label]="'User menu'"
+    >
+      <mat-icon style="transform: rotate(90deg)">open_in_browser</mat-icon>
+    </button>
+  }
+</div>

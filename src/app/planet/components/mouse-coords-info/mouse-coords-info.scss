@@ -1,0 +1,90 @@
+.mouse-coords-cursor-field {
+  --cursor-field-max-width: 110px;
+  position: absolute;
+  z-index: 2;
+  max-width: var(--cursor-field-max-width);
+  margin: 10px;
+  padding: 2px;
+  font: var(--theme-font-small);
+  color: rgba(255, 255, 255, 0.616);
+  background: rgba(42, 42, 42, 0.5);
+  border-radius: 2px;
+  user-select: none;
+  pointer-events: none;
+  overflow: hidden;
+}
+.mouse-coords-cursor-field-enter-animation {
+  animation: fade-enter 0.4s;
+}
+@keyframes fade-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.mouse-coords-cursor-field-leave-animation {
+  animation: fade-leave 0.4s;
+}
+@keyframes fade-leave {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+// ------------------------------------------------------------------------- //
+.mouse-coords-cursor-field p,
+.coords-description-main p {
+  margin: 1px;
+  padding: 1px;
+}
+// ------------------------------------------------------------------------- //
+.coords-container-main {
+  position: absolute;
+  z-index: 101;
+  left: 15px;
+  bottom: 15px;
+  width: 130px;
+  .coords-container-form-field {
+    width: 100%;
+  }
+  .coords-container-form-field:not(.mat-focused) {
+    outline: 1px solid var(--theme-outline-color);
+  }
+  .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+    background-color: var(--theme-ui-background-color);
+  }
+}
+.coords-description-main {
+  width: calc(100% - 5px * 2);
+  margin-bottom: 5px;
+  padding: 5px;
+  border-radius: 4px;
+  user-select: none;
+  overflow: hidden;
+  outline: 1px solid var(--theme-outline-color);
+}
+// .coords-description-main-enter-animation {
+//   animation: fade-enter 0.4s;
+// }
+// .coords-description-main-leave-animation {
+//   animation: fade-leave 0.4s;
+// }
+.mouse-coords-cursor-field-display-option {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+.mouse-coords-cursor-field-display-option svg:last-child {
+  fill: white;
+  stroke: black;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1px;
+  margin-left: -8px;
+  margin-bottom: -12px;
+}

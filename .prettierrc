@@ -1,0 +1,23 @@
+{
+  "printWidth": 80,
+  "singleQuote": true,
+  "singleAttributePerLine": true,
+  "semi": true,
+  "trailingComma": "all",
+  "brackedSpacing": true,
+  "brackedSameLine": false,
+  "jsxBrackedSameLine": false,
+  "quoteProps": "preserve",
+  "arrowParents": "always",
+  "htmlWhitespaceSensitivity": "strict",
+  "overrides": [
+    {
+      "files": ["*.html"],
+      "options": {
+        "printWidth": 200,
+        "singleQuote": false,
+        "singleAttributePerLine": false
+      }
+    }
+  ]
+}

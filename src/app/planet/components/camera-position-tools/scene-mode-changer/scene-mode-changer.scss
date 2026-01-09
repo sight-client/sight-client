@@ -1,0 +1,21 @@
+.scene-mode-changer-button {
+  position: absolute;
+  z-index: 101;
+  right: 116px;
+  top: 15px;
+  padding: 0px;
+  min-width: var(--regular-btn-size);
+  width: var(--regular-btn-size);
+  height: var(--regular-btn-size);
+  border-radius: 6px;
+  outline: 1px solid var(--theme-outline-color);
+  mat-icon {
+    padding: 0;
+    margin: 0;
+    width: 24px;
+    height: 24px;
+    svg {
+      opacity: 0.8;
+    }
+  }
+}

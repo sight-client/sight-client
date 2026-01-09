@@ -1,0 +1,281 @@
+@if (!$userDataService.userName()) {
+  <mat-dialog-content style="padding: 0; max-height: max-content; overflow: hidden">
+    @if (showLoginForm()) {
+      <mat-card
+        class="user-login-container"
+        appearance="filled"
+        animate.enter="user-login-container-enter-animation"
+      >
+        <mat-card-header>
+          <mat-card-title>Вход</mat-card-title>
+          <mat-card-subtitle>Введите свои учетные данные</mat-card-subtitle>
+        </mat-card-header>
+        <form [formGroup]="userLoginForm" (ngSubmit)="submitLogin($event)">
+          <mat-form-field appearance="fill">
+            <mat-label [class.auth-module-input-success]="!loginLogFormControl.errors"
+              >Логин</mat-label
+            >
+            <input
+              #firstLogFormInput
+              autofocusDirective
+              type="text"
+              required
+              matInput
+              formControlName="login"
+              [errorStateMatcher]="authModuleInputsMatcher"
+            />
+            @if (loginLogFormControl.hasError('required')) {
+              <mat-error>Заполните обязательное поле</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label [class.auth-module-input-success]="!passwordLogFormControl.errors"
+              >Пароль</mat-label
+            >
+            <input
+              [type]="passwordLogFormIsHide() ? 'password' : 'text'"
+              required
+              matInput
+              formControlName="password"
+              [errorStateMatcher]="authModuleInputsMatcher"
+            />
+            <button
+              matIconButton
+              matSuffix
+              type="button"
+              (click)="hidePasswordLogForm($event)"
+              [attr.aria-label]="'Hide password'"
+              [attr.aria-pressed]="passwordLogFormIsHide()"
+            >
+              <mat-icon>
+                {{ passwordLogFormIsHide() ? 'visibility_off' : 'visibility' }}
+              </mat-icon>
+            </button>
+            @if (passwordLogFormControl.hasError('required')) {
+              <mat-error>Заполните обязательное поле</mat-error>
+            }
+          </mat-form-field>
+          <mat-dialog-actions
+            style="
+              display: flex;
+              flex-wrap: wrap;
+              justify-content: space-between;
+              margin: var(--form-items-margin);
+              width: calc(100% - var(--form-items-margin) * 2);
+              padding: 0;
+              box-sizing: unset;
+              border: none;
+              min-height: auto;
+            "
+          >
+            <button
+              mat-dialog-close
+              type="button"
+              [disabled]="logFormIsDisabled()"
+              matButton="tonal"
+              style="min-width: 8em"
+            >
+              Закрыть
+            </button>
+            <button
+              type="button"
+              [disabled]="logFormIsDisabled()"
+              (click)="openRegForm($event)"
+              matButton="tonal"
+              style="min-width: 8em"
+            >
+              Регистрация
+            </button>
+            <button
+              type="submit"
+              matButton="filled"
+              style="min-width: 8em"
+              (focusout)="focusOnFirstInput(firstLogFormInputRef)"
+            >
+              Вход
+            </button>
+          </mat-dialog-actions>
+        </form>
+      </mat-card>
+    }
+    @if (showRegForm()) {
+      <mat-card
+        class="user-registration-container"
+        appearance="filled"
+        animate.enter="user-registration-container-enter-animation"
+      >
+        <mat-card-header>
+          <mat-card-title>Регистрация</mat-card-title>
+          <mat-card-subtitle>Заполните все поля, отмеченные звездочкой</mat-card-subtitle>
+        </mat-card-header>
+        <form [formGroup]="userRegForm" (ngSubmit)="submitRegistration($event)">
+          <mat-form-field appearance="fill">
+            <mat-label [class.auth-module-input-success]="!loginRegFormControl.errors"
+              >Логин</mat-label
+            >
+            <input
+              #firstRegFormInput
+              autofocusDirective
+              type="text"
+              required
+              matInput
+              formControlName="login"
+              [errorStateMatcher]="authModuleInputsMatcher"
+            />
+            @if (loginRegFormControl.hasError('required')) {
+              <mat-error>Заполните обязательное поле</mat-error>
+            }
+            @if (
+              loginRegFormControl.hasError('minlength') && !loginRegFormControl.hasError('required')
+            ) {
+              <mat-error>Логин должен содержать минимум 3 символа</mat-error>
+            }
+            @if (loginRegFormControl.hasError('maxlength')) {
+              <mat-error>Логин должен содержать максимум 50 символов</mat-error>
+            }
+            @if (
+              loginRegFormControl.hasError('pattern') &&
+              !loginRegFormControl.hasError('minlength') &&
+              !loginRegFormControl.hasError('maxlength') &&
+              !loginRegFormControl.hasError('required')
+            ) {
+              <mat-error
+                style="cursor: help"
+                title="Логин может содержать латиницу, цифры, дефис и нижнее подчеркивание"
+                >Невалидный логин</mat-error
+              >
+            }
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label [class.auth-module-input-success]="!passwordRegFormControl.errors"
+              >Пароль</mat-label
+            >
+            <input
+              [type]="passwordRegFormIsHide() ? 'password' : 'text'"
+              required
+              matInput
+              formControlName="password"
+              [errorStateMatcher]="authModuleInputsMatcher"
+            />
+            <button
+              matIconButton
+              matSuffix
+              type="button"
+              (click)="hidePasswordRegForm($event)"
+              [attr.aria-label]="'Hide password'"
+              [attr.aria-pressed]="passwordRegFormIsHide()"
+            >
+              <mat-icon>
+                {{ passwordRegFormIsHide() ? 'visibility_off' : 'visibility' }}
+              </mat-icon>
+            </button>
+            @if (passwordRegFormControl.hasError('required')) {
+              <mat-error>Заполните обязательное поле</mat-error>
+            }
+            @if (
+              passwordRegFormControl.hasError('minlength') &&
+              !passwordRegFormControl.hasError('required')
+            ) {
+              <mat-error>Пароль должен содержать минимум 8 символов</mat-error>
+            }
+            @if (passwordRegFormControl.hasError('maxlength')) {
+              <mat-error>Пароль должен содержать максимум 50 символов</mat-error>
+            }
+            @if (
+              passwordRegFormControl.hasError('pattern') &&
+              !passwordRegFormControl.hasError('minlength') &&
+              !passwordRegFormControl.hasError('maxlength') &&
+              !passwordRegFormControl.hasError('required')
+            ) {
+              <mat-error
+                style="cursor: help"
+                title="Пароль должен содержать минимум: одну цифру, одну заглавную, одну строчную латинские буквы и один разрешенный специальный символ"
+                >Невалидный пароль</mat-error
+              >
+            }
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label [class.auth-module-input-success]="!firstNameFormControl.errors"
+              >Имя</mat-label
+            >
+            <input
+              type="text"
+              required
+              matInput
+              formControlName="firstName"
+              [errorStateMatcher]="authModuleInputsMatcher"
+            />
+            @if (firstNameFormControl.hasError('required')) {
+              <mat-error>Заполните обязательное поле</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label [class.auth-module-input-success]="!lastNameFormControl.errors"
+              >Фамилия</mat-label
+            >
+            <input
+              type="text"
+              required
+              matInput
+              formControlName="lastName"
+              [errorStateMatcher]="authModuleInputsMatcher"
+            />
+            @if (lastNameFormControl.hasError('required')) {
+              <mat-error>Заполните обязательное поле</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label>Организация</mat-label>
+            <input type="text" matInput formControlName="organization" />
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label>Контактный телефон</mat-label>
+            <input type="text" matInput formControlName="telephone" />
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label [class.auth-module-input-success]="!emailFormControl.errors"
+              >Email</mat-label
+            >
+            <input
+              class="email-input-in-reg-form"
+              type="email"
+              required
+              placeholder="user123@mailbox.su"
+              matInput
+              formControlName="email"
+              [errorStateMatcher]="authModuleInputsMatcher"
+            />
+            <mat-hint>(только для важных уведомлений)</mat-hint>
+            @if (emailFormControl.hasError('required')) {
+              <mat-error>Заполните обязательное поле</mat-error>
+            }
+            @if (emailFormControl.hasError('email') && !emailFormControl.hasError('required')) {
+              <mat-error>Невалидный email, используйте подходящую конструкцию</mat-error>
+            }
+          </mat-form-field>
+          <div class="reg-form-buttons-container">
+            <button
+              type="button"
+              [disabled]="regFormIsDisabled()"
+              (click)="closeRegForm($event)"
+              (focusout)="focusOnFirstInputAlt(firstRegFormInputRef, $event.target)"
+              matButton="tonal"
+              style="min-width: 8em"
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              (focusout)="focusOnFirstInput(firstRegFormInputRef)"
+              matButton="filled"
+              [disabled]="!userRegForm.valid"
+              style="min-width: 8em"
+            >
+              Отправить
+            </button>
+          </div>
+        </form>
+      </mat-card>
+    }
+  </mat-dialog-content>
+}

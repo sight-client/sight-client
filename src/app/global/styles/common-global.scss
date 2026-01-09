@@ -1,0 +1,199 @@
+@charset 'utf-8';
+
+// Путь до дирректории импорта общих scss-файлов находится в angular.json в опции:
+// projects.[имя проекта].architect.build.options.stylePreprocessorOptions.includePaths[]
+@use './fonts-global';
+@use './variables-global';
+@use './extends-global';
+@use './mixins-global';
+@use './functions-global';
+@use './animations-global';
+@use './media-breakpoints-global';
+
+// @use "sass:map";
+// @use "sass:list";
+
+:root {
+  color-scheme: light dark; /* light || dark || light dark (user's system settings) */
+
+  // -------------------------------------------------------------- //
+  // Глобальные переменные для нативных html-элементов
+  --theme-font-medium: var(--mat-sys-body-medium);
+  --theme-font-large: var(--mat-sys-body-large);
+  --theme-font-small: var(--mat-sys-body-small);
+  --theme-color: var(--mat-sys-on-surface);
+
+  --theme-ui-background-color: var(
+    --mat-button-tonal-container-color,
+    var(--mat-sys-secondary-container)
+  );
+  --theme-inputs-background-color: var(--mat-sys-surface-container);
+  --theme-container-background-color: var(--mat-sys-surface-variant);
+  --theme-focus-background-color: var(--mat-sys-surface-bright);
+  --theme-focus-text-color: var(--mat-sys-primary);
+  --theme-border-color: var(--mat-sys-outline);
+  --theme-outline-color: var(--mat-sys-outline);
+  --theme-box-shadow: var(--mat-select-container-elevation-shadow);
+
+  --regular-btn-size: 32px;
+  // -------------------------------------------------------------- //
+  .medium-font {
+    font: var(--theme-font-medium);
+  }
+  .large-font {
+    font: var(--theme-font-large);
+  }
+  .small-font {
+    font: var(--theme-font-small);
+  }
+  .huge-font {
+    font: var(--mat-sys-body-medium);
+    font-size: 16pt;
+  }
+  .theme-ui-container {
+    color: var(--theme-color);
+    background-color: var(--theme-ui-background-color);
+  }
+  .hiden-element-quickly {
+    display: none;
+  }
+  .hiden-element {
+    opacity: 0;
+    transition: opacity 300ms ease-in-out;
+  }
+}
+
+.light-mode {
+  color-scheme: light;
+}
+
+.dark-mode {
+  color-scheme: dark;
+}
+
+/* Отработка медиа запросов, зависящик от размера экрана: */
+@include media-breakpoints-global.desktop-large {
+  // body {
+  //     outline: 1rem solid orange;
+  // }
+}
+
+@include media-breakpoints-global.desktop-small {
+  // body {
+  //     outline: 1rem solid green;
+  // }
+}
+
+@include media-breakpoints-global.laptop {
+  // body {
+  //     outline: 1rem solid yellow;
+  // }
+}
+
+@include media-breakpoints-global.tablet {
+  // body {
+  //     outline: 1rem solid gray;
+  // }
+}
+
+@include media-breakpoints-global.mobile {
+  // body {
+  //     outline: 1rem solid pink;
+  // }
+}
+
+// /* -------------------------------------------------------------------------------------------------------- */
+// /* ---------------------------------- Пример возможностей scss (шпаргалка) -------------------------------- */
+// /* -------------------------------------------------------------------------------------------------------- */
+
+// /* Группировка стилей */
+// $theme-mode-var-example: 'light';
+// $interpolation-example: 'main-link';
+// $map-example: (
+//     'margin': 1rem,
+//     'border': 5px solid black,
+// );
+
+// @if($theme-mode-var-example =='light') {
+//     .landing-#{$interpolation-example}-container {
+//         /* background-image: url('#{$interpolation-example}'); */
+//         margin: map.get($map-example, 'margin');
+//         border: map.get($map-example, 'border');
+
+//         ul {
+//             list-style-type: variables.$variable-example;
+
+//             .landing-main-link {
+//                 @extend %extend-example;
+//                 @include mixins.mixin-example(arial, green);
+//             }
+//         }
+//     }
+// }
+
+// @else if ($theme-mode-var-example == false) {
+//     /* ... */
+// }
+
+// @else {
+//     /* ... */
+// }
+
+// /* Генерация стилей */
+// $list-example: bolder, bold, normal, lighter;
+
+// @each $value in $list-example {
+//     .font-#{$value} {
+//         font-weight: $value;
+//     }
+// }
+
+// $list-example-btns: (
+//     primary blueviolet white,
+//     success palegreen black,
+//     danger indianred white,
+//     default white black,
+// );
+
+// @each $name, $bg-color, $font-color in $list-example-btns {
+//     .btn-#{$name} {
+//         background-color: $bg-color;
+//         color: $font-color;
+//     }
+
+// }
+
+// /* Переиспользование генерированного значения */
+// $some-condition: 0rem;
+
+// @function custom-sum($some-defauld-val: 0rem, $vals...) {
+//     @if (list.length($vals) !=0) {
+//         $sum: 0;
+
+//         @if ($some-condition == 0rem) {
+//             @for $i from 1 through list.length($vals) {
+//                 $sum: $sum + list.nth($vals, $i);
+//             }
+//         }
+
+//         @else {
+//             @each $val in $vals {
+//                 $sum: $sum + $val + $some-condition;
+//             }
+//         }
+
+//         @return $sum;
+//     }
+
+//     @else {
+//         @return 1rem
+//     }
+// }
+
+// $custom-height-one: 4rem;
+// $custom-height-two: 1rem;
+
+// .landing-main-link-container {
+//     outline: 3px solid red;
+//     height: custom-sum(undefined, $custom-height-one, $custom-height-two);
+// }

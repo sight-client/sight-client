@@ -1,0 +1,51 @@
+<div #mainOkoContainer>
+  <div
+    id="cesiumContainer"
+    appCesiumDirective
+    [style.cursor]="
+      $measureService.handler() !== undefined || $measureService.measuresBlocker() === true
+        ? 'crosshair'
+        : 'auto'
+    "
+  ></div>
+  <div id="okoUiContainer">
+    @defer (when $viewerService.viewerHasLoaded() === true) {
+      <camera-height-tool />
+      <znemz-navigation-mixin />
+      @defer (when $mouseCoordsService.underMouseEntityHasLoaded() === true) {
+        <mouse-coords-info />
+      }
+      @defer (when $measureService.measureServiceHasStarted() === true) {
+        <measuring-tools />
+      }
+    }
+    <scene-mode-changer />
+    <theme-changer />
+
+    <nav class="map-left-navbar-wrapper">
+      <button
+        title="Контакты"
+        class="to-landing-page-button"
+        matButton="tonal"
+        (click)="openContacts($event)"
+      >
+        <!-- routerLink="/landing" -->
+        <mat-icon>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8z" />
+          </svg>
+        </mat-icon>
+      </button>
+      <!-- <account-features /> -->
+    </nav>
+
+    <div id="osmCopyright">
+      <p>
+        Map data from
+        <a href="https://www.openstreetmap.org/copyright" title="OpenStreetMap copyright rules"
+          >OpenStreetMap</a
+        >
+      </p>
+    </div>
+  </div>
+</div>

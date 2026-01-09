@@ -1,0 +1,43 @@
+$breakpoints: (
+  'xxxl': 2560px,
+  // /* Ширина по умолчанию */
+  // 'xxl': 1920px,
+  'xl': 1200px,
+  'l': 1024px,
+  'm': 767px,
+  's': 576px,
+);
+
+@mixin desktop-large() {
+  @media (min-width: map-get($breakpoints, 'xxxl')) {
+    @content;
+  }
+}
+
+// @mixin desktop-medium() {
+//     @media (min-width: map-get($breakpoints, 'xxl')) {
+//         @content;
+//     }
+// }
+
+@mixin desktop-small() {
+  @media (max-width: map-get($breakpoints, 'xl')) {
+    @content;
+  }
+}
+
+@mixin laptop() {
+  @media (max-width: map-get($breakpoints, 'l')) {
+    @content;
+  }
+}
+@mixin tablet() {
+  @media (max-width: map-get($breakpoints, 'm')) {
+    @content;
+  }
+}
+@mixin mobile() {
+  @media (max-width: map-get($breakpoints, 's')) {
+    @content;
+  }
+}

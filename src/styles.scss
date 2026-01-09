@@ -1,0 +1,15 @@
+@charset 'utf-8';
+// reset- и normalize-библиотеки стилей не подключены по причине использования библиотеки Angular Material
+
+// Дирректория для сокращения путей импорта общих scss-файлов находится в angular.json в опции
+// projects.[имя проекта].architect.build.options.stylePreprocessorOptions.includePaths[]:
+// [
+//     "src/app/global/styles",
+//     "src/app/planet/common/styles",
+// ],
+// где и находятся данные scss-файлы:
+@use 'angular-material-global';
+@use 'angular-material-core';
+@use 'common-global';
+@use 'common-core';
+// (переход по "ctrl + ЛКМ" не работает - это норма)
