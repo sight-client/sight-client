@@ -213,15 +213,19 @@ export class MouseCoordsService {
           viewerContainer.offsetHeight / 2,
         );
       }
-      /* Создаем луч от камеры до targetPoint (курсора мыши - аргумента в качестве windowPosition) */
-      const ray: Cesium.Ray | undefined = this.$viewerService.viewer.camera.getPickRay(targetPoint);
-      if (ray === undefined) throw new Error('target point is not correct');
+      // deprecated (страдает точность у поверхности при отсутствии кастомного рельефа)
+      // /* Создаем луч от камеры до targetPoint (курсора мыши - аргумента в качестве windowPosition) */
+      // const ray: Cesium.Ray | undefined = this.$viewerService.viewer.camera.getPickRay(targetPoint);
+      // if (ray === undefined) throw new Error('target point is not correct');
 
-      /* Находим пересечение луча и отрендеренной поверхности гдобуса */
-      const cartesian: Cesium.Cartesian3 | undefined = this.$viewerService.viewer.scene.globe.pick(
-        ray,
-        this.$viewerService.viewer.scene,
-      );
+      // /* Находим пересечение луча и отрендеренной поверхности гдобуса */
+      // const cartesian: Cesium.Cartesian3 | undefined = this.$viewerService.viewer.scene.globe.pick(
+      //   ray,
+      //   this.$viewerService.viewer.scene,
+      // );
+      // Современное решение (проверено, значения совпадают):
+      const cartesian: Cesium.Cartesian3 =
+        this.$viewerService.viewer.scene.pickPosition(targetPoint);
       // Если курсор на холсте, но не на эллипсоиде
       if (cartesian === undefined) {
         this.clearCoords();

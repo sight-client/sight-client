@@ -34,15 +34,14 @@ export class RoutingErrorsListener {
       } else if (event instanceof NavigationCancel) {
         console.warn('Navigation cancelled:', event.reason);
         if (event.reason === `${NavigationCancellationCode.GuardRejected}`) {
-          this.errorMessage.set(
-            'Access denied. Please check your permissions.',
-          );
+          this.errorMessage.set('Access denied. Please check your permissions.');
         }
       }
     });
   }
   dismissError() {
-    this.router.navigateByUrl('/client', {
+    // this.router.navigateByUrl('/client', {
+    this.router.navigateByUrl('', {
       replaceUrl: true,
     });
     this.errorMessage.set('');

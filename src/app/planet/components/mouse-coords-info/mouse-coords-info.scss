@@ -67,12 +67,12 @@
   overflow: hidden;
   outline: 1px solid var(--theme-outline-color);
 }
-// .coords-description-main-enter-animation {
-//   animation: fade-enter 0.4s;
-// }
-// .coords-description-main-leave-animation {
-//   animation: fade-leave 0.4s;
-// }
+.coords-description-main-enter-animation {
+  animation: fade-enter 0.4s;
+}
+.coords-description-main-leave-animation {
+  animation: fade-leave 0.4s;
+}
 .mouse-coords-cursor-field-display-option {
   display: flex;
   align-items: center;
