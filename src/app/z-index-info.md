@@ -7,7 +7,8 @@
 <!-- 1 - #cesiumContainer - не выставлять (см. planet.scss) -->
 
 2 - .mouse-position-coords
-100 - #okoUiContainer
+3 - #crosshairForMobiles
+100 - #sightUiContainer
 101 - .coords-container-main, .navigationMixinDiv, .theme-changer-wrapper, .measuring-tools-container, .cesium-viewer-fullscreenContainer, camera-height-container, #distanceLegendDiv, .scene-mode-changer-button, .left-navbar-container
 997 - mat-spinner (cursor-progress-spiner.ts)
 998 - .routing-spinner

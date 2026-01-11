@@ -4,6 +4,7 @@ import * as Cesium from 'cesium';
 import ViewerCesiumNavigationMixin from '@znemz/cesium-navigation';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
+import { DeviceService } from '@global/services/device-service/device.service';
 
 @Component({
   selector: 'znemz-navigation-mixin',
@@ -14,9 +15,13 @@ import { ViewerService } from '@/common/services/viewer-service/viewer.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ZnemzNavigationMixin {
-  constructor(private $viewerService: ViewerService) {
+  constructor(
+    private $viewerService: ViewerService,
+    private $deviceService: DeviceService,
+  ) {
     effect(() => {
-      if (this.$viewerService.viewerHasLoaded()) {
+      if (this.$viewerService.viewerHasLoaded() && !this.$deviceService.isMobile) {
+        // не работает на точпадах, даже с эмуляцией событий мыши
         this.setNavMixin();
         this.replaceNavMixin();
         this.translateNavMixin();
@@ -27,6 +32,12 @@ export class ZnemzNavigationMixin {
           'cesium-widget-cesiumNavigationContainer',
         )?.[0];
         if (navigationMixinDiv) navigationMixinDiv.remove();
+        const fullScreenBtn: Element | null = document.getElementsByClassName(
+          'cesium-viewer-fullscreenContainer',
+        )?.[0];
+        if (fullScreenBtn) {
+          (fullScreenBtn as HTMLElement).style.right = '15px';
+        }
       }
     });
   }
@@ -145,12 +156,12 @@ export class ZnemzNavigationMixin {
     )?.[0] as HTMLElement;
     function mouseUpCallback(): void {
       document.body.style.cursor = 'auto';
-      document.removeEventListener('mouseup', mouseUpCallback);
+      // document.removeEventListener('mouseup', mouseUpCallback);
     }
     if (compassRingEl) {
       compassRingEl.addEventListener('mousedown', () => {
         document.body.style.cursor = 'grabbing';
-        document.addEventListener('mouseup', mouseUpCallback);
+        document.addEventListener('mouseup', mouseUpCallback, { once: true });
       });
     }
     const compassGyroEl: HTMLElement | null = document.getElementsByClassName(
@@ -159,7 +170,7 @@ export class ZnemzNavigationMixin {
     if (compassGyroEl) {
       compassGyroEl.addEventListener('mousedown', () => {
         document.body.style.cursor = 'move';
-        document.addEventListener('mouseup', mouseUpCallback);
+        document.addEventListener('mouseup', mouseUpCallback, { once: true });
       });
     }
   }

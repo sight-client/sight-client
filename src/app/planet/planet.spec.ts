@@ -3,7 +3,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 
 import { Planet } from './planet';
 
-describe('MainOko', () => {
+describe('MainSight', () => {
   let component: Planet;
   let fixture: ComponentFixture<Planet>;
 

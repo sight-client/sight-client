@@ -13,7 +13,8 @@ Current project features:
 <li>Map clearing tools;</li>
 <li>Camera control tools;</li>
 <li>Theme control (light/dark, plus four color palettes);</li>
-<li>Fullscreen view.</li>
+<li>Fullscreen view;</li>
+<li>Supporting for mobile (touchpad) devices.</li>
 </ul>
 Also if I have time I plan to add: area measurements, searching, navigation, L10n (eng), loading and visualizing user's raster, vector, and 3D images.<br />
 <br />

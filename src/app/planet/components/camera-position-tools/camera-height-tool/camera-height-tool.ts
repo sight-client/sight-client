@@ -8,8 +8,8 @@ import { ViewerService } from '@/common/services/viewer-service/viewer.service';
   imports: [],
   template: `
     <div class="camera-height-container">
-      <span>Высота наблюдения:&nbsp;</span
-      ><input
+      <span class="camera-height-text">Высота наблюдения:&nbsp;</span>
+      <input
         type="number"
         name="camera-height-input"
         min="0.1"
@@ -95,11 +95,11 @@ export class CameraHeightTool implements OnDestroy {
     return height;
   }
 
-  protected async camFly(
+  protected camFly(
     km: number,
     duration: number = 1.0,
     pitch: number | undefined = undefined,
-  ): Promise<void> {
+  ): void {
     try {
       if (typeof km !== 'number') return;
       let height: number = 1;
@@ -110,7 +110,7 @@ export class CameraHeightTool implements OnDestroy {
       const camHeading = this.$viewerService.viewer.camera.heading;
       const camPitch = pitch || this.$viewerService.viewer.camera.pitch;
       const camRoll = this.$viewerService.viewer.camera.roll;
-      await this.$viewerService.viewer.camera.flyTo({
+      this.$viewerService.viewer.camera.flyTo({
         destination: Cesium.Cartesian3.fromRadians(camLongitude, camLatitude, height),
         maximumHeight: height,
         orientation: {

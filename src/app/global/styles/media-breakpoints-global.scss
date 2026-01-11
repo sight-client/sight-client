@@ -5,7 +5,9 @@ $breakpoints: (
   'xl': 1200px,
   'l': 1024px,
   'm': 767px,
-  's': 576px,
+  // 's': 576px,
+  's': 520px,
+  'tiny': 320px,
 );
 
 @mixin desktop-large() {
@@ -38,6 +40,11 @@ $breakpoints: (
 }
 @mixin mobile() {
   @media (max-width: map-get($breakpoints, 's')) {
+    @content;
+  }
+}
+@mixin tiny() {
+  @media (max-width: map-get($breakpoints, 'tiny')) {
     @content;
   }
 }

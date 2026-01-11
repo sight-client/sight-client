@@ -5,16 +5,35 @@ import { fromEvent, map, Observable, Subscription } from 'rxjs';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { CoordSystems } from '@/common/lib/coord-sistems.lib';
 import type { CRS } from '@/common/lib/coord-sistems.lib';
+import { DeviceService } from '@global/services/device-service/device.service';
 
 @Injectable()
 export class MouseCoordsService {
-  constructor(private $viewerService: ViewerService) {}
+  constructor(
+    private $viewerService: ViewerService,
+    private $deviceService: DeviceService,
+  ) {}
 
   // Стартует вместе с viewer'ом и инструментами правой панели в директиве app-cesium.directive.ts
   public async startMouseCoordsService(): Promise<void> {
+    this.canvas = this.$viewerService?.viewer?.scene?.canvas;
+    if (!this.canvas) throw new Error('Scene canvas is undefined!');
+    this.canvasCenterX = this.canvas.scrollWidth / 2;
+    this.canvasCenterY = this.canvas.scrollHeight / 2;
     await this.setUnderMouseEntity();
-    this.mouseMoveSubscription = this.getMouseMoveSubscription();
-    this.mouseWeelSubscription = this.getMouseWeelSubscription();
+    if (!this.$deviceService.isMobile) {
+      this.mouseMoveSubscription = this.getMouseMoveSubscription();
+      this.$viewerService.viewer.camera.changed.addEventListener(() =>
+        this.cursorOnViewerCanvas.set(false),
+      );
+    } else {
+      this.touchMoveSubscription = this.getTouchMoveSubscription();
+      // viewer.camera.changed listener не срабатывает первый и последующий каждый четвертый раз
+      this.$viewerService.viewer.camera.moveEnd.addEventListener(
+        this.getCursorOnSurface.bind(this),
+      );
+    }
+    // this.$viewerService.viewer.camera.changed.addEventListener(this.clearCoords.bind(this));
   }
 
   // Создание cesium-сущности под курсором мыши для получения его координат.
@@ -63,7 +82,7 @@ export class MouseCoordsService {
     try {
       if (!this.watchedContainer)
         throw new Error('Planet container is not defined. Mouse move subscription was failed!');
-      const mouseMove$: Observable<Event> = fromEvent(this.watchedContainer, 'mousemove');
+      const mouseMove$: Observable<Event> = fromEvent(this.watchedContainer, 'mousemove'); // на 'wheel' нет смысла по
       return mouseMove$
         .pipe(
           // throttleTime(100), // МЕШАЕТ ИНСТРУМЕНТАМ РАБОТЫ С КАРТОЙ (например, нарушается позиционирование точек)
@@ -81,19 +100,20 @@ export class MouseCoordsService {
       throw error;
     }
   }
-  // Подписка на движение колесика мыши над эллипсоидом (оформляется при старте сервиса)
-  declare private mouseWeelSubscription: Subscription;
-  private getMouseWeelSubscription(): Subscription {
+
+  // Подписка на движение пальца (на точпаде) по эллипсоиду (оформляется при старте сервиса)
+  declare private touchMoveSubscription: Subscription;
+  private getTouchMoveSubscription(): Subscription {
     try {
       if (!this.watchedContainer)
-        throw new Error('Planet container is not defined. Mouse wheel subscription was failed!');
-      const mouseWeel$: Observable<Event> = fromEvent(this.watchedContainer, 'wheel');
-      return mouseWeel$
+        throw new Error('Planet container is not defined. Long touch subscription was failed!');
+      const touchMove$: Observable<Event> = fromEvent(this.watchedContainer, 'touchmove');
+      return touchMove$
         .pipe(
           // Пропускает только один результат в указанный промежуток времени
           // throttleTime(100),
           map((event) => {
-            return this.getCursorOnSurface(event as MouseEvent);
+            return this.getCursorOnSurface(event as TouchEvent);
           }),
         )
         .subscribe((newPosition: Cesium.Cartesian3 | undefined) => {
@@ -109,115 +129,103 @@ export class MouseCoordsService {
 
   // Уусловия показа поля с координатами (в левом нижнем углу)
   public cursorOnViewerCanvas = signal<boolean>(false);
-  public cursorOnCoordsContainer = signal<boolean>(false);
+  // В настоящий момент не требуется
+  // public cursorOnCoordsContainer = signal<boolean>(false);
   // Условие, отключающее расчет координат при нахождении курсора на этом поле
   public calculationBlocker = signal<boolean>(false);
-  // Фиксация максимальных значений параметров изменяющегося по высоте контейнера
-  private minTop: number = 1000000;
-  private maxHeight: number = 1;
+  // Фиксация положения курсора мыши для использования другого рода событиями
+  private cursorX: number = 1;
+  private cursorY: number = 1;
+  // Холст Cesium.Viewer и его постоянные размеры (значения присвоины в конструкторе класса)
+  declare private canvas: HTMLCanvasElement | undefined;
+  declare private canvasCenterX: number;
+  declare private canvasCenterY: number;
+  // // Фиксация максимальных значений параметров изменяющегося по высоте контейнера
+  // private minTop: number = 1000000;
+  // private maxHeight: number = 1;
 
-  private getCursorOnSurface(event: MouseEvent): Cesium.Cartesian3 | undefined {
+  private getCursorOnSurface(
+    event: MouseEvent | TouchEvent | number,
+  ): Cesium.Cartesian3 | undefined {
     try {
-      // this.calculationBlocker.set(false);
-      // console.log(event.target);
-      const viewerContainer: HTMLCanvasElement | undefined =
-        this.$viewerService?.viewer?.scene?.canvas;
       // Резервная проверка на существование холста
-      if (!viewerContainer) {
+      if (!this.canvas) {
         this.cursorOnViewerCanvas.set(false);
+        console.log('Scene canvas is undefined!');
         return undefined;
       }
-      // Если курсор мыши - не на холсте цесиума (а на UI поверх него)...
-      if (event.target !== viewerContainer) {
-        // Прекращаем расчеты
-        this.calculationBlocker.set(true);
-        // Скрываем поле с координатами возле курсора, решаем по поводу основного контейнера (в левом нижнем углу)
-        this.cursorOnViewerCanvas.set(false);
-        const coordsMainContainer: Element | null =
-          document.getElementsByClassName('coords-container-main')?.[0];
-        if (coordsMainContainer) {
-          // Проверяем, находится ли курсор в максимально возможных габаритах контейнера с координатами
-          let newTop: number = +window.getComputedStyle(coordsMainContainer).top.slice(0, -2);
-          if (newTop < this.minTop) this.minTop = newTop;
-          const top: number = this.minTop;
-          let newHeight: number = +window.getComputedStyle(coordsMainContainer).height.slice(0, -2);
-          if (newHeight > this.maxHeight) this.maxHeight = newHeight;
-          const height: number = this.maxHeight;
-          const left: number = +window.getComputedStyle(coordsMainContainer).left.slice(0, -2);
-          const width: number = +window.getComputedStyle(coordsMainContainer).width.slice(0, -2);
-          const rightBorder: number = left + width;
-          const bottomBorder: number = top + height;
-          if (
-            event.pageX > left &&
-            event.pageX < rightBorder &&
-            event.pageY > top &&
-            event.pageY < bottomBorder
-          ) {
-            // Cохранеем видимость основного контейнера с координатами
-            this.cursorOnCoordsContainer.set(true);
-            // Выяснить почему lat не расчитывается на границах при наличии длинного скролла
-            // console.log(
-            //   'canvas: ' + this.cursorOnViewerCanvas(),
-            //   'conteiner: ' + this.cursorOnCoordsContainer(),
-            //   'lat: ' + this.latitudeDescription(),
-            // );
-            return undefined;
-          } else {
-            // Скрываем и основной контейнер с координатами
-            this.cursorOnCoordsContainer.set(false);
-            // console.log(
-            //   'canvas: ' + this.cursorOnViewerCanvas(),
-            //   'conteiner: ' + this.cursorOnCoordsContainer(),
-            //   'lat: ' + this.latitudeDescription(),
-            // );
-            return undefined;
-          }
+      if (event instanceof MouseEvent) {
+        this.cursorX = event.pageX;
+        this.cursorY = event.pageY;
+        // Если курсор мыши - не на холсте цесиума (а на UI поверх него)...
+        if (event.target !== this.canvas) {
+          // Прекращаем расчеты
+          this.calculationBlocker.set(true);
+          // Скрываем поле с координатами возле курсора, решаем по поводу основного контейнера (в левом нижнем углу)
+          this.cursorOnViewerCanvas.set(false);
+          // В настоящий момент не требуется
+          // const coordsMainContainer: Element | null =
+          //   document.getElementsByClassName('coords-container-main')?.[0];
+          // if (coordsMainContainer) {
+          //   // Проверяем, находится ли курсор в максимально возможных габаритах контейнера с координатами
+          //   let newTop: number = +window.getComputedStyle(coordsMainContainer).top.slice(0, -2);
+          //   if (newTop < this.minTop) this.minTop = newTop;
+          //   const top: number = this.minTop;
+          //   let newHeight: number = +window.getComputedStyle(coordsMainContainer).height.slice(0, -2); // пересчитать через rect
+          //   if (newHeight > this.maxHeight) this.maxHeight = newHeight;
+          //   const height: number = this.maxHeight;
+          //   const left: number = +window.getComputedStyle(coordsMainContainer).left.slice(0, -2);
+          //   const width: number = +window.getComputedStyle(coordsMainContainer).width.slice(0, -2);
+          //   const rightBorder: number = left + width;
+          //   const bottomBorder: number = top + height;
+          //   if (
+          //     event.pageX > left &&
+          //     event.pageX < rightBorder &&
+          //     event.pageY > top &&
+          //     event.pageY < bottomBorder
+          //   ) {
+          //     // Cохранеем видимость основного контейнера с координатами
+          //     this.cursorOnCoordsContainer.set(true);
+          //     return undefined;
+          //   } else {
+          //     // Скрываем и основной контейнер с координатами
+          //     this.cursorOnCoordsContainer.set(false);
+          //     return undefined;
+          //   }
+          // } else {
+          //   // Когда нет ни контейнера для координат, ни курсора на холсте
+          //   this.cursorOnCoordsContainer.set(false);
+          //   return undefined;
+          // }
         } else {
-          // Когда нет ни контейнера для координат, ни курсора на холсте
-          this.cursorOnCoordsContainer.set(false);
-          // console.log(
-          //   'canvas: ' + this.cursorOnViewerCanvas(),
-          //   'conteiner: ' + this.cursorOnCoordsContainer(),
-          //   'lat: ' + this.latitudeDescription(),
-          // );
-          return undefined;
+          // Продолжаем расчеты (курсор на холсте)
+          this.cursorOnViewerCanvas.set(true);
+          // this.cursorOnCoordsContainer.set(false);
+          this.calculationBlocker.set(false);
         }
       } else {
-        // Продолжаем расчеты (курсор на холсте)
-        this.cursorOnViewerCanvas.set(true);
-        this.cursorOnCoordsContainer.set(false);
         this.calculationBlocker.set(false);
-        // console.log(
-        //   'canvas: ' + this.cursorOnViewerCanvas(),
-        //   'conteiner: ' + this.cursorOnCoordsContainer(),
-        //   'lat: ' + this.latitudeDescription(),
-        // );
+        this.cursorOnViewerCanvas.set(true);
       }
-
       // Резервная проверка
       if (this.calculationBlocker()) return;
 
       /* Положение курсора мыши. Параметр должен быть выражен в мировых координатах (cartesian), 
       созданных из пиксельных x и y экрана клиента */
       let targetPoint;
-      const rect = viewerContainer.getBoundingClientRect();
-      const x = event.pageX - rect.left; // валидно, потому что viewerContainer всегда - на весь экран
-      const y = event.pageY - rect.top;
       /* Если клиент не на планшете */
-      if (event.type !== 'touch') {
+      if (!this.$deviceService.isMobile) {
+        const x = this.cursorX - 0; // валидно, потому что #cesiumContainer всегда - на весь экран (если нет то "...  - this.canvas.getBoundingClientRect().left")
+        const y = this.cursorY - 0;
         targetPoint = new Cesium.Cartesian2(x, y);
       } else {
-        /* В случае с планшетом курсор - это центральная точка, которая всегда находится по центру экрана */
-        targetPoint = new Cesium.Cartesian2(
-          viewerContainer.offsetWidth / 2,
-          viewerContainer.offsetHeight / 2,
-        );
+        /* В случае с мобильным устройством курсор - это центральная точка (перекрестья), которая всегда находится по центру холста */
+        targetPoint = new Cesium.Cartesian2(this.canvasCenterX, this.canvasCenterY);
       }
       // deprecated (страдает точность у поверхности при отсутствии кастомного рельефа)
       // /* Создаем луч от камеры до targetPoint (курсора мыши - аргумента в качестве windowPosition) */
       // const ray: Cesium.Ray | undefined = this.$viewerService.viewer.camera.getPickRay(targetPoint);
       // if (ray === undefined) throw new Error('target point is not correct');
-
       // /* Находим пересечение луча и отрендеренной поверхности гдобуса */
       // const cartesian: Cesium.Cartesian3 | undefined = this.$viewerService.viewer.scene.globe.pick(
       //   ray,
@@ -231,7 +239,13 @@ export class MouseCoordsService {
         this.clearCoords();
         return undefined;
       }
-      return new Cesium.Cartesian3(cartesian.x, cartesian.y, cartesian.z);
+      if (this.$deviceService.isMobile) {
+        this.setUnderMouseEntityPosition(cartesian);
+        this.setUnderMouseEntityCoords(cartesian);
+        return undefined;
+      } else {
+        return cartesian;
+      }
     } catch (error: any) {
       this.calculationBlocker.set(false);
       error.cause = 'red';
@@ -272,7 +286,6 @@ export class MouseCoordsService {
     this.latitudeDescription.set(latitude);
     this.longitudeDescription.set(longitude);
     this.heightDescription.set(height);
-    // this.cursorOnViewerCanvas.set(true);
   }
 
   private async setUnderMouseEntityCoords(cartesian: Cesium.Cartesian3): Promise<void> {
@@ -359,8 +372,8 @@ export class MouseCoordsService {
     if (this.mouseMoveSubscription) {
       this.mouseMoveSubscription.unsubscribe();
     }
-    if (this.mouseWeelSubscription) {
-      this.mouseWeelSubscription.unsubscribe();
+    if (this.touchMoveSubscription) {
+      this.touchMoveSubscription.unsubscribe();
     }
   }
 }

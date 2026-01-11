@@ -1,15 +1,12 @@
-@if (
-  cursorDescIsChecked() &&
-  !outOfScreen() &&
-  $mouseCoordsService.cursorOnViewerCanvas() &&
-  mouseCoordsDescription().latitude
-) {
+<!-- cursorDescIsChecked() && !outOfScreen() && $mouseCoordsService.cursorOnViewerCanvas() && mouseCoordsDescription().latitude -->
+<!-- animate.enter="mouse-coords-cursor-field-enter-animation"
+animate.leave="mouse-coords-cursor-field-leave-animation" -->
+@if (mouseCoordsDescription().latitude && !outOfScreen()) {
   <div
     class="mouse-coords-cursor-field"
+    [class.hiden-element]="!$mouseCoordsService.cursorOnViewerCanvas() || !cursorDescIsChecked()"
     [style.left]="left"
     [style.top]="top"
-    animate.enter="mouse-coords-cursor-field-enter-animation"
-    animate.leave="mouse-coords-cursor-field-leave-animation"
   >
     <p>{{ mouseCoordsDescription().latitude }}</p>
     <p>{{ mouseCoordsDescription().longitude }}</p>
@@ -17,6 +14,7 @@
   </div>
 }
 <div class="coords-container-main">
+  <!-- @if (mouseCoordsDescription().latitude && ($mouseCoordsService.cursorOnViewerCanvas() || $mouseCoordsService.cursorOnCoordsContainer())) { -->
   @if (mouseCoordsDescription().latitude) {
     <div
       class="coords-description-main theme-ui-container medium-font"

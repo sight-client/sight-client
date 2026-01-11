@@ -28,21 +28,21 @@
 }
 
 @include media-breakpoints-global.laptop {
-  .camera-height-container {
-    left: 86px !important;
-    top: 15px;
-  }
-  #osmCopyright {
-    right: 186px !important;
-    top: 21px;
-  }
-  .measuring-tools-container {
-    left: 50% !important;
-    transform: translate(-50%, 0%);
-  }
   // body {
   //     outline: 1rem solid yellow;
   // }
+  .camera-height-container {
+    left: 86px !important;
+    top: 15px !important;
+  }
+  // .osm-copyright {
+  //   right: 186px !important;
+  //   top: 21px;
+  // }
+  .measuring-tools-container {
+    left: 50% !important;
+    transform: translate(-50%, 0%) !important;
+  }
 }
 
 @include media-breakpoints-global.tablet {
@@ -55,8 +55,23 @@
   // body {
   //     outline: 1rem solid pink;
   // }
+  .camera-height-container {
+    display: none !important;
+  }
+  .coords-container-main {
+    display: none !important;
+  }
+  .mouse-coords-cursor-field {
+    opacity: 1 !important;
+    transition: opacity 300ms ease-in-out;
+  }
 }
 
+@include media-breakpoints-global.tiny {
+  // body {
+  //     outline: 1rem solid red;
+  // }
+}
 // ----------------------------------------------------------------------- //
 // Размещено здесь, т.к. это стандартный элемент UI Cesium
 .cesium-viewer-fullscreenContainer {
@@ -70,6 +85,13 @@
   z-index: 101;
 }
 
+@media (max-width: 380px) {
+  .cesium-viewer-fullscreenContainer {
+    top: 15px;
+    left: calc(var(--regular-btn-size) + 15px + 15px);
+  }
+}
+
 .cesium-button.cesium-fullscreenButton {
   background-color: var(--theme-ui-background-color);
   border: none;
@@ -77,6 +99,7 @@
   pointer-events: auto;
   svg {
     fill: var(--theme-color);
+    opacity: 0.8;
   }
 }
 

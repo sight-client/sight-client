@@ -8,7 +8,7 @@ import { Event, Router, NavigationStart, NavigationEnd } from '@angular/router';
     @if (loading()) {
       <div
         class="routing-spinner"
-        style="position: absolute; z-index: 998; left: 50vw; top: 50vh; transform: translate(-50%, -50%);"
+        style="position: fixed; z-index: 998; left: 50%; top: 50%; transform: translate(-50%, -50%);"
       >
         Loading...
       </div>

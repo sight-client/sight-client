@@ -1,16 +1,16 @@
 #cesiumContainer,
-#okoUiContainer {
+#sightUiContainer {
   position: absolute;
   left: 0;
   top: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
   border: none;
   outline: none;
   overflow: hidden;
-  min-width: 746px;
+  min-width: 275px;
   min-height: 350px;
 }
 
@@ -21,29 +21,16 @@
   -moz-user-select: none;
   -webkit-user-select: none;
 }
-#okoUiContainer {
+#sightUiContainer {
   z-index: 100;
   display: block;
   pointer-events: none;
 }
 
-#okoUiContainer > * {
+#sightUiContainer > * {
   width: max-content;
   height: max-content;
   pointer-events: auto;
-}
-
-#osmCopyright {
-  position: absolute;
-  right: 104px;
-  bottom: 15px;
-  padding-inline: 5px;
-  background-color: var(--theme-ui-background-color);
-  border-radius: 5px;
-  outline: 1px solid var(--theme-outline-color);
-  p {
-    margin: 0;
-  }
 }
 
 .map-left-navbar-wrapper {
@@ -68,4 +55,17 @@
       }
     }
   }
+}
+
+#crosshairForMobiles {
+  position: absolute; /* or fixed for viewport center */
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  font-weight: normal;
+  color: red;
+  -webkit-text-stroke: 1px #000;
+  pointer-events: none; /* Allows clicks to pass through the crosshair to elements underneath */
 }

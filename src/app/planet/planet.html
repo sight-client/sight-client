@@ -1,14 +1,19 @@
-<div #mainOkoContainer>
+<div #mainSightContainer>
   <div
     id="cesiumContainer"
     appCesiumDirective
     [style.cursor]="
-      $measureService.handler() !== undefined || $measureService.measuresBlocker() === true
+      !$deviceService.isMobile &&
+      ($measureService.handler() !== undefined || $measureService.measuresBlocker() === true)
         ? 'crosshair'
         : 'auto'
     "
-  ></div>
-  <div id="okoUiContainer">
+  >
+    @if ($deviceService.isMobile) {
+      <div id="crosshairForMobiles">+</div>
+    }
+  </div>
+  <div id="sightUiContainer">
     @defer (when $viewerService.viewerHasLoaded() === true) {
       <camera-height-tool />
       <znemz-navigation-mixin />
@@ -38,14 +43,5 @@
       </button>
       <!-- <account-features /> -->
     </nav>
-
-    <div id="osmCopyright">
-      <p>
-        Map data from
-        <a href="https://www.openstreetmap.org/copyright" title="OpenStreetMap copyright rules"
-          >OpenStreetMap</a
-        >
-      </p>
-    </div>
   </div>
 </div>

@@ -14,10 +14,11 @@ import {
   MatDialogActions,
   MatDialogClose,
   MatDialogContent,
-  MatDialogRef,
+  // MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
 
+import { DeviceService } from '@global/services/device-service/device.service';
 import { AppCesiumDirective } from '@/common/directives/app-cesium-directive/app-cesium.directive';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { MouseCoordsService } from '@/common/services/mouse-coords-service/mouse-coords.service';
@@ -64,17 +65,18 @@ export class Planet {
     protected $viewerService: ViewerService,
     protected $mouseCoordsService: MouseCoordsService,
     protected $measureService: MeasureService,
+    protected $deviceService: DeviceService,
   ) {
     afterNextRender(() => {
       try {
-        this.$mouseCoordsService.getWatchedContainerRef(this.mainOkoContainerRef.nativeElement);
+        this.$mouseCoordsService.getWatchedContainerRef(this.mainSightContainerRef.nativeElement);
       } catch (error: any) {
         error.cause = 'red';
         throw error;
       }
     });
   }
-  @ViewChild('mainOkoContainer') public mainOkoContainerRef!: ElementRef<Element>;
+  @ViewChild('mainSightContainer') public mainSightContainerRef!: ElementRef<Element>;
   readonly dialog = inject(MatDialog);
   protected openContacts(event: MouseEvent): void {
     try {
@@ -107,20 +109,46 @@ export class Planet {
         <a href="https://github.com/sight-client/sight-client"
           >https://github.com/sight-client/sight-client</a
         >
-        <br />Если буду успевать, планирую добавить поиск, навигацию, площадные измерения, l10n
-        (eng), а также возможность загрузки и отображения на карте пользовательских растровых,
-        векторных и 3d-изображений. <br /><br />Мои контакты: <br />e-mail:
-        <a href="mailto:porphirik@mail.ru">porphirik@mail.ru</a> <br />telegram:
+        <br />Карта работает и на мобильных устройствах. Если буду успевать, планирую добавить
+        поиск, навигацию, площадные измерения, l10n (eng), а также возможность загрузки и
+        отображения на карте пользовательских растровых, векторных и 3d-изображений. <br /><br />Мои
+        контакты: <br />e-mail: <a href="mailto:porphirik@mail.ru">porphirik@mail.ru</a>
+        <br />telegram:
         <a href="tg://resolve?domain=smollett40k">smollett40k</a>
       </mat-dialog-content>
       <mat-dialog-actions>
+        <div class="osm-copyright">
+          <p>
+            Map data from
+            <a href="https://www.openstreetmap.org/copyright" title="OpenStreetMap copyright rules"
+              >OpenStreetMap</a
+            >
+          </p>
+        </div>
         <button matButton mat-dialog-close cdkFocusInitial>Ok</button>
       </mat-dialog-actions>
     </div>
   `,
   styles: `
-    .greeting-container {
-      background-color: var(--theme-ui-background-color);
+    :host {
+      .greeting-container {
+        background-color: var(--theme-ui-background-color);
+      }
+      .greeting-container mat-dialog-actions {
+        justify-content: space-between;
+      }
+      .osm-copyright {
+        // position: absolute;
+        // right: 104px;
+        // bottom: 15px;
+        // padding-inline: 5px;
+        // background-color: var(--theme-ui-background-color);
+        // border-radius: 5px;
+        // outline: 1px solid var(--theme-outline-color);
+        p {
+          margin: 0;
+        }
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

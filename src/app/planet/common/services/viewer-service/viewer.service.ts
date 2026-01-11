@@ -340,10 +340,10 @@ export class ViewerService {
     try {
       if (this.entityPickingBlock === true) return;
       const pickedEntity: Cesium.Entity | undefined = this.pickEntityByClickOnScene(
-        cartesian2PositionFromClick,
+        cartesian2PositionFromClick.position,
       );
       if (pickedEntity && pickedEntity instanceof Cesium.Entity) {
-        console.log(pickedEntity);
+        // console.log(pickedEntity);
         if (this.viewer.pickedEntity?.() !== pickedEntity) {
           this.viewer.pickedEntity?.set(pickedEntity);
           this.viewer.pickedEntityId?.set(pickedEntity?.id);
@@ -356,11 +356,9 @@ export class ViewerService {
     }
   }
   // Также используется в measure.service.ts
-  public pickEntityByClickOnScene(
-    cartesian2PositionFromClick: Cesium.ScreenSpaceEventHandler.PositionedEvent,
-  ): Cesium.Entity | undefined {
+  public pickEntityByClickOnScene(position: Cesium.Cartesian2): Cesium.Entity | undefined {
     try {
-      const picked: any | undefined = this.viewer.scene.pick(cartesian2PositionFromClick.position);
+      const picked: any | undefined = this.viewer.scene.pick(position);
       if (Cesium.defined(picked)) {
         const entity: Cesium.Entity = picked?.id ? picked.id : picked.primitive?.id;
         if (entity && entity instanceof Cesium.Entity) {

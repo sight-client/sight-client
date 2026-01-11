@@ -9,6 +9,7 @@ import { CoordSystems } from '@/common/lib/coord-sistems.lib';
 import type { CRS } from '@/common/lib/coord-sistems.lib';
 import { MouseCoordsService } from '@/common/services/mouse-coords-service/mouse-coords.service';
 import * as MeasuresLib from '@/common/services/measure-service/lib/basic-measure-calculations.lib';
+import { DeviceService } from '@global/services/device-service/device.service';
 
 // ------------------------------------------------------------- Блок замечаний --------------------------------------------------- //
 
@@ -50,6 +51,7 @@ export class MeasureService {
   constructor(
     private $viewerService: ViewerService,
     private $mouseCoordsService: MouseCoordsService,
+    private $deviceService: DeviceService,
   ) {}
 
   // Обход типов здесь применен для предотвращения последующих принуждений к проверкам на undefined
@@ -538,9 +540,19 @@ export class MeasureService {
       this.handler()?.setInputAction(
         (cartesian2PositionFromClick: Cesium.ScreenSpaceEventHandler.PositionedEvent) => {
           try {
-            const entity = this.$viewerService.pickEntityByClickOnScene(
-              cartesian2PositionFromClick,
-            );
+            let entity: Cesium.Entity | undefined = undefined;
+            if (!this.$deviceService.isMobile) {
+              entity = this.$viewerService.pickEntityByClickOnScene(
+                cartesian2PositionFromClick.position,
+              );
+            } else {
+              entity = this.$viewerService.pickEntityByClickOnScene(
+                new Cesium.Cartesian2(
+                  this.$viewerService.viewer?.scene?.canvas.scrollWidth / 2,
+                  this.$viewerService.viewer?.scene?.canvas.scrollHeight / 2,
+                ),
+              );
+            }
             let isRemove: boolean = false;
             if (entity?.id) {
               this.allEntitiesListsLink.forEach((entitiesList) => {
