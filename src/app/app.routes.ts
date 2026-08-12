@@ -6,7 +6,7 @@ import { Planet } from '@/planet';
 export const routes: Routes = [
   {
     // path: 'client',
-    path: '',
+    path: 'sight-client',
     component: Planet,
     title: 'Sight: map',
   },
@@ -34,5 +34,5 @@ export const routes: Routes = [
   // },
   // ---------------------------------------------------------------------------------------- //
   // { path: '**', redirectTo: 'client' }, // Wildcard - always last
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: 'sight-client' },
 ];

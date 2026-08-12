@@ -1,0 +1,56 @@
+<div
+  #measuringToolsModal
+  cdkDrag
+  cdkDragBoundary=".sight-main-ui-container"
+  class="measuring-tools-modal"
+  [style.display]="
+    $measuringToolsModalsService.measuringToolsModalsList()[modalIndex()]?.collapsed()
+      ? 'none'
+      : 'block'
+  "
+  [style.zIndex]="
+    $measuringToolsModalsService.measuringToolsModalsList()[modalIndex()]?.isActive()
+      ? `${zIndexDefault + 1}`
+      : `${zIndexDefault}`
+  "
+  [style.top]="$measuringToolsModalsService.measuringToolsModalsList()[modalIndex()]?.top + 'px'"
+  (mousedown)="$measuringToolsModalsService.setActiveModal(parentName)"
+>
+  <div #measuringToolsModalHeader class="measuring-tools-modal-header">
+    <p
+      #toolName
+      cdkDragHandle
+      [title]="toolName.scrollHeight > toolName.offsetHeight ? getRusToolName(parentName) : ''"
+    >
+      <!-- [style.cursor]="toolName.scrollHeight > toolName.offsetHeight ? 'help' : 'grab'" -->
+      {{ getRusToolName(parentName) }}
+    </p>
+    <span>
+      <button
+        matButton="tonal"
+        title="свернуть"
+        (mousedown)="$event.stopPropagation()"
+        (click)="$measuringToolsModalsService.collapseModal(modalIndex(), $event)"
+      >
+        <mat-icon>call_to_action</mat-icon>
+      </button>
+      <button
+        matButton="tonal"
+        title="закрыть"
+        (mousedown)="$event.stopPropagation()"
+        (click)="$measuringToolsModalsService.clearModalsEntities(parentName, $event)"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </span>
+  </div>
+  <div class="measuring-tools-modal-content-wrapper">
+    @if (contentTemplate) {
+      <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
+    } @else {
+      <p class="measuring-tools-modal-content-gag">
+        Данному модльному окну не было передано его содержимое
+      </p>
+    }
+  </div>
+</div>

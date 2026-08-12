@@ -4,6 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { RoutingSpinnerListener } from '@global/listeners/routing-spinner-listener/routing-spinner.listener';
 import { RoutingErrorsListener } from '@global/listeners/routing-errors-listener/routing-errors.listener';
 import { CursorProgressSpiner } from '@global/components/cursor-progress-spiner/cursor-progress-spiner';
+import { SetCursorProgressSpinerService } from '@global/services/set-cursor-progress-spiner-service/set-cursor-progress-spiner.service';
 
 @Component({
   selector: 'app-root',
@@ -12,5 +13,5 @@ import { CursorProgressSpiner } from '@global/components/cursor-progress-spiner/
   styleUrl: './app.scss',
 })
 export class App {
-  constructor() {}
+  constructor(protected $setCursorProgressSpinerService: SetCursorProgressSpinerService) {}
 }

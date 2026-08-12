@@ -5,10 +5,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { MeasureService } from '@/common/services/measure-service/measure.service';
+import { LinearMeasurementsModal } from '@/components/measuring-tools/components/linear-measurements/components/linear-measurements-modal/linear-measurements-modal';
 
 @Component({
   selector: 'linear-measurements',
-  imports: [MatButtonModule, MatIconModule],
+  imports: [LinearMeasurementsModal, MatButtonModule, MatIconModule],
   template: `
     <button
       title="Линейные измерения"
@@ -21,11 +22,15 @@ import { MeasureService } from '@/common/services/measure-service/measure.servic
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
           <path
             fill="currentColor"
-            d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2m0 10H3V8h2v4h2V8h2v4h2V8h2v4h2V8h2v4h2V8h2z"
+            d="M3 5v16h6v-1.5H7V18h2v-1.5H5V15h4v-1.5H7V12h2v-1.5H5V9h4V5h1.5v4H12V7h1.5v2H15V5h1.5v4H18V7h1.5v2H21V3H5a2 2 0 0 0-2 2m3 2a1 1 0 0 1-1-1a1 1 0 0 1 1-1a1 1 0 0 1 1 1a1 1 0 0 1-1 1"
           />
         </svg>
       </mat-icon>
     </button>
+
+    @if (this.$measureService.linearMesurmentsLinesList().length) {
+      <linear-measurements-modal />
+    }
   `,
   styleUrls: ['../../measuring-tools.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,7 +44,7 @@ export class LinearMeasurements {
       this.toggleDrawing();
     } else if (event.button === 1) {
       if (this.$measureService.lineMeasureHasStarted() === false) {
-        this.$measureService.allToolEntitiesCleaning('linear-measurements');
+        this.$measureService.allToolEntitiesCleaning('linearMeasurements');
       } else {
         alert('Сначала закончите построение');
       }
@@ -50,9 +55,9 @@ export class LinearMeasurements {
       if (this.isActive() === false) {
         this.isActive.set(true);
         this.$measureService.drawLineMeasureGraphics({
-          id: 'linear-measurements',
+          toolName: 'linearMeasurements',
+          name: 'linear-measurements',
           reuse: true,
-          toolName: 'Линейные измерения',
         });
         this.handler.set(
           new Cesium.ScreenSpaceEventHandler(this.$measureService._viewer.scene.canvas),
@@ -63,6 +68,9 @@ export class LinearMeasurements {
           }
         }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
       } else if (this.isActive() === true) {
+        if (this.$measureService.lineMeasureHasStarted() === true) {
+          this.$measureService.removeTemporalEntities();
+        }
         this.cancelTool();
       }
     } catch (error) {
@@ -71,17 +79,7 @@ export class LinearMeasurements {
     }
   }
   public cancelByEsc(): void {
-    if (this.$measureService.lineMeasureHasStarted() === true) {
-      const lastId: string | undefined =
-        this.$measureService.linearMesurmentsLinesList()?.[
-          this.$measureService.linearMesurmentsLinesList().length - 1
-        ]?.id;
-      if (!lastId) return;
-      this.$measureService.removeEntitiesById(
-        lastId,
-        this.$measureService.linearMesurmentsLinesList,
-      );
-    }
+    this.$measureService.removeTemporalEntities();
     this.cancelTool();
   }
   private cancelTool(): void {

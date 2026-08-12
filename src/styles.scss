@@ -12,4 +12,7 @@
 @use 'angular-material-core';
 @use 'common-global';
 @use 'common-core';
+
+@use 'mat-exceptions-global';
+@use 'mat-exceptions-core';
 // (переход по "ctrl + ЛКМ" не работает - это норма)

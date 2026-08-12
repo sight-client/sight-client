@@ -1,0 +1,74 @@
+.measuring-tools-modal {
+  position: absolute;
+  right: 0px;
+  top: -230px;
+  z-index: 103;
+  width: max-content;
+  height: max-content;
+  border-radius: 4px;
+  outline: 1px solid var(--theme-outline-color);
+  overflow: hidden;
+  .measuring-tools-modal-header {
+    --size-modifier: 0.7;
+    --measuring-tools-modal-header-height: calc(
+      var(--regular-btn-size) * (var(--size-modifier) + 0.3)
+    );
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    min-height: var(--measuring-tools-modal-header-height);
+    padding: 0px 2px 0px 8px;
+    background-color: var(--theme-ui-background-color);
+    box-sizing: border-box;
+    overflow: hidden;
+    p {
+      flex-grow: 1;
+      margin: 0px;
+      font-size: large;
+      display: -webkit-box;
+      line-clamp: 1;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    p:hover {
+      cursor: grab;
+    }
+    p:active {
+      cursor: grabbing;
+    }
+    span {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      button {
+        min-width: calc(var(--regular-btn-size) * var(--size-modifier));
+        width: calc(var(--regular-btn-size) * var(--size-modifier));
+        height: calc(var(--regular-btn-size) * var(--size-modifier));
+        padding-inline: 0;
+        border-radius: 6px;
+        mat-icon {
+          vertical-align: middle;
+          font-size: calc(var(--regular-btn-svg-size) * var(--size-modifier));
+          width: calc(var(--regular-btn-svg-size) * var(--size-modifier));
+          height: calc(var(--regular-btn-svg-size) * var(--size-modifier));
+          margin: 0;
+          opacity: 0.8;
+        }
+      }
+    }
+  }
+  .measuring-tools-modal-content-wrapper {
+    width: 100%;
+    height: max-content;
+    padding: 8px;
+    box-sizing: border-box;
+    background-color: var(--theme-container-background-color);
+    .measuring-tools-modal-content-gag {
+      width: 290px;
+      text-align: center;
+    }
+  }
+}

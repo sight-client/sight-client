@@ -1,16 +1,16 @@
 import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import * as Cesium from 'cesium';
 
-import { MatInputModule } from '@angular/material/input';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { MeasureService } from '@/common/services/measure-service/measure.service';
 
+import { AddMarkModal } from '@/components/measuring-tools/components/add-mark/components/add-mark-modal/add-mark-modal';
+
 @Component({
   selector: 'add-mark',
-  imports: [MatButtonModule, MatIconModule, MatCardModule, MatInputModule],
+  imports: [AddMarkModal, MatButtonModule, MatIconModule],
   template: `
     <button
       title="Метки"
@@ -28,11 +28,16 @@ import { MeasureService } from '@/common/services/measure-service/measure.servic
         </svg>
       </mat-icon>
     </button>
+
+    @if (this.$measureService.marksList().length) {
+      <add-mark-modal />
+    }
   `,
   styleUrls: ['../../measuring-tools.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddMark {
+  // Логика данного компонента ограничивается организацией нанесения точек на холст. Логика его модального окна - в его соответствующем дочернем компоненте.
   constructor(protected $measureService: MeasureService) {}
   protected isActive = signal<boolean>(false);
   private handler = signal<Cesium.ScreenSpaceEventHandler | undefined>(undefined);
@@ -40,11 +45,7 @@ export class AddMark {
     if (event.button === 0) {
       this.toggleMarkAddition();
     } else if (event.button === 1) {
-      this.$measureService.allToolEntitiesCleaning(
-        'add-mark',
-        this.$measureService.marksList,
-        'measureLayer',
-      );
+      this.$measureService.allToolEntitiesCleaning('addMark');
     }
   }
   private toggleMarkAddition(): void {
@@ -52,9 +53,9 @@ export class AddMark {
       if (this.isActive() === false) {
         this.isActive.set(true);
         this.$measureService.drawPointGraphics({
-          id: 'add-mark',
+          toolName: 'addMark', // important!
+          name: 'add-mark',
           reuse: true,
-          toolName: 'Метки',
           withCoordsDesc: true,
           withoutHeightDesc: true,
         });
@@ -72,6 +73,7 @@ export class AddMark {
       this.cancelTool();
     }
   }
+  // Активируется из родителя (событие Esc)
   public cancelByEsc(): void {
     this.cancelTool();
   }

@@ -1,0 +1,65 @@
+.measuring-tools-tabs-wrapper {
+  --size-modifier: 0.7;
+  --measuring-tools-tab-width: 11em;
+  --measuring-tools-tab-height: calc(var(--regular-btn-size) * (var(--size-modifier) + 0.1));
+  --measuring-tools-tab-gap: 2px;
+  --measuring-tools-tab-left-padding: 7px;
+  --measuring-tools-tab-right-padding: 2px;
+  --measuring-tools-tab-outline-width: 1px;
+  width: calc(var(--measuring-tools-tab-width) * 3 + var(--measuring-tools-tab-gap) * 3 + 1rem);
+  max-height: calc(var(--measuring-tools-tab-height) * 4 + var(--measuring-tools-tab-gap) * 3);
+  display: flex;
+  flex-flow: row-reverse wrap-reverse;
+  justify-content: right;
+  gap: var(--measuring-tools-tab-gap);
+  padding: calc(var(--measuring-tools-tab-outline-width) * 2);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+
+  .tool-tab {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: var(--measuring-tools-tab-width);
+    min-height: var(--measuring-tools-tab-height);
+    padding: 0px var(--measuring-tools-tab-right-padding) 0px
+      var(--measuring-tools-tab-left-padding);
+    background-color: var(--theme-ui-background-color);
+    border-radius: 4px;
+    outline: var(--measuring-tools-tab-outline-width) solid var(--theme-outline-color);
+    box-sizing: border-box;
+    overflow: hidden;
+    p {
+      flex-grow: 1;
+      margin: 0px;
+      display: -webkit-box;
+      line-clamp: 1;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    span {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      button {
+        min-width: calc(var(--regular-btn-size) * var(--size-modifier));
+        width: calc(var(--regular-btn-size) * var(--size-modifier));
+        height: calc(var(--regular-btn-size) * var(--size-modifier));
+        padding-inline: 0;
+        border-radius: 6px;
+        mat-icon {
+          vertical-align: middle;
+          font-size: calc(var(--regular-btn-svg-size) * var(--size-modifier));
+          width: calc(var(--regular-btn-svg-size) * var(--size-modifier));
+          height: calc(var(--regular-btn-svg-size) * var(--size-modifier));
+          margin: 0;
+          opacity: 0.8;
+        }
+      }
+    }
+  }
+}

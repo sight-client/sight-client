@@ -4,11 +4,15 @@ import {
   ElementRef,
   ViewChild,
   afterNextRender,
+  computed,
+  signal,
   inject,
 } from '@angular/core';
 // import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatTabsModule } from '@angular/material/tabs';
 import {
   MatDialog,
   MatDialogActions,
@@ -19,36 +23,37 @@ import {
 } from '@angular/material/dialog';
 
 import { DeviceService } from '@global/services/device-service/device.service';
-import { AppCesiumDirective } from '@/common/directives/app-cesium-directive/app-cesium.directive';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
+import { AppCesiumDirective } from '@/common/directives/app-cesium-directive/app-cesium.directive';
 import { MouseCoordsService } from '@/common/services/mouse-coords-service/mouse-coords.service';
 import { MeasureService } from '@/common/services/measure-service/measure.service';
 
 // import { CESIUM_PROVIDER } from '@/common/tokens/cesium-tokens';
 
-import { MouseCoordsInfo } from '@/components/mouse-coords-info/mouse-coords-info';
-import { CameraHeightTool } from './components/camera-position-tools/camera-height-tool/camera-height-tool';
-import { ZnemzNavigationMixin } from '@/components/camera-position-tools/znemz-navigation-mixin/znemz-navigation-mixin';
-import { MeasuringTools } from '@/components/measuring-tools/measuring-tools';
-import { SceneModeChanger } from '@/components/camera-position-tools/scene-mode-changer/scene-mode-changer';
-
 import { ThemeChanger } from '@global/components/theme-changer/theme-changer';
 // import { AccountFeatures } from '@global/components/account-features/account-features';
+import { MouseCoordsInfo } from '@/components/mouse-coords-info/mouse-coords-info';
+import { MeasuringTools } from '@/components/measuring-tools/measuring-tools';
+import { CameraHeightTool } from './components/camera-position-tools/camera-height-tool/camera-height-tool';
+import { ZnemzNavigationMixin } from '@/components/camera-position-tools/znemz-navigation-mixin/znemz-navigation-mixin';
+import { SceneModeChanger } from '@/components/camera-position-tools/scene-mode-changer/scene-mode-changer';
 
 @Component({
   selector: 'planet',
   imports: [
     MatButtonModule,
     MatIconModule,
+    MatSidenavModule,
+    MatTabsModule,
     // RouterLink,
     AppCesiumDirective,
     ThemeChanger,
+    // AccountFeatures,
     MouseCoordsInfo,
     MeasuringTools,
     CameraHeightTool,
     ZnemzNavigationMixin,
     SceneModeChanger,
-    // AccountFeatures,
   ],
   templateUrl: './planet.html',
   styleUrl: './planet.scss',
@@ -69,6 +74,7 @@ export class Planet {
   ) {
     afterNextRender(() => {
       try {
+        // Определение контейнера для отслеживания перемещения курсора мыши (для координат)
         this.$mouseCoordsService.getWatchedContainerRef(this.mainSightContainerRef.nativeElement);
       } catch (error: any) {
         error.cause = 'red';
@@ -77,6 +83,7 @@ export class Planet {
     });
   }
   @ViewChild('mainSightContainer') public mainSightContainerRef!: ElementRef<Element>;
+
   readonly dialog = inject(MatDialog);
   protected openContacts(event: MouseEvent): void {
     try {
@@ -92,6 +99,22 @@ export class Planet {
       console.log('Auth forms opening failed');
       throw error;
     }
+  }
+
+  // Состав табов - из номенклатуры пользоввательских модулей по БД
+  protected tabs = signal<Array<string>>(['Поиск', 'Навигация', 'Пользовательские данные']);
+  protected selectedTab = signal<number>(0);
+
+  // Для тестов производительности
+  protected benchmarkTest(): void {
+    let a = [];
+    const start = Date.now();
+    for (let i = 0; i < 100000000; i++) {
+      a.push(Math.round(Math.random()) * 1000);
+    }
+    const end = Date.now();
+    const time = (end - start) / 1000;
+    console.log(`Результат теста: ${time} с.`);
   }
 }
 

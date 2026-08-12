@@ -20,7 +20,7 @@ import badHtmlInterceptor from '@global/interceptors/bad-html-interceptor/bad-ht
 import stopDoubleRequestInterceptor from '@global/interceptors/stop-double-request-interceptor/stop-double-request.interceptor';
 import cachingGetReqInterceptor from '@global/interceptors/caching-get-req-interceptor/caching-get-req.interceptor';
 // import useApiServProxyInterceptor from '@global/interceptors/use-api-serv-proxy-interceptor/use-api-serv-proxy.interceptor';
-import { ProgressInterceptor } from '@global/interceptors/show-progress-inrerceptor/show-progress.interceptor';
+import { ShowProgressInterceptor } from '@global/interceptors/show-progress-inrerceptor/show-progress.interceptor';
 
 // import { GlobalErrorHandlerService } from '@global/services/global-error-handler-service/global-error-handler.service';
 
@@ -29,8 +29,8 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    // provideRouter(routes, withViewTransitions()),
-    // { provide: ErrorHandler, useClass: GlobalErrorHandlerService },
+    // provideRouter(routes, withViewTransitions()), // поддержка анимаций переходов между роутами (включить, когда они будут)
+    // { provide: ErrorHandler, useClass: GlobalErrorHandlerService }, // в планах
 
     provideHttpClient(
       // Порядок перехватчиков в массиве имеет значение
@@ -38,10 +38,10 @@ export const appConfig: ApplicationConfig = {
         badHtmlInterceptor,
         stopDoubleRequestInterceptor,
         cachingGetReqInterceptor,
-        // useApiServProxyInterceptor,
+        // useApiServProxyInterceptor, // (включить, если будет бэкенд)
       ]),
-      withInterceptorsFromDi(),
+      withInterceptorsFromDi(), // разрешает провайдить перехватчики в виде классов
     ),
-    { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ShowProgressInterceptor, multi: true },
   ],
 };

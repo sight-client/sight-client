@@ -1,5 +1,9 @@
 <router-outlet />
 
 <routing-spinner />
-<cursor-progress-spiner />
 <routing-errors-alert />
+@defer (on idle) {
+  @if ($setCursorProgressSpinerService.isShowSpiner()) {
+    <cursor-progress-spiner />
+  }
+}

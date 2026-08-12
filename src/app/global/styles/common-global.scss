@@ -14,28 +14,37 @@
 // @use "sass:list";
 
 :root {
-  color-scheme: light dark; /* light || dark || light dark (user's system settings) */
-
-  // -------------------------------------------------------------- //
   // Глобальные переменные для нативных html-элементов
   --theme-font-medium: var(--mat-sys-body-medium);
   --theme-font-large: var(--mat-sys-body-large);
   --theme-font-small: var(--mat-sys-body-small);
   --theme-color: var(--mat-sys-on-surface);
 
+  // Соответствует цвету matButton="tonal"
   --theme-ui-background-color: var(
     --mat-button-tonal-container-color,
     var(--mat-sys-secondary-container)
   );
-  --theme-inputs-background-color: var(--mat-sys-surface-container);
   --theme-container-background-color: var(--mat-sys-surface-variant);
+
+  --theme-inputs-background-color: var(--mat-sys-surface-container);
   --theme-focus-background-color: var(--mat-sys-surface-bright);
   --theme-focus-text-color: var(--mat-sys-primary);
+
   --theme-border-color: var(--mat-sys-outline);
-  --theme-outline-color: var(--mat-sys-outline);
+  --theme-border-radius: var(--mat-card-filled-container-shape, var(--mat-sys-corner-medium));
+  --theme-outline-color: var(
+    --mat-sys-outline
+  ); // 'none' при dark mode (установлено в set-light-dark-mode.service.ts)
   --theme-box-shadow: var(--mat-select-container-elevation-shadow);
 
   --regular-btn-size: 32px;
+  --regular-btn-svg-size: calc(var(--regular-btn-size) * 0.75);
+
+  // ---------------------------- //
+
+  color-scheme: light dark; /* light || dark || light dark (user's system settings) */
+
   // -------------------------------------------------------------- //
   .medium-font {
     font: var(--theme-font-medium);
@@ -63,6 +72,56 @@
   }
 }
 
+// ------------------------------------------------------------- //
+// Курсоры для drag'n'drop (mat-стили)
+.cdk-drag-handle:hover {
+  cursor: grab;
+}
+
+.cdk-drag-handle:active {
+  cursor: grabbing;
+}
+
+// При перемещения модалки по экрану
+body:has(.cdk-drag-dragging) {
+  cursor: grabbing !important;
+
+  * {
+    pointer-events: none !important;
+  }
+}
+
+// При перемещении в списках
+body:has(.cdk-drop-list-dragging) {
+  cursor: not-allowed !important;
+
+  * {
+    pointer-events: none !important;
+  }
+
+  .cdk-drop-list-dragging {
+    pointer-events: auto !important;
+    cursor: grabbing !important;
+
+    * {
+      pointer-events: none !important;
+    }
+  }
+}
+
+// Стили для перемещения внутри списков
+.cdk-drag-placeholder {
+  opacity: 0;
+}
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+.cdk-drop-list-dragging > *:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+// ------------------------------------------------------------- //
+
 .light-mode {
   color-scheme: light;
 }
@@ -70,6 +129,8 @@
 .dark-mode {
   color-scheme: dark;
 }
+
+// ------------------------------------------------------------- //
 
 /* Отработка медиа запросов, зависящик от размера экрана: */
 @include media-breakpoints-global.desktop-large {

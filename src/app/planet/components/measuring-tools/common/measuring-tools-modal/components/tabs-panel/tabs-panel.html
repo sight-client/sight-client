@@ -1,0 +1,39 @@
+@if ($measuringToolsModalsService.measuringToolsModalsList().length) {
+  <div class="measuring-tools-tabs-wrapper">
+    @for (
+      item of $measuringToolsModalsService.measuringToolsModalsList();
+      track item?.toolName;
+      let index = $index
+    ) {
+      @if (item && item.collapsed() === true) {
+        <div class="tool-tab">
+          <p
+            #tabName
+            [title]="
+              tabName.scrollHeight > tabName.offsetHeight ? getRusToolName(item.toolName) : ''
+            "
+            [style.cursor]="tabName.scrollHeight > tabName.offsetHeight ? 'help' : 'auto'"
+          >
+            {{ getRusToolName(item.toolName) }}
+          </p>
+          <span>
+            <button
+              matButton="tonal"
+              title="развернуть"
+              (click)="$measuringToolsModalsService.expandModal(index)"
+            >
+              <mat-icon>web_asset</mat-icon>
+            </button>
+            <button
+              matButton="tonal"
+              title="закрыть"
+              (click)="$measuringToolsModalsService.clearModalsEntities(item.toolName, $event)"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </span>
+        </div>
+      }
+    }
+  </div>
+}

@@ -1,14 +1,13 @@
-/* Почему Custom.Viewer используется именно так (особенности Angular): */
 /* "viewer" - достаточно объемный объект, поэтому создавать из него "WritableSignal" нецелесообразно затратно. 
 Кроме того, "WritableSignal" оповещает о своем изменении только при замене своего значения, 
 что в случае с переменной объекта является потерей старой ссылки, что равнозначно пересозданию. 
 Метод "WritableSignal.update()", не смотря на то, что позволяет выборочно изменять содержимое реактивного объекта, 
 тем не менее, также полностью обновляет его ссылку (старый объект уже не равен новому). 
 Поэтому, в целях получения реактивности дефолтных свойств "viewer" (например, clampToGround) необходимо применять ее адресно: 
-создавать сигналы соответствующие таким свойствам, как методы данного класса, изменять сигналы из потребителя услуг местными сеттерами
+создавать сигналы соответствующие таким свойствам, как методы данного класса, изменять сигналы из потребителя услуг (сеттерами)
 и, отслеживая эти изменения в effect (computed в свойствах viewer, увы, не работает), обеспечить параллельное изменение 
 привязанного свойства viewer'а. Для кастомных же свойств (например, pickedEntity) можно использовать сигналы прямо в объекте viewer. */
-/* Notice. В случае необходимости использования сигнала объекта в качестве отслеживаемого дублирующего свойства, 
+/* В случае необходимости использования сигнала объекта в качестве отслеживаемого дублирующего свойства, 
 а также при нежелании полностью переписывать такой объект в методе "WritableSignal.set()", 
 целесообразно использовать метод "WritableSignal.update()". Пример с объектом и двумя свойствами под изменение: 
 $viewerService.viewer.test.update((previousState: WritableSignal<any>) => {
@@ -29,6 +28,7 @@ export interface CustomViewer extends Cesium.Viewer {
   dropError?: Cesium.Event;
   measure?: {
     drawLayer: Cesium.CustomDataSource;
+    drawRoute: Cesium.GeoJsonDataSource;
   };
 }
 // На текущий момент применение сервиса ограничено глобальным модулем planet.ts (большинство остальных - аналогично)
@@ -85,6 +85,7 @@ export class ViewerService {
   необходимость обращаться к уже созданным свойствам "viewer" из других компонентов НЕ РАНЕЕ фазы их жизненного цикла "afterNextRender" */
   public viewer: CustomViewer = {} as CustomViewer;
   public viewerHasLoaded = signal<boolean>(false); // сигнал для всех сервисов, ожидающих загрузки Cesium.Viewer
+  public firstBaseLayerRenderFinished = signal<boolean>(false);
 
   // viewer получает первое значение из app-cesium.directive.ts однократно при первом рендеринге planet.html
   public getNewViewer(container: Element | string) {
@@ -159,6 +160,7 @@ export class ViewerService {
         },
       });
 
+      // Контрольная проверка
       if (!Object.keys(this.viewer)) throw new Error("at getNewViewer(): viewer wasn't create");
 
       /* Кастомные свойства для альтернативы дефолтному инфобоксу */
@@ -285,6 +287,15 @@ export class ViewerService {
       this.viewerHasLoaded.set(true);
       // console.log('viewerHasLoaded:', this.viewerHasLoaded());
       // console.log(this.viewer);
+
+      // Оповещение об окончании рендера первичной базовой подложки (трудоемкая отрисовка при общей стартовой нагрузке)
+      const firstRenderHandler = (event: number): void => {
+        if (event === 0 && this.firstBaseLayerRenderFinished() === false) {
+          this.firstBaseLayerRenderFinished.set(true);
+          this.viewer.scene.globe.tileLoadProgressEvent.removeEventListener(firstRenderHandler); // проверено
+        }
+      };
+      this.viewer.scene.globe.tileLoadProgressEvent.addEventListener(firstRenderHandler);
     } catch (error: unknown) {
       throw error;
     }
@@ -331,7 +342,7 @@ export class ViewerService {
   public offEntityPickingBlock(): void {
     this.entityPickingBlock = false;
   }
-  public pickedEntityIdChangedEvent: Event = new CustomEvent('pickedEntityIdChanged');
+  // public pickedEntityIdChangedEvent: Event = new CustomEvent('pickedEntityIdChanged');
 
   /* Альтернатива глобальному лисенеру 1хЛКМ */
   public setPickedEntityByClickOnScene(
@@ -342,15 +353,16 @@ export class ViewerService {
       const pickedEntity: Cesium.Entity | undefined = this.pickEntityByClickOnScene(
         cartesian2PositionFromClick.position,
       );
-      if (pickedEntity && pickedEntity instanceof Cesium.Entity) {
+      if (
+        pickedEntity &&
+        pickedEntity instanceof Cesium.Entity &&
+        this.viewer.pickedEntity?.() !== pickedEntity
+      ) {
         // console.log(pickedEntity);
-        if (this.viewer.pickedEntity?.() !== pickedEntity) {
-          this.viewer.pickedEntity?.set(pickedEntity);
-          this.viewer.pickedEntityId?.set(pickedEntity?.id);
-        }
+        this.setPickedEntity(pickedEntity);
         return pickedEntity;
       }
-      return;
+      return pickedEntity;
     } catch (error: unknown) {
       throw error;
     }

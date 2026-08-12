@@ -1,4 +1,4 @@
-import { afterNextRender, Directive, effect, ElementRef, inject } from '@angular/core';
+import { afterNextRender, Directive, effect, ElementRef, inject, untracked } from '@angular/core';
 import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
@@ -26,21 +26,31 @@ export class AppCesiumDirective {
     // Гарантия корректной очередности загрузки сервисов работы с Cesium
     effect(() => {
       if (this.$viewerService.viewerHasLoaded()) {
-        this.$viewerService.setImageryProvider(
-          new Cesium.OpenStreetMapImageryProvider({
-            url: 'https://tile.openstreetmap.org/',
-          }),
-        );
+        try {
+          this.$viewerService.setImageryProvider(
+            new Cesium.OpenStreetMapImageryProvider({
+              url: 'https://tile.openstreetmap.org/',
+            }),
+          );
+        } catch (error: any) {
+          // error.cause = 'red';
+          // throw error;
+          console.log(error);
+        }
       }
     });
     effect(() => {
       if (this.$viewerService.viewerHasLoaded()) {
-        this.$mouseCoordsService.startMouseCoordsService();
+        untracked(() => {
+          this.$mouseCoordsService.startMouseCoordsService();
+        });
       }
     });
-    effect(async () => {
+    effect(() => {
       if (this.$mouseCoordsService.underMouseEntityHasLoaded()) {
-        await this.$measureService.startMeasureService();
+        untracked(async () => {
+          await this.$measureService.startMeasureService();
+        });
       }
     });
   }

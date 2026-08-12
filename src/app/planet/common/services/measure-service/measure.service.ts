@@ -18,9 +18,10 @@ import { DeviceService } from '@global/services/device-service/device.service';
 // ----------------------------------------------------------- Блок для типизации ------------------------------------------------- //
 
 export interface MeasureOptions {
+  toolName?: ToolName; // global important!
+  groupId?: string; // localLy important!
   id?: string;
   name?: string;
-  toolName?: ToolName;
   reuse?: boolean;
   destroy?: boolean;
   callback?: Function;
@@ -42,7 +43,25 @@ export interface MeasureOptions {
   [key: string]: unknown;
 }
 
-export type ToolName = 'Метки' | 'Линейные измерения' | '';
+interface EntitiesGroup {
+  groupId: string;
+  entitiesList: Array<Cesium.Entity | undefined>;
+}
+
+// Пополнять при добавлении новых инструментов
+export type ToolName = 'addMark' | 'linearMeasurements' | 'route';
+export function getRusToolName(toolName: ToolName) {
+  switch (toolName) {
+    case 'addMark':
+      return 'Метки';
+    case 'linearMeasurements':
+      return 'Линейные измерения';
+    // case 'addMark':
+    //   return 'Метки';
+    case 'route':
+      return 'Маршрут';
+  }
+}
 
 // ----------------------------------------------------------- Блок базовых установок --------------------------------------------- //
 
@@ -67,12 +86,15 @@ export class MeasureService {
       this._viewer = this.$viewerService.viewer;
       this._viewer.measure = {
         drawLayer: new Cesium.CustomDataSource('measureLayer'),
+        drawRoute: new Cesium.GeoJsonDataSource('measureRoute'),
       };
       await this._viewer?.dataSources.add(this._viewer.measure.drawLayer);
+      await this._viewer?.dataSources.add(this._viewer.measure.drawRoute);
       this.measureServiceHasStarted.set(true);
     } catch (error: unknown) {
       if (this?._viewer?.measure) this._viewer.measure = undefined;
       // this.clearMeasuresDataSource();
+      // this.clearRouteDataSources();
       if (this.measureServiceHasStarted() === true) this.measureServiceHasStarted.set(false);
       console.log(chalk.red('Ошибка старта MeasureService'));
       throw error;
@@ -95,16 +117,96 @@ export class MeasureService {
   //------------------------------------------------------------ //
 
   // Реактивные массивы сущностей, созданных функциями данного сервиса
-  public marksList = signal<Array<Cesium.Entity | undefined>>([]);
-  public linearMesurmentsLinesList = signal<Array<Cesium.Entity | undefined>>([]);
-  public overEntitiesList = signal<Array<Cesium.Entity | undefined>>([]); // резервное хранилище для инструментов
-  public allEntitiesListsLink: Array<WritableSignal<Array<Cesium.Entity | undefined>>> = [
-    this.marksList,
-    this.linearMesurmentsLinesList,
-    this.overEntitiesList,
-  ];
-  public roadEntityList = signal<Array<Cesium.Entity | undefined>>([]); // хранилище для большого количества сущностей специфичного инструмента
+  // Реактивные массивы сущностей, созданных функциями данного сервиса. Также используются в модальных окнах инструментов.
+  public marksList = signal<Array<EntitiesGroup | undefined>>([]);
+  public linearMesurmentsLinesList = signal<Array<EntitiesGroup | undefined>>([]);
 
+  public routeEntityList = signal<Array<EntitiesGroup | undefined>>([]); // хранилище для большого количества сущностей специфичного инструмента
+  public allEntitiesListsLinks: {
+    [P in ToolName]: WritableSignal<Array<EntitiesGroup | undefined>>;
+  } = {
+    // prettier-ignore
+    'addMark': this.marksList,
+    // prettier-ignore
+    'linearMeasurements': this.linearMesurmentsLinesList,
+
+    // prettier-ignore
+    'route': this.routeEntityList,
+  };
+
+  public overEntitiesList = signal<Array<EntitiesGroup | undefined>>([]); // резервное хранилище для инструментов (вне состава allEntitiesListsLinks)
+  public temporalEntitiesList = signal<Array<Cesium.Entity | undefined>>([]); // хранилище для инструментов в процессе построения (БЕЗ ГРУППИРОВКИ)
+
+  private pushGroupFromTemporal(groupIdChank: string, toolName?: ToolName): boolean {
+    try {
+      const targetList: WritableSignal<Array<EntitiesGroup | undefined>> = toolName
+        ? this.allEntitiesListsLinks[toolName]
+        : this.overEntitiesList;
+      const index = targetList().findIndex((item) => item?.groupId === groupIdChank);
+      if (index === -1) {
+        targetList.update((arr) => {
+          arr.push({ groupId: groupIdChank, entitiesList: this.temporalEntitiesList() });
+          return [...arr];
+        });
+      } else {
+        targetList.update((arr) => {
+          arr[index]?.entitiesList.push(...this.temporalEntitiesList());
+          return [...arr];
+        });
+      }
+      return true;
+    } catch (error) {
+      console.log(chalk.red(error));
+      return false;
+    }
+  }
+  private pushGroupWithoutTemporal(
+    entities: Array<Cesium.Entity>,
+    groupIdChank: string,
+    toolName?: ToolName,
+  ): boolean {
+    try {
+      const targetList: WritableSignal<Array<EntitiesGroup | undefined>> = toolName
+        ? this.allEntitiesListsLinks[toolName]
+        : this.overEntitiesList;
+      const index = targetList().findIndex((item) => item?.groupId === groupIdChank);
+      if (index === -1) {
+        targetList.update((arr) => {
+          arr.push({ groupId: groupIdChank, entitiesList: entities });
+          return [...arr];
+        });
+      } else {
+        targetList.update((arr) => {
+          arr[index]?.entitiesList.push(...entities);
+          return [...arr];
+        });
+      }
+      return true;
+    } catch (error) {
+      console.log(chalk.red(error));
+      return false;
+    }
+  }
+  private clearTemporalEntitiesList(groupIdChank?: string): boolean {
+    try {
+      if (this.temporalEntitiesList().length) {
+        if (groupIdChank) {
+          this.temporalEntitiesList.update((arr) => {
+            arr = arr.filter((item) => !item?.id.startsWith(groupIdChank));
+            return [...arr];
+          });
+        } else {
+          this.temporalEntitiesList.set([]);
+        }
+      } else {
+        console.log('temporalEntitiesList() is empty in clearTemporalEntitiesList fn');
+      }
+      return true;
+    } catch (error) {
+      console.log(chalk.red(error));
+      return false;
+    }
+  }
   //------------------------------------------------------------ //
 
   // Блокировка (на уровне сервиса и представления) новых расчетов до окончания предыдущих
@@ -164,12 +266,12 @@ export class MeasureService {
         position: position,
         billboard: options?.billboard || undefined,
         label: options?.label || undefined,
-        description: options?.description || `<p>${this.getMouseEntity()?.label?.text}</p>`,
+        description: options?.description || `${this.getMouseEntity()?.label?.text}`,
       });
       return pointEntity;
     } catch (error) {
       this.cancelTool();
-      console.log(error);
+      console.log(chalk.red(error));
       return undefined;
     }
   }
@@ -208,7 +310,7 @@ export class MeasureService {
       return lineEntity;
     } catch (error) {
       this.cancelTool();
-      console.log(error);
+      console.log(chalk.red(error));
       return undefined;
     }
   }
@@ -221,9 +323,15 @@ export class MeasureService {
       if (this.measuresBlocker() === true) return false;
       this.clearHandler();
       this.measuresBlocker.set(true);
+      let groupIdChank: string;
+      if (options?.groupId === undefined) {
+        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`; // используется для смыслового объединения всех сущностей одного сценария работы инструмента (groupId)
+      } else {
+        groupIdChank = options.groupId;
+      }
       const opt: MeasureOptions = cloneDeep(options);
-      // Под options.id ожидается (не обязательно) название ts-файла инструмента (например, add-mark) - для очистки сразу всех сущностей одного из инструментов
-      opt.id = `${Math.ceil(Math.random() * 1000000)}-point${options?.id ? '-' + options.id : ''}`;
+      // Под options.name ожидается (не обязательно) название ts-файла инструмента (например, add-mark) - может использоваться для очистки сразу всех сущностей одного из инструментов (сейчас удаляется по кастомному свойству сущности toolName)
+      opt.id = `${groupIdChank}-point${options?.name ? '-' + options.name : ''}`;
       // Точка (свойство point) не отображается на некоторых видеокартах (заменена билбордом)
       opt.billboard = options?.billboard || {
         image: 'assets/planet/measuring-tools/map-position_white.png',
@@ -262,55 +370,57 @@ export class MeasureService {
           const pos: Cesium.Cartesian3 | undefined = this.getMouseEntity()?.position?.getValue();
           _pointEntity = this.setPointEntity(pos, opt);
           if (_pointEntity === undefined) return;
+
           // На случай, если декорирование сущности точки не требуется
           if (opt?.destroy !== true) {
+            if (opt?.toolName) {
+              // @ts-ignore
+              _pointEntity.toolName = opt?.toolName;
+            }
+            if (opt.withCoordsDesc) {
+              let text: string = '';
+              if (opt?.withoutHeightDesc) {
+                const arr: string[] = this.getMouseEntity()?.label?.text?.getValue().split('\n');
+                arr.pop();
+                arr.unshift('СК: ' + this.$mouseCoordsService.selectedCrs());
+                text = arr.join('\n');
+              } else {
+                text =
+                  'СК: ' +
+                  this.$mouseCoordsService.selectedCrs() +
+                  '\n' +
+                  this.getMouseEntity()?.label?.text?.getValue();
+              }
+              // @ts-ignore
+              _pointEntity.label!.text = text;
+              // @ts-ignore
+              _pointEntity.label.horizontalOrigin = Cesium.HorizontalOrigin.CENTER;
+              // @ts-ignore
+              _pointEntity.label.verticalOrigin = Cesium.VerticalOrigin.TOP;
+              // @ts-ignore
+              _pointEntity.label.pixelOffset = new Cesium.Cartesian2(0, -110);
+            }
+            this.pushGroupWithoutTemporal([_pointEntity], groupIdChank, opt?.toolName);
+            // this.clearTemporalEntitiesList(groupIdChank); // в текущей конструкции (пока) не используется
             this._viewer?.measure?.drawLayer.entities.add(_pointEntity);
-            if (opt?.toolName === 'Метки') {
-              this.marksList.update((arr) => [...arr, _pointEntity]);
-            } else {
-              this.overEntitiesList.update((arr) => [...arr, _pointEntity]);
-            }
-          }
-          if (opt.withCoordsDesc) {
-            let text: string = '';
-            if (opt?.withoutHeightDesc) {
-              const arr: string[] = this.getMouseEntity()?.label?.text?.getValue().split('\n');
-              arr.pop();
-              arr.unshift('СК: ' + this.$mouseCoordsService.selectedCrs());
-              text = arr.join('\n');
-            } else {
-              text =
-                'СК: ' +
-                this.$mouseCoordsService.selectedCrs() +
-                '\n' +
-                this.getMouseEntity()?.label?.text?.getValue();
-            }
-            // @ts-ignore
-            _pointEntity.label!.text = text;
-            // @ts-ignore
-            _pointEntity.label.horizontalOrigin = Cesium.HorizontalOrigin.CENTER;
-            // @ts-ignore
-            _pointEntity.label.verticalOrigin = Cesium.VerticalOrigin.TOP;
-            // @ts-ignore
-            _pointEntity.label.pixelOffset = new Cesium.Cartesian2(0, -90);
+            this.$viewerService.setPickedEntity(_pointEntity);
           }
           this.$viewerService.offEntityPickingBlock();
           this.measuresBlocker.set(false);
           if (opt?.callback && typeof opt.callback === 'function') {
-            // Вызов для fly-360 || point-view - дальнейшее управление камерой
             opt.callback(_pointEntity, this.getMouseEntity()?.position?.getValue());
           }
           // Опция из add-mark для непрерывного нанесения меток по ПКМ
           if (opt.reuse === true) this.drawPointGraphics(options);
         } catch (error: unknown) {
           this.cancelTool();
-          console.log(error);
+          console.log(chalk.red(error));
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       return true;
     } catch (error: unknown) {
       this.cancelTool();
-      console.log(error);
+      console.log(chalk.red(error));
       return false;
     }
   }
@@ -328,12 +438,17 @@ export class MeasureService {
       if (this.measuresBlocker() === true) return false;
       this.clearHandler();
       this.measuresBlocker.set(true);
-      const newRandom: string = `${Math.ceil(Math.random() * 1000000)}`;
+      let groupIdChank: string;
+      if (options?.groupId === undefined) {
+        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+      } else {
+        groupIdChank = options.groupId;
+      }
       const optForPoint: MeasureOptions = cloneDeep(options);
       // Начало id должно быть общим для суммы сущностей одного инструмента (для коллективного удаления)
-      optForPoint.id = `${newRandom}-point${options?.id ? '-' + options.id : ''}-${Math.ceil(Math.random() * 1000000)}`;
+      optForPoint.id = `${groupIdChank}-point${options?.name ? '-' + options.name : ''}-${Math.ceil(Math.random() * 1000000)}`;
       const optForLine: MeasureOptions = cloneDeep(options);
-      optForLine.id = `${newRandom}-line${options?.id ? '-' + options.id : ''}-${Math.ceil(Math.random() * 1000000)}`;
+      optForLine.id = `${groupIdChank}-line${options?.name ? '-' + options.name : ''}-${Math.ceil(Math.random() * 1000000)}`;
       let _lineEntity: Cesium.Entity | undefined = undefined;
 
       // "Индикаторы" для колбэков ниже
@@ -390,12 +505,14 @@ export class MeasureService {
             optForPoint,
           );
           if (_pointEntity === undefined) return;
-          this._viewer.measure?.drawLayer.entities.add(_pointEntity);
-          if (optForPoint?.toolName === 'Линейные измерения') {
-            this.linearMesurmentsLinesList.update((arr) => [...arr, _pointEntity]);
-          } else {
-            this.overEntitiesList.update((arr) => [...arr, _pointEntity]);
+          if (optForPoint?.toolName) {
+            // @ts-ignore
+            _pointEntity.toolName = optForPoint.toolName;
           }
+
+          this._viewer.measure?.drawLayer.entities.add(_pointEntity);
+          this.temporalEntitiesList.update((arr) => [...arr, _pointEntity]);
+
           if (polylinePositions.length === 0) {
             polylinePositions.push(startPos);
           }
@@ -419,18 +536,19 @@ export class MeasureService {
               if (_lineEntity.polyline?.positions)
                 _lineEntity.polyline.positions = reactivePolylinePositions;
 
-              this._viewer.measure?.drawLayer.entities.add(_lineEntity);
-              if (optForLine?.toolName === 'Линейные измерения') {
-                this.linearMesurmentsLinesList.update((arr) => [...arr, _lineEntity]);
-              } else {
-                this.overEntitiesList.update((arr) => [...arr, _lineEntity]);
+              if (optForLine?.toolName) {
+                // @ts-ignore
+                _lineEntity.toolName = optForLine.toolName;
               }
+
+              this._viewer.measure?.drawLayer.entities.add(_lineEntity);
+              this.temporalEntitiesList.update((arr) => [...arr, _lineEntity]);
             }
           }
         } catch (error: unknown) {
           this.cancelTool();
           if (this.lineMeasureHasStarted() === true) this.lineMeasureHasStarted.set(false);
-          console.log(error);
+          console.log(chalk.red(error));
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
@@ -451,7 +569,7 @@ export class MeasureService {
         } catch (error: unknown) {
           this.cancelTool();
           if (this.lineMeasureHasStarted() === true) this.lineMeasureHasStarted.set(false);
-          console.log(error);
+          console.log(chalk.red(error));
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
@@ -489,12 +607,16 @@ export class MeasureService {
               optForPoint,
             );
             if (_lastPointEntity === undefined) return;
-            this._viewer.measure?.drawLayer.entities.add(_lastPointEntity);
-            if (optForPoint?.toolName === 'Линейные измерения') {
-              this.linearMesurmentsLinesList.update((arr) => [...arr, _lastPointEntity]);
-            } else {
-              this.overEntitiesList.update((arr) => [...arr, _lastPointEntity]);
+            if (optForPoint?.toolName) {
+              // @ts-ignore
+              _lastPointEntity.toolName = optForPoint.toolName;
             }
+
+            this.temporalEntitiesList.update((arr) => [...arr, _lastPointEntity]);
+            this.pushGroupFromTemporal(groupIdChank, optForPoint?.toolName);
+            this.clearTemporalEntitiesList(groupIdChank);
+            this._viewer.measure?.drawLayer.entities.add(_lastPointEntity);
+            this.$viewerService.setPickedEntity(_lineEntity);
           }
           this.measuresBlocker.set(false);
           if (options?.callback && typeof options.callback === 'function') {
@@ -507,7 +629,7 @@ export class MeasureService {
         } catch (error: unknown) {
           this.cancelTool();
           if (this.lineMeasureHasStarted() === true) this.lineMeasureHasStarted.set(false);
-          console.log(error);
+          console.log(chalk.red(error));
         }
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
 
@@ -515,7 +637,7 @@ export class MeasureService {
     } catch (error: unknown) {
       this.cancelTool();
       if (this.lineMeasureHasStarted() === true) this.lineMeasureHasStarted.set(false);
-      console.log(error);
+      console.log(chalk.red(error));
       return false;
     }
   }
@@ -555,16 +677,49 @@ export class MeasureService {
             }
             let isRemove: boolean = false;
             if (entity?.id) {
-              this.allEntitiesListsLink.forEach((entitiesList) => {
-                if (!isRemove) isRemove = this.removeEntitiesById(entity.id, entitiesList);
-              });
+              const listsArr: Array<WritableSignal<Array<EntitiesGroup | undefined>>> =
+                Object.values(this.allEntitiesListsLinks);
+              // @ts-ignore
+              if (!entity?.toolName || this.allEntitiesListsLinks[entity.toolName as ToolName]) {
+                // Самое объемное хранилище перемещаем в конец последующего перебора
+                const index = listsArr.findIndex((item) => item === this.routeEntityList);
+                if (index !== -1 && index !== listsArr.length - 1) {
+                  const movedItem = listsArr.splice(index, 1);
+                  listsArr.push(...movedItem);
+                }
+              }
+              const newIdArr: string[] = entity.id.split('-'); // у обособленных примитивов id может быть простым рандомным числом (`${Math.ceil(Math.random() * 1000000)}`)
+              if (newIdArr.length > 1) {
+                const groupId = newIdArr[0];
+                // @ts-ignore
+                if (entity?.toolName && this.allEntitiesListsLinks[entity.toolName as ToolName]) {
+                  isRemove = this.removeEntitiesByGroupId(
+                    groupId,
+                    // @ts-ignore
+                    this.allEntitiesListsLinks[entity.toolName],
+                  );
+                } else {
+                  isRemove = this.removeEntitiesByGroupId(groupId, this.overEntitiesList);
+                  for (const entitiesList of listsArr) {
+                    // Предполагается, что коллекции с групповым id будут размещены только в одном из сторов
+                    if (!isRemove) isRemove = this.removeEntitiesByGroupId(groupId, entitiesList);
+                  }
+                }
+              } else {
+                isRemove = this.removeOneEntityById(entity.id, this.overEntitiesList);
+                for (const entitiesList of listsArr) {
+                  if (!isRemove) isRemove = this.removeOneEntityById(entity.id, entitiesList);
+                }
+              }
             }
             this.measuresBlocker.set(false);
             this.$viewerService.offEntityPickingBlock();
             if (options.reuse === true) this.entitiesCleaning(options);
+            return isRemove;
           } catch (error: unknown) {
             this.cancelTool();
-            console.log(error);
+            console.log(chalk.red(error));
+            return false;
           }
         },
         Cesium.ScreenSpaceEventType.LEFT_CLICK,
@@ -572,64 +727,93 @@ export class MeasureService {
       return true;
     } catch (error: unknown) {
       this.cancelTool();
-      console.log(error);
+      console.log(chalk.red(error));
       return false;
     }
   }
 
-  // Очистка конкретных групп сущностей с холста и из стора
-  public removeEntitiesById(
-    entityId: string,
-    entitiesList: WritableSignal<Array<Cesium.Entity | undefined>>,
+  // Очистка конкретных групп сущностей (результата одного сценария использования инструмента) с холста и из стора
+  public removeEntitiesByGroupId(
+    groupId: string,
+    entitiesGroups: WritableSignal<Array<EntitiesGroup | undefined>>,
     dataSourceName: string = 'measureLayer',
   ): boolean {
     try {
-      if (!entitiesList().length) return false;
-      // Для коллективного удаления
-      if (entityId.split('-').length > 1) {
-        const idStart: string = entityId.split('-')[0];
-
-        let foundedCounter: number = 0;
-        let successCounter: number = 0;
-        // cloneDeep(entitiesList()); - неактуально
-        const idsArr: string[] = [];
-        // Массив с индексами - для единственного изменения реактивного entitiesList() (заместо многократных изменений в цикле)
-        const indexesArr: number[] = []; // индексы соответствует удаляемым сущностям в entitiesList()
-        for (let i = 0; i < entitiesList().length; i++) {
-          if (entitiesList()[i]!.id.startsWith(idStart)) {
-            idsArr.push(entitiesList()[i]!.id);
-            indexesArr.push(i);
-            foundedCounter++;
+      if (!entitiesGroups().length) return false;
+      // Массив id для последующего удаления из dataSource
+      const idsArr: string[] = [];
+      // cloneDeep(entitiesGroups()); - очень затратно
+      // Массив с индексами - для единственного изменения реактивного entitiesList() (заместо многократных изменений в цикле)
+      const indexesArr: number[] = []; // индексы соответствует удаляемым группам сущностей в entitiesList()
+      for (let i = 0; i < entitiesGroups().length; i++) {
+        if (entitiesGroups()[i]?.groupId.startsWith(groupId)) {
+          indexesArr.push(i);
+          if (entitiesGroups()[i]?.entitiesList.length) {
+            for (const entity of entitiesGroups()[i]!.entitiesList) {
+              idsArr.push(entity!.id);
+            }
           }
         }
-        if (!foundedCounter) return false;
-        for (const id of idsArr) {
-          const isRemove = this?._viewer.dataSources
-            ?.getByName(`${dataSourceName}`)?.[0]
-            .entities.removeById(id);
-          if (isRemove) successCounter++;
-        }
-        if (successCounter !== 0)
-          entitiesList.set(entitiesList().filter((_, index) => !indexesArr.includes(index)));
-        if (foundedCounter !== successCounter) return false;
-        return true;
-        // Для удаления результатов единственной сущности (например, для инструмента "Метки")
+      }
+      if (idsArr.length) {
+        entitiesGroups.set(entitiesGroups().filter((_, index) => !indexesArr.includes(index)));
       } else {
-        const isRemove = this?._viewer.dataSources
-          ?.getByName(`${dataSourceName}`)?.[0]
-          .entities.removeById(entityId);
-        if (!isRemove) return false;
-        const index: number = entitiesList().findIndex((item) => item?.id === entityId);
-        if (index !== -1) {
-          entitiesList.update((arr) => {
-            arr.splice(index, 1);
-            return [...arr];
-          });
+        console.log(
+          chalk.blue(
+            "Entities to delete haven't found in entitiesList (by removeEntitiesByGroupId fn)",
+          ),
+        );
+        return false;
+      }
+      const dataSource: Cesium.DataSource | undefined = this?._viewer.dataSources?.getByName(
+        `${dataSourceName}`,
+      )?.[0];
+      if (dataSource) {
+        for (const id of idsArr) {
+          dataSource.entities.removeById(id);
         }
-        return true;
+      } else {
+        console.log(chalk.blue('dataSource is undefined (by removeEntitiesByGroupId fn)'));
+        return false;
+      }
+      return true;
+    } catch (error: unknown) {
+      console.log(chalk.red(error));
+      return false;
+    }
+  }
+
+  // Очистка одной сущности с холста и из стора
+  public removeOneEntityById(
+    entityId: string,
+    entitiesGroups: WritableSignal<Array<EntitiesGroup | undefined>>,
+    dataSourceName: string = 'measureLayer',
+  ): boolean {
+    try {
+      if (!entitiesGroups().length) return false;
+      const index: number = entitiesGroups().findIndex((item) => item?.groupId === entityId);
+      if (index !== -1) {
+        entitiesGroups.update((arr) => {
+          arr.splice(index, 1);
+          return [...arr];
+        });
+      } else {
+        console.log(
+          chalk.blue("entityId hasn't found in entitiesGroups (by removeOneEntityById fn)"),
+        );
+        return false;
+      }
+      const dataSource: Cesium.DataSource | undefined = this?._viewer.dataSources?.getByName(
+        `${dataSourceName}`,
+      )?.[0];
+      if (dataSource) {
+        return dataSource.entities.removeById(entityId);
+      } else {
+        console.log(chalk.blue('dataSource is undefined (by removeOneEntityById fn)'));
+        return false;
       }
     } catch (error: unknown) {
-      console.log(error);
+      console.log(chalk.red(error));
       return false;
     }
   }
@@ -638,60 +822,90 @@ export class MeasureService {
 
   // Очистка всех сущностей определенного инструмента (по СКМ на кнопках) с холста и из стора
   public allToolEntitiesCleaning(
-    toolFileName: string,
-    entitiesList?: WritableSignal<Array<Cesium.Entity | undefined>>,
+    toolName: ToolName,
     dataSourceName: string = 'measureLayer',
   ): boolean {
     try {
-      let isRemove: boolean = false;
-      if (entitiesList?.()) {
-        if (entitiesList?.().length === 0) return false;
-        isRemove = this.removeAllToolEntities(toolFileName, entitiesList, dataSourceName);
-      } else {
-        this.allEntitiesListsLink.forEach((entitiesList) => {
-          if (!isRemove) {
-            isRemove = this.removeAllToolEntities(toolFileName, entitiesList, dataSourceName);
-          }
-        });
+      if (!toolName) throw new Error('toolName is undefined in allToolEntitiesCleaning fn');
+      if (!this.allEntitiesListsLinks[toolName])
+        throw new Error('targetStore is undefined in allToolEntitiesCleaning fn');
+      const targetStore: WritableSignal<Array<EntitiesGroup | undefined>> =
+        this.allEntitiesListsLinks[toolName];
+      if (!targetStore().length) {
+        console.log(chalk.blue('targetStore is already empty (by allToolEntitiesCleaning fn)'));
+        return false;
       }
-      if (isRemove) return true;
-      else return false;
+      const idsArr: string[] = [];
+      for (const item of targetStore()) {
+        if (item?.entitiesList.length) {
+          for (const entity of item.entitiesList) {
+            idsArr.push(entity!.id);
+          }
+        }
+      }
+      if (idsArr.length) {
+        targetStore.update(() => []);
+      } else {
+        console.log(chalk.blue('Nothing to erase in targetStore (by allToolEntitiesCleaning fn)'));
+        return false;
+      }
+      const dataSource: Cesium.DataSource | undefined = this?._viewer.dataSources?.getByName(
+        `${dataSourceName}`,
+      )?.[0];
+      if (dataSource) {
+        for (const id of idsArr) {
+          dataSource.entities.removeById(id);
+        }
+      } else {
+        console.log(chalk.blue('dataSource is undefined (by allToolEntitiesCleaning fn)'));
+        return false;
+      }
+      return true;
     } catch (error: unknown) {
-      console.log(error);
+      console.log(chalk.red(error));
       return false;
     }
   }
 
-  public removeAllToolEntities(
-    toolFileName: string,
-    entitiesList: WritableSignal<Array<Cesium.Entity | undefined>>,
-    dataSourceName: string,
+  // Функция отменяющая результаты выполнения неоконченного сценария работы инструмента (по Esc)
+  public removeTemporalEntities(
+    groupId?: string,
+    dataSourceName: string = 'measureLayer',
   ): boolean {
     try {
-      let foundedCounter: number = 0;
-      let successCounter: number = 0;
+      if (!this.temporalEntitiesList().length) return false;
       const idsArr: string[] = [];
-      const indexesArr: number[] = [];
-      for (let i = 0; i < entitiesList().length; i++) {
-        if (entitiesList()[i]!.id.includes(toolFileName)) {
-          idsArr.push(entitiesList()[i]!.id);
-          indexesArr.push(i);
-          foundedCounter++;
+      if (groupId) {
+        for (const entity of this.temporalEntitiesList()) {
+          if (entity?.id.startsWith(groupId)) idsArr.push(entity.id);
+        }
+      } else {
+        for (const entity of this.temporalEntitiesList()) {
+          idsArr.push(entity!.id);
         }
       }
-      if (!foundedCounter) return false;
-      for (const id of idsArr) {
-        const isRemove = this?._viewer.dataSources
-          ?.getByName(`${dataSourceName}`)?.[0]
-          .entities.removeById(id);
-        if (isRemove) successCounter++;
+      const hasDeletedFromStore = this.clearTemporalEntitiesList(groupId);
+      if (hasDeletedFromStore) {
+        const dataSource: Cesium.DataSource | undefined = this?._viewer.dataSources?.getByName(
+          `${dataSourceName}`,
+        )?.[0];
+        if (dataSource) {
+          for (const id of idsArr) {
+            dataSource.entities.removeById(id);
+          }
+          return true;
+        } else {
+          console.log(chalk.blue('dataSource is undefined (by removeTemporalEntities fn)'));
+          return false;
+        }
+      } else {
+        console.log(
+          chalk.blue('Temporal store clearing has failed (by removeTemporalEntities fn)'),
+        );
+        return false;
       }
-      if (successCounter !== 0)
-        entitiesList.set(entitiesList().filter((_, index) => !indexesArr.includes(index)));
-      if (foundedCounter !== successCounter) return false;
-      return true;
     } catch (error: unknown) {
-      console.log(error);
+      console.log(chalk.red(error));
       return false;
     }
   }
@@ -702,43 +916,48 @@ export class MeasureService {
   // Main-функция инструмента clear-measurements.ts
   public clearMeasuresDataSource(): boolean {
     try {
-      this?._viewer.dataSources?.getByName('measureLayer')?.[0].entities.removeAll();
-      this.allEntitiesListsLink.forEach((item) => item.update(() => []));
+      const dataSource: Cesium.DataSource | undefined =
+        this?._viewer.dataSources?.getByName('measureLayer')?.[0];
+      if (dataSource) {
+        dataSource.entities.removeAll();
+      } else {
+        console.log(chalk.blue('dataSource is undefined (by clearMeasuresDataSource fn)'));
+        return false;
+      }
+      const listsArr: Array<WritableSignal<Array<EntitiesGroup | undefined>>> = Object.values(
+        this.allEntitiesListsLinks,
+      );
+      listsArr.forEach((item) => {
+        if (item !== this.routeEntityList) item.update(() => []);
+      });
       return true;
     } catch (error) {
-      console.log(error);
+      console.log(chalk.red(error));
+      return false;
+    }
+  }
+
+  public clearRouteDataSources(): boolean {
+    try {
+      const dataSource: Cesium.DataSource | undefined =
+        this?._viewer.dataSources?.getByName('measureRoute')?.[0];
+      if (dataSource) {
+        dataSource.entities.removeAll();
+      } else {
+        console.log(chalk.blue('dataSource is undefined (by clearRouteDataSources fn)'));
+        return false;
+      }
+      this.routeEntityList.update(() => []);
+      return true;
+    } catch (error) {
+      console.log(chalk.red(error));
       return false;
     }
   }
 
   // ------------------------------------------------- Блок вспомогательных функций ----------------------------------------------- //
 
-  // Очистка одной сущности с холста и из стора
-  public removeOneEntityById(
-    entityId: string,
-    entityList: WritableSignal<Array<Cesium.Entity | undefined>>,
-    dataSourceName: string = 'measureLayer',
-  ): boolean {
-    try {
-      const isRemove = this?._viewer.dataSources
-        ?.getByName(`${dataSourceName}`)?.[0]
-        .entities.removeById(entityId);
-      if (!isRemove) return false;
-      const index: number = entityList().findIndex((item) => item?.id === entityId);
-      if (index !== -1) {
-        entityList.update((arr) => {
-          arr.splice(index, 1);
-          return [...arr];
-        });
-      }
-      return true;
-    } catch (error: unknown) {
-      console.log(error);
-      return false;
-    }
-  }
-
-  // Дубль из measure.service.ts - для автономности данного сервиса
+  // Дубль из measure.service.ts - для автономности (используется инструментами данного сервиса)
   public async getPositionCoordsDescription(
     cartesian: Cesium.Cartesian3 | undefined,
     selectedCrs: CRS,
@@ -775,9 +994,9 @@ export class MeasureService {
     );
     // Обновляем описание координат
     // Для компонента mouse-coords-info
-    let latitudeDescription: string = '';
-    let longitudeDescription: string = '';
-    let heightDescription: string = '';
+    let latitudeDescription = '';
+    let longitudeDescription = '';
+    let heightDescription = '';
     // Для Cesium
     let coordsDescription: string = '';
     if (selectedCrs === 'СК-42 м') {
@@ -797,53 +1016,6 @@ export class MeasureService {
       latitudeDescription,
       longitudeDescription,
       heightDescription,
-      coordsDescription,
-    };
-  }
-
-  public getPositionCoordsDescriptionWithoutHeight(
-    cartesian: Cesium.Cartesian3 | undefined,
-    selectedCrs: CRS,
-  ): {
-    latitudeDescription: string;
-    longitudeDescription: string;
-    coordsDescription: string;
-  } {
-    if (cartesian === undefined)
-      return {
-        latitudeDescription: 'нет данных',
-        longitudeDescription: 'нет данных',
-        coordsDescription: 'нет данных',
-      };
-    const cartographic =
-      this.$viewerService.viewer.scene.globe.ellipsoid.cartesianToCartographic(cartesian);
-    const longitude = Cesium.Math.toDegrees(cartographic.longitude);
-    const latitude = Cesium.Math.toDegrees(cartographic.latitude);
-    const tCrsCoord = CoordSystems.fromCartographic(
-      selectedCrs,
-      {
-        latitude: latitude,
-        longitude: longitude,
-        height: 0,
-      },
-      '',
-    );
-    let latitudeDescription: string = '';
-    let longitudeDescription: string = '';
-    // @ts-ignore
-    let coordsDescription: string = '';
-    if (selectedCrs === 'СК-42 м') {
-      latitudeDescription = `X: ${tCrsCoord.latitude.toFixed(1)} м`;
-      longitudeDescription = `Y: ${tCrsCoord.longitude.toFixed(1)} м`;
-      coordsDescription = `${latitudeDescription}\n` + `${longitudeDescription}`;
-    } else {
-      latitudeDescription = `B: ${tCrsCoord.latitude.toFixed(7)} ˚`;
-      longitudeDescription = `L: ${tCrsCoord.longitude.toFixed(7)} ˚`;
-      coordsDescription = `${latitudeDescription}\n` + `${longitudeDescription}`;
-    }
-    return {
-      latitudeDescription,
-      longitudeDescription,
       coordsDescription,
     };
   }

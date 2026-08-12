@@ -19,15 +19,15 @@
       "@global/*": ["./src/app/global/*"],
       "@landing/*": ["./src/app/landing-page/*"]
     },
-    "alwaysStrict": false,
-    "useUnknownInCatchVariables": true,
-    "strictPropertyInitialization": false,
-    "strictFunctionTypes": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
+    // "alwaysStrict": false,
+    // "useUnknownInCatchVariables": true,
+    "strictPropertyInitialization": false
+    // "strictFunctionTypes": true,
+    // "noImplicitAny": true,
+    // "noImplicitThis": true,
     // "noUnusedLocals": true,
     // "noUnusedParameters": true,
-    "allowUnreachableCode": false
+    // "allowUnreachableCode": false
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

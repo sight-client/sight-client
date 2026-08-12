@@ -1,6 +1,6 @@
 .mouse-coords-cursor-field {
   --cursor-field-max-width: 110px;
-  position: absolute;
+  position: fixed;
   z-index: 2;
   max-width: var(--cursor-field-max-width);
   margin: 10px;
@@ -87,4 +87,5 @@
   stroke-width: 1px;
   margin-left: -8px;
   margin-bottom: -12px;
+  opacity: 0.8;
 }

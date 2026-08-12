@@ -1,0 +1,22 @@
+@if (parentName) {
+  <measuring-tools-modal [contentTemplate]="contentTemplate" [parentName]="parentName" />
+}
+
+<ng-template #contentTemplate>
+  <div class="linear-measurements-modal-content-wrapper">
+    <p>Entity id: {{ validPickedEnttity()?.id ? validPickedEnttity()?.id : 'не определено' }}</p>
+    <p>
+      Entity description:
+      {{ validPickedEnttity()?.description ? validPickedEnttity()?.description : 'не определено' }}
+    </p>
+    <p>
+      Entity length:
+      {{
+        validPickedEnttity()?.label?.text && validPickedEnttity()?.id?.includes('-line-')
+          ? validPickedEnttity()?.label?.text?.getValue()
+          : 'не определено'
+      }}
+    </p>
+    <p style="text-align: center; margin-top: 20px">[содержимое находится в разработке...]</p>
+  </div>
+</ng-template>

@@ -1,7 +1,9 @@
 import { Component, ChangeDetectionStrategy, HostListener, ViewChild } from '@angular/core';
 
 import { MeasureService } from '@/common/services/measure-service/measure.service';
+import { MeasuringToolsModalsService } from '@/components/measuring-tools/common/measuring-tools-modal/services/measuring-tools-modals-service/measuring-tools-modals.service';
 
+import { TabsPanel } from '@/components/measuring-tools/common/measuring-tools-modal/components/tabs-panel/tabs-panel';
 import { AddMark } from '@/components/measuring-tools/components/add-mark/add-mark';
 import { LinearMeasurements } from '@/components/measuring-tools/components/linear-measurements/linear-measurements';
 import { EraseEntity } from '@/components/measuring-tools/components/erase-entity/erase-entity';
@@ -9,14 +11,17 @@ import { ClearMeasurements } from '@/components/measuring-tools/components/clear
 
 @Component({
   selector: 'measuring-tools',
-  imports: [AddMark, LinearMeasurements, EraseEntity, ClearMeasurements],
+  imports: [TabsPanel, AddMark, LinearMeasurements, EraseEntity, ClearMeasurements],
+  providers: [MeasuringToolsModalsService],
   template: `
     <div class="measuring-tools-container">
       <add-mark />
       <linear-measurements />
-      <div class="gag"></div>
       <erase-entity />
       <clear-measurements />
+    </div>
+    <div class="measuring-tools-tabs-panel">
+      <tabs-panel />
     </div>
   `,
   styleUrl: './measuring-tools.scss',

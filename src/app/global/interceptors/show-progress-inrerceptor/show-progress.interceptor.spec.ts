@@ -1,11 +1,11 @@
 // import { TestBed } from '@angular/core/testing';
 // import { HttpInterceptorFn } from '@angular/common/http';
 // import { provideZonelessChangeDetection } from '@angular/core';
-// import showProgressInterceptor from './show-progress.interceptor';
+// import ShowProgressInterceptor from './show-progress.interceptor';
 
-// describe('showProgressInterceptor', () => {
+// describe('ShowProgressInterceptor', () => {
 //   const interceptor: HttpInterceptorFn = (req, next) =>
-//     TestBed.runInInjectionContext(() => new showProgressInterceptor(req, next));
+//     TestBed.runInInjectionContext(() => new ShowProgressInterceptor(req, next));
 
 //   beforeEach(() => {
 //     TestBed.configureTestingModule({
@@ -22,9 +22,9 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { ProgressInterceptor } from './show-progress.interceptor';
+import { ShowProgressInterceptor } from './show-progress.interceptor';
 
-describe('MyInterceptor', () => {
+describe('ShowProgressInterceptor', () => {
   let httpMock: HttpTestingController;
   let httpClient: HttpClient;
 
@@ -34,7 +34,7 @@ describe('MyInterceptor', () => {
         provideZonelessChangeDetection(),
         {
           provide: HTTP_INTERCEPTORS,
-          useClass: ProgressInterceptor,
+          useClass: ShowProgressInterceptor,
           multi: true,
         },
       ],

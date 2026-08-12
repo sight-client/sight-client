@@ -18,7 +18,7 @@ import { Injectable } from '@angular/core';
 
 // Перехватчик, как класс (не рекомендовано документацией, т.к. порядок работы таких перехватчиков неочевиден)
 @Injectable()
-export class ProgressInterceptor implements HttpInterceptor {
+export class ShowProgressInterceptor implements HttpInterceptor {
   constructor(private $setCursorProgressSpinerService: SetCursorProgressSpinerService) {}
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     this.$setCursorProgressSpinerService.setSpinnerOn();
