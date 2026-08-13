@@ -27,6 +27,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import {
@@ -55,6 +56,7 @@ export class CustomErrorStateMatcher implements ErrorStateMatcher {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    MatTooltipModule,
     MatIconModule,
     MatMenuModule,
     MatDialogContent,
@@ -122,6 +124,7 @@ export class AuthModule implements OnInit, OnDestroy {
     Validators.pattern(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[-_\.~!*'();?:@&=+$,])[A-Za-z\d-_\.~!*'();?:@&=+$,]{8,50}$/,
     ),
+    // Validators.pattern(/^[^а-яёА-ЯЁ]{3,50}$/),
   ]);
   // Имя должно быть не пустым
   protected firstNameFormControl = new FormControl('', [Validators.required]);
@@ -182,7 +185,12 @@ export class AuthModule implements OnInit, OnDestroy {
 
   // ---------------------------------------------------------------------------------------------- //
   // ФОРМА АВТОРИЗАЦИИ
-  protected loginLogFormControl = new FormControl('', [Validators.required]);
+  protected loginLogFormControl = new FormControl('', [
+    Validators.required,
+    Validators.minLength(3),
+    Validators.maxLength(50),
+    Validators.pattern(/^[A-Za-z0-9_-]{3,50}$/), // {3,50} - резервная проверка на длину
+  ]);
   protected passwordLogFormControl = new FormControl('', [Validators.required]);
   // Реактивный объект для отправки данных авторизации
   protected userLoginForm = new FormGroup({
@@ -193,6 +201,7 @@ export class AuthModule implements OnInit, OnDestroy {
   protected submitLogin(event: SubmitEvent | Event): void {
     if (this.loginLogFormControl.errors || this.passwordLogFormControl.errors) {
       event.preventDefault();
+      event.stopPropagation();
       console.log(chalk.blue('Невалидные данные формы для входа!'));
       alert('Невалидные данные формы для входа!');
       return;

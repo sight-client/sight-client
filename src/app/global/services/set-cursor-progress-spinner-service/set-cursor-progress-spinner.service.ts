@@ -3,12 +3,12 @@ import { Injectable, signal } from '@angular/core';
 @Injectable({
   providedIn: 'root',
 })
-export class SetCursorProgressSpinerService {
-  public isShowSpiner = signal<boolean>(false);
+export class SetCursorProgressSpinnerService {
+  public isShowSpinner = signal<boolean>(false);
   public setSpinnerOn(): void {
-    this.isShowSpiner.set(true);
+    this.isShowSpinner.set(true);
   }
   public setSpinnerOff(): void {
-    this.isShowSpiner.set(false);
+    this.isShowSpinner.set(false);
   }
 }

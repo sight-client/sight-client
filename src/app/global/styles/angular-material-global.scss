@@ -1,6 +1,9 @@
 @use '@angular/material' as mat;
 @use '../configs/angular-material.config.scss' as config;
-@use 'material-design-icons/iconfont/material-icons.css';
+
+// @use 'material-design-icons/iconfont/material-icons.css'; // не успевает преобразовать текст в иконки (при первой загрузке новой сборки)
+// Содержимое файла перенесено в хэдер index.html (используются абсолютные пути).
+// Там же файлы шрифтов предзагружаются из ассетов (были скопированы из библиотеки "material-design-icons v.3.0.1").
 
 /* ---------------------------- default preset (start) ---------------------------- */
 html {
@@ -24,6 +27,7 @@ body {
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
   margin: 0;
+  overflow: hidden;
 }
 
 html,

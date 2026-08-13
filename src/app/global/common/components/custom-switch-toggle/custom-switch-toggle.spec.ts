@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 
-import { CursorProgressSpiner } from './cursor-progress-spiner';
+import { CustomSwitchToggle } from './custom-switch-toggle';
 
-describe('CursorProgressSpiner', () => {
-  let component: CursorProgressSpiner;
-  let fixture: ComponentFixture<CursorProgressSpiner>;
+describe('CustomSwitchToggle', () => {
+  let component: CustomSwitchToggle;
+  let fixture: ComponentFixture<CustomSwitchToggle>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CursorProgressSpiner],
+      imports: [CustomSwitchToggle],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(CursorProgressSpiner);
+    fixture = TestBed.createComponent(CustomSwitchToggle);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

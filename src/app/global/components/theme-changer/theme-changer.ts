@@ -13,17 +13,17 @@ import { ThemeColorChanger } from './components/theme-color-changer/theme-color-
   imports: [LightDarkModeSwitcher, ThemeColorChanger],
   template: `
     <div class="theme-changer-wrapper">
+      <light-dark-mode-switcher />
       @if (themesPalettesList().length) {
         <theme-color-changer />
       }
-      <light-dark-mode-switcher />
     </div>
   `,
   styles: `
     .theme-changer-wrapper {
       position: absolute;
       z-index: 101;
-      right: 15px;
+      left: 15px;
       top: 15px;
       width: max-content;
       height: max-content;

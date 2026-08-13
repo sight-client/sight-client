@@ -1,6 +1,6 @@
-import { effect, inject, Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, map, Observable, retry, Subscription } from 'rxjs';
+import { catchError, map, Observable, of, retry, Subscription } from 'rxjs';
 import DOMPurify from 'dompurify';
 import chalk from 'chalk';
 
@@ -46,14 +46,18 @@ export class UserDataService {
   private http = inject(HttpClient);
   // Main-сигнал, отслеживаемый многими модулями
   public userName = signal<string | undefined>(undefined);
+  public firstname = signal<string | undefined>(undefined);
+  public lastname = signal<string | undefined>(undefined);
   constructor() {
     // Автопроверка сессии пользователя
     this.getUserInfoConnection();
     // Новое значение имени пользователя, которое будет использованно, например, caching-get-req.interceptor.ts
     effect(() => {
       if (typeof this.userName() === 'string') {
-        userNameGlobal = this.userName() as string;
-        this.clearAuthResults(); // плюс очистка состояний сообщений кастомных ошибок
+        untracked(() => {
+          userNameGlobal = this.userName() as string;
+          this.clearAuthResults(); // плюс очистка состояний сообщений кастомных ошибок
+        });
       } else userNameGlobal = undefined;
     });
     // Алерты для извещения пользователя о кастомных ошибках с сервера
@@ -105,7 +109,35 @@ export class UserDataService {
             return (this.loginConnectionSubscription = this.getLoginObsevable(
               login,
               password,
-            ).subscribe());
+            ).subscribe((loginResult: boolean) => {
+              if (loginResult === true) {
+                return (this.userInfoConnectionSubscription = this.getUserInfoObsevable().subscribe(
+                  (userInfoResult: boolean) => {
+                    if (userInfoResult === true) {
+                      return true;
+                    } else {
+                      this.loginResult.set(
+                        "Getting of user's information connection failed. Please, try to reload page.",
+                      );
+                      console.log(
+                        chalk.red(
+                          "Getting of user's information connection failed. Please, try to reload page.",
+                        ),
+                      );
+                      return false;
+                    }
+                  },
+                ));
+              } else {
+                this.loginResult.set(
+                  "Login before getting of user's information connection failed.",
+                );
+                console.log(
+                  chalk.red("Login before getting of user's information connection failed."),
+                );
+                return false;
+              }
+            }));
           } else {
             this.loginResult.set(
               'Logout before authorization connection failed. Please, try to logout manually.',
@@ -123,7 +155,31 @@ export class UserDataService {
         return (this.loginConnectionSubscription = this.getLoginObsevable(
           login,
           password,
-        ).subscribe());
+        ).subscribe((loginResult: boolean) => {
+          if (loginResult === true) {
+            return (this.userInfoConnectionSubscription = this.getUserInfoObsevable().subscribe(
+              (userInfoResult: boolean) => {
+                if (userInfoResult === true) {
+                  return true;
+                } else {
+                  this.loginResult.set(
+                    "Getting of user's information connection failed. Please, try to reload page.",
+                  );
+                  console.log(
+                    chalk.red(
+                      "Getting of user's information connection failed. Please, try to reload page.",
+                    ),
+                  );
+                  return false;
+                }
+              },
+            ));
+          } else {
+            this.loginResult.set("Login before getting of user's information connection failed.");
+            console.log(chalk.red("Login before getting of user's information connection failed."));
+            return false;
+          }
+        }));
       }
     } catch (error) {
       this.loginResult.set('Login failed');
@@ -206,6 +262,7 @@ export class UserDataService {
 
   // Функция для кнопки в auth-module.ts
   public getLogoutSubscription(): Subscription {
+    // Событие не перехватвать (нужно для mat-menu)
     try {
       this.clearAuthResults();
       return (this.logoutConnectionSubscription = this.getLogoutObsevable().subscribe());
@@ -231,6 +288,8 @@ export class UserDataService {
                   this.logoutResult.set(true);
                   console.log(chalk.green(`User ${this.userName()} logout success`));
                   this.userName.set(undefined);
+                  if (this.firstname()) this.firstname.set(undefined);
+                  if (this.lastname()) this.lastname.set(undefined);
                   return true;
                 } else {
                   this.logoutResult.set('Invalid data in logout connection response');
@@ -269,12 +328,21 @@ export class UserDataService {
       return (this.userInfoConnectionSubscription = this.getUserInfoObsevable().subscribe());
     } catch (error) {
       if (this.userName()) this.userName.set(undefined);
+      if (this.firstname()) this.firstname.set(undefined);
+      if (this.lastname()) this.lastname.set(undefined);
       throw error;
     }
   }
 
   private getUserInfoObsevable(): Observable<boolean> {
     try {
+      if (
+        this.userName() !== undefined &&
+        this.firstname() !== undefined &&
+        this.lastname() !== undefined
+      ) {
+        return of(true);
+      }
       return this.http
         .get('/api/user/info', {
           responseType: 'text' as const,
@@ -286,27 +354,47 @@ export class UserDataService {
           map((data: string) => {
             try {
               if (data) {
-                const encodedName: string | null = JSON.parse(data)?.userName;
+                const encoded = JSON.parse(data);
+                const encodedName: string | null = encoded?.userName;
+                const encodedFirstname: string | null = encoded?.firstname;
+                const encodedLastname: string | null = encoded?.lastname;
                 if (encodedName) {
+                  if (this.userName() === undefined) {
+                    console.log(
+                      chalk.green(`User ${atob(encodedName)} auto authorization success`),
+                    );
+                  }
                   this.userName.set(atob(encodedName));
-                  console.log(chalk.green(`User ${atob(encodedName)} auto authorization success`));
+                  if (encodedFirstname && encodedLastname) {
+                    this.firstname.set(atob(encodedFirstname));
+                    this.lastname.set(atob(encodedLastname));
+                    // console.log(this.firstname(), this.lastname());
+                  }
                   return true;
                 } else if (encodedName === null) {
                   if (this.userName()) this.userName.set(undefined);
+                  if (this.firstname()) this.firstname.set(undefined);
+                  if (this.lastname()) this.lastname.set(undefined);
                   console.log(chalk.blue(`Unauthorized user`));
                   return false;
                 } else {
                   if (this.userName()) this.userName.set(undefined);
+                  if (this.firstname()) this.firstname.set(undefined);
+                  if (this.lastname()) this.lastname.set(undefined);
                   console.log(chalk.red('Ivalid data in user info connection response'));
                   return false;
                 }
               } else {
                 if (this.userName()) this.userName.set(undefined);
+                if (this.firstname()) this.firstname.set(undefined);
+                if (this.lastname()) this.lastname.set(undefined);
                 console.log(chalk.red('Empty result in userInfoConnection fn'));
                 return false;
               }
             } catch (_error: unknown) {
               if (this.userName()) this.userName.set(undefined);
+              if (this.firstname()) this.firstname.set(undefined);
+              if (this.lastname()) this.lastname.set(undefined);
               // `User's (${session?.user}) groups are absent in session data, auto authorization failed`
               console.log(chalk.blue(data));
               return false;

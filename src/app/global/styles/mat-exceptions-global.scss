@@ -1,1 +1,44 @@
 // Файл для перебивки mat-стилей. Чтобы не отключать инкапсуляцию сразу всех стилей компонента.
+// ------------------------------- account-features.scss ------------------------------ //
+.mat-mdc-menu-panel.auth-module-user-menu {
+  min-width: auto;
+  max-width: none;
+}
+
+// ---------------------------------- user-menu.scss ---------------------------------- //
+.user-menu,
+.user-submenu-for-devs,
+.user-submenu-for-theme-settings {
+  .user-menu-import-button-wrapper {
+    height: 48px; // у .mat-mdc-menu-item "min-height: 48px;"
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    .mat-mdc-menu-item-text {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+    // хост импортируемого компонента
+    .mat-mdc-menu-item-text > * {
+      display: flex;
+      flex-grow: 1;
+    }
+    .user-menu-import-button {
+      display: flex;
+      flex-grow: 1;
+      width: 100%;
+      height: 100%;
+      justify-content: left;
+      align-items: center;
+      border: none;
+      outline: none;
+      background-color: transparent;
+      box-sizing: border-box;
+      // как у .mat-mdc-menu-item
+      padding-left: var(--mat-menu-item-with-icon-leading-spacing, 12px);
+      padding-right: var(--mat-menu-item-with-icon-trailing-spacing, 12px);
+      color: var(--mat-menu-item-label-text-color, var(--mat-sys-on-surface));
+      cursor: pointer;
+    }
+  }
+}

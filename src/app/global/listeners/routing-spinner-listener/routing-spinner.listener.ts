@@ -8,7 +8,7 @@ import { Event, Router, NavigationStart, NavigationEnd } from '@angular/router';
     @if (loading()) {
       <div
         class="routing-spinner"
-        style="position: fixed; z-index: 998; left: 50%; top: 50%; transform: translate(-50%, -50%);"
+        style="position: absolute; z-index: 998; left: 50vw; top: 50vh; transform: translate(-50%, -50%);"
       >
         Loading...
       </div>
@@ -24,10 +24,9 @@ export class RoutingSpinnerListener {
         this.loading.set(true);
       }
       if (event instanceof NavigationEnd) {
-        // setTimeout(() => {
-        //   this.loading.set(false);
-        // }, 1000);
-        this.loading.set(false);
+        setTimeout(() => {
+          this.loading.set(false);
+        }, 1000);
       }
     });
   }

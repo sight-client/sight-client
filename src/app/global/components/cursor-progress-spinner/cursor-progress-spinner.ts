@@ -1,27 +1,31 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  HostListener,
-} from '@angular/core';
+import { Component, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { SetCursorProgressSpinerService } from '@global/services/set-cursor-progress-spiner-service/set-cursor-progress-spiner.service';
-
+// import { fromEvent, Observable, Subscription, throttleTime } from 'rxjs';
+import { SetCursorProgressSpinnerService } from '@global/services/set-cursor-progress-spinner-service/set-cursor-progress-spinner.service';
+import { CursorPositionListener } from '@global/listeners/cursor-position-listener/cursor-position-listener';
+// Компонент существует пока $setCursorProgressSpinnerService.isShowSpinner()
 @Component({
-  selector: 'cursor-progress-spiner',
+  selector: 'cursor-progress-spinner',
   imports: [MatProgressSpinnerModule],
   template: `
-    @if ($setCursorProgressSpinerService.isShowSpiner()) {
-      <mat-spinner
-        [style.left.px]="mouseX"
-        [style.top.px]="mouseY"
-        style="position: fixed; z-index: 997; width: 15px; height: 15px"
-      ></mat-spinner>
-    }
+    <mat-spinner
+      [style.left.px]="mouseX"
+      [style.top.px]="mouseY"
+      style="position: fixed; z-index: 1001; width: 15px; height: 15px"
+    ></mat-spinner>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CursorProgressSpiner {
-  constructor(protected $setCursorProgressSpinerService: SetCursorProgressSpinerService) {}
+export class CursorProgressSpinner {
+  constructor(
+    protected $setCursorProgressSpinnerService: SetCursorProgressSpinnerService,
+    private $cursorPositionListener: CursorPositionListener,
+  ) {
+    if (this.$cursorPositionListener.listenerExistence === true) {
+      this.mouseX = this.$cursorPositionListener.cursorXExport + this.difX;
+      this.mouseY = this.$cursorPositionListener.cursorYExport + this.difY;
+    }
+  }
   protected mouseX = 0;
   protected mouseY = 0;
   private clientX = 0;
@@ -30,16 +34,15 @@ export class CursorProgressSpiner {
   private difY = 15;
   private initialWidth = window.innerWidth;
   private innerHeight = window.innerHeight;
+
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
-    if (this.$setCursorProgressSpinerService.isShowSpiner()) {
-      this.clientX = event.clientX;
-      this.clientY = event.clientY;
-      this.mouseX = event.clientX + this.difX;
-      this.mouseY = event.clientY + this.difY;
-    }
+    this.clientX = event.clientX;
+    this.clientY = event.clientY;
+    this.mouseX = event.clientX + this.difX;
+    this.mouseY = event.clientY + this.difY;
   }
-  // Notice: добавить точности расчетов в будущем
+  // Добавить точности расчетов в будущем
   @HostListener('window:resize', ['$event'])
   onResize(_event: UIEvent) {
     const currentWidth = window.innerWidth;
@@ -50,7 +53,7 @@ export class CursorProgressSpiner {
     this.difY = this.difY + this.difY * heightChange;
     this.initialWidth = currentWidth;
     this.innerHeight = currentHeight;
-    if (this.$setCursorProgressSpinerService.isShowSpiner()) {
+    if (this.$setCursorProgressSpinnerService.isShowSpinner()) {
       const newMoveEvent = new MouseEvent('mousemove', {
         clientX: this.clientX + this.clientX * widthChange,
         clientY: this.clientY + this.clientY * heightChange,

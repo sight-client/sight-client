@@ -1,14 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 
-import { SetCursorProgressSpinerService } from './set-cursor-progress-spiner.service';
+import { SetCursorProgressSpinnerService } from './set-cursor-progress-spinner.service';
 
-describe('SetCursorProgressSpinerService', () => {
-  let service: SetCursorProgressSpinerService;
+describe('SetCursorProgressSpinnerService', () => {
+  let service: SetCursorProgressSpinnerService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [provideZonelessChangeDetection()] });
-    service = TestBed.inject(SetCursorProgressSpinerService);
+    service = TestBed.inject(SetCursorProgressSpinnerService);
   });
 
   it('should be created', () => {

@@ -89,6 +89,7 @@
             <button
               type="submit"
               matButton="filled"
+              [disabled]="!userLoginForm.valid"
               style="min-width: 8em"
               (focusout)="focusOnFirstInput(firstLogFormInputRef)"
             >
@@ -141,7 +142,8 @@
             ) {
               <mat-error
                 style="cursor: help"
-                title="Логин может содержать латиницу, цифры, дефис и нижнее подчеркивание"
+                matTooltip="Логин может содержать латиницу, цифры, дефис и нижнее подчеркивание"
+                matTooltipShowDelay="1000"
                 >Невалидный логин</mat-error
               >
             }
@@ -189,7 +191,8 @@
             ) {
               <mat-error
                 style="cursor: help"
-                title="Пароль должен содержать минимум: одну цифру, одну заглавную, одну строчную латинские буквы и один разрешенный специальный символ"
+                matTooltip="Пароль должен содержать минимум: одну цифру, одну заглавную, одну строчную латинские буквы и один разрешенный специальный символ"
+                matTooltipShowDelay="1000"
                 >Невалидный пароль</mat-error
               >
             }

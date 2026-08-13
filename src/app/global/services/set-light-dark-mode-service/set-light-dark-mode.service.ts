@@ -1,4 +1,4 @@
-import { effect, Injectable, signal } from '@angular/core';
+import { effect, Injectable, signal, untracked } from '@angular/core';
 import { fromEvent, Observable } from 'rxjs';
 import { map, skip, startWith } from 'rxjs/operators';
 
@@ -11,33 +11,36 @@ import { map, skip, startWith } from 'rxjs/operators';
 })
 export class SetLightDarkModeService {
   constructor() {
+    // this.getStartColorScheme(); // - в app.ts
     effect(() => {
-      if (this.isTogglesChecked() === true) {
+      if (this.isDarkChecked() === true) {
         document.documentElement.style.setProperty('--theme-outline-color', 'none');
-      } else if (this.isTogglesChecked() === false) {
+      } else if (this.isDarkChecked() === false) {
         document.documentElement.style.setProperty(
           '--theme-outline-color',
           'var(--mat-sys-outline)',
         );
       }
     });
-    // this.prefersColorScheme()
-    //   .pipe(skip(1))
-    //   .subscribe((scheme) => {
-    //     localStorage.setItem('colorScheme', scheme);
-    //   });
+    untracked(() => {
+      this.prefersColorScheme()
+        .pipe(skip(1))
+        .subscribe((scheme) => {
+          localStorage.setItem('colorScheme', scheme);
+        });
+    });
   }
   // Отслеживается в компонентах-переключателях (независимо от local storage)
-  public isTogglesChecked = signal<boolean>(this.getStartColorScheme());
+  public isDarkChecked = signal<boolean>(true);
   // Начальные установки для переключателей и local storage (в app.ts)
   public getStartColorScheme(): boolean {
     try {
       let isDarkMode: boolean = false;
       const userColorScheme: string | null = localStorage.getItem('colorScheme');
-      // const isSystemDarkScheme: boolean = window?.matchMedia(
-      //   '(prefers-color-scheme: dark)',
-      // )?.matches; // перестал выдавать адекватное значение (всегда true)
-      const isSystemDarkScheme: boolean = true;
+      // Самое первое значение (до записи в localStorage) берется из установок браузера
+      const isSystemDarkScheme: boolean = window?.matchMedia(
+        '(prefers-color-scheme: dark)',
+      )?.matches; // не будет выдавать адекватное значение (всегда true), если тема установлена и в ОС (браузер не в приоритете)
       if (userColorScheme === 'light' || userColorScheme === 'dark') {
         userColorScheme === 'light' ? (isDarkMode = false) : (isDarkMode = true);
       } else {
@@ -49,6 +52,7 @@ export class SetLightDarkModeService {
         isDarkMode = isSystemDarkScheme === undefined ? false : isSystemDarkScheme;
       }
       isDarkMode ? this.setDark() : this.setLight();
+      this.isDarkChecked.set(isDarkMode);
       return isDarkMode;
     } catch (error: any) {
       error.cause = 'red';
@@ -79,7 +83,7 @@ export class SetLightDarkModeService {
   public setColorScheme = (checked: boolean): void => {
     try {
       checked ? this.setDark() : this.setLight();
-      this.isTogglesChecked.set(checked);
+      this.isDarkChecked.set(checked);
     } catch (error: any) {
       error.cause = 'red';
       throw error;
@@ -91,6 +95,7 @@ export class SetLightDarkModeService {
   // При этом происходит "мягкое" принуждение приложения к переключению на выбранный в данном случае режим:
   // результат пользователь увидит только после перезагрузки страницы - данные в localStorage (на которые ориентируется
   // положение тоггла) обновились и при загрузке будут считаны стандартным путем.
+
   private prefersColorScheme(): Observable<string> {
     try {
       if (typeof window === 'undefined' || !window.matchMedia) {
@@ -102,7 +107,7 @@ export class SetLightDarkModeService {
         // });
       }
       const mediaQueryListObj: MediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
-      // Событие перестало отслеживаться (не реагирует на переключение темы в настройках Chrome)
+      // Событие не отслеживается (не реагирует на переключение темы в настройках браузера), если тема выставлена в самой ОС
       return fromEvent<MediaQueryListEvent>(mediaQueryListObj, 'change').pipe(
         map((event: MediaQueryListEvent) => (event.matches ? 'dark' : 'light')),
         startWith(mediaQueryListObj.matches ? 'dark' : 'light'),

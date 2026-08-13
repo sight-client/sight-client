@@ -6,6 +6,74 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.png" />
+    <link
+      rel="preload"
+      href="assets/fonts/MaterialIcons-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="assets/fonts/MaterialIcons-Regular.woff"
+      as="font"
+      type="font/woff"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="assets/fonts/MaterialIcons-Regular.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <!-- Только для IE6-8 (другие браузеры будут ругаться на type-атрибут) -->
+    <!-- <link
+      rel="preload"
+      href="assets/fonts/MaterialIcons-Regular.eot"
+      as="font"
+      type="application/vnd.ms-fontobject"
+      crossorigin
+    /> -->
+    <style>
+      @font-face {
+        font-family: 'Material Icons';
+        font-display: block !important;
+        font-style: normal;
+        font-weight: 400;
+        src: url('assets/fonts/MaterialIcons-Regular.eot'); /* For IE6-8 */
+        src:
+          local('Material Icons'),
+          local('MaterialIcons-Regular'),
+          url('assets/fonts/MaterialIcons-Regular.woff2') format('woff2'),
+          url('assets/fonts/MaterialIcons-Regular.woff') format('woff'),
+          url('assets/fonts/MaterialIcons-Regular.ttf') format('truetype');
+      }
+      .material-icons {
+        font-family: 'Material Icons';
+        font-weight: normal;
+        font-style: normal;
+        font-size: 24px; /* Preferred icon size */
+        display: inline-block;
+        line-height: 1;
+        text-transform: none;
+        letter-spacing: normal;
+        word-wrap: normal;
+        white-space: nowrap;
+        direction: ltr;
+
+        /* Support for all WebKit browsers. */
+        -webkit-font-smoothing: antialiased;
+        /* Support for Safari and Chrome. */
+        text-rendering: optimizeLegibility;
+
+        /* Support for Firefox. */
+        -moz-osx-font-smoothing: grayscale;
+
+        /* Support for IE. */
+        font-feature-settings: 'liga';
+      }
+    </style>
   </head>
   <body>
     <app-root></app-root>

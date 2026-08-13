@@ -9,7 +9,7 @@
 //   if (req.url.startsWith('/api')) {
 //     const modifiedReq: HttpRequest<unknown> = req.clone({
 //       url: appServerConnection.domain + req.url,
-//       timeout: 5000,
+//       timeout: req.timeout ? req.timeout : 5000,
 //     });
 //     return next(modifiedReq);
 //   }

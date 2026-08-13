@@ -9,9 +9,10 @@ import chalk from 'chalk';
   providedIn: 'root',
 })
 export class SetUserThemeService {
-  constructor() {
-    this.setUserTheme();
-  }
+  // constructor() {
+  // this.setUserTheme(); // - в app.ts
+  // }
+
   // variable from angular-material.config.scss
   readonly defaultThemePalettes: string | null = getComputedStyle(
     document.documentElement,

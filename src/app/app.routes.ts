@@ -33,6 +33,5 @@ export const routes: Routes = [
   //   ],
   // },
   // ---------------------------------------------------------------------------------------- //
-  // { path: '**', redirectTo: 'client' }, // Wildcard - always last
-  { path: '**', redirectTo: 'sight-client' },
+  { path: '**', redirectTo: 'sight-client' }, // Wildcard - always last
 ];

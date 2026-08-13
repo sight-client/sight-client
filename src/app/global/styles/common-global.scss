@@ -26,6 +26,7 @@
     var(--mat-sys-secondary-container)
   );
   --theme-container-background-color: var(--mat-sys-surface-variant);
+  --theme-focused-container-background-color: var(--mat-sys-inverse-primary);
 
   --theme-inputs-background-color: var(--mat-sys-surface-container);
   --theme-focus-background-color: var(--mat-sys-surface-bright);
@@ -41,11 +42,12 @@
   --regular-btn-size: 32px;
   --regular-btn-svg-size: calc(var(--regular-btn-size) * 0.75);
 
+  --theme-badge-color: var(--mat-sys-primary);
+
   // ---------------------------- //
 
   color-scheme: light dark; /* light || dark || light dark (user's system settings) */
 
-  // -------------------------------------------------------------- //
   .medium-font {
     font: var(--theme-font-medium);
   }
@@ -55,20 +57,65 @@
   .small-font {
     font: var(--theme-font-small);
   }
+
   .huge-font {
     font: var(--mat-sys-body-medium);
     font-size: 16pt;
   }
+
   .theme-ui-container {
     color: var(--theme-color);
     background-color: var(--theme-ui-background-color);
   }
-  .hiden-element-quickly {
+
+  .close-element-quickly {
     display: none;
   }
+
+  .minimize-element-quickly {
+    height: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+    user-select: none !important;
+    pointer-events: none !important;
+  }
+
+  .minimize-element {
+    height: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+    transition: height 300ms ease-in-out !important;
+    user-select: none !important;
+    pointer-events: none !important;
+  }
+
+  .hiden-element-quickly {
+    opacity: 0 !important;
+    user-select: none !important;
+    pointer-events: none !important;
+  }
+
   .hiden-element {
-    opacity: 0;
-    transition: opacity 300ms ease-in-out;
+    opacity: 0 !important;
+    transition: opacity 300ms ease-in-out !important;
+    user-select: none !important;
+    pointer-events: none !important;
+  }
+
+  .non-user-select {
+    user-select: none;
+  }
+
+  .mat-mdc-menu-content {
+    padding: 0px;
+  }
+
+  .normal-text-color {
+    color: var(--mat-sys-on-background) !important;
+  }
+
+  .disabled-text-color {
+    color: light-dark(rgb(84, 84, 84), rgb(170, 170, 170)) !important;
   }
 }
 
@@ -93,20 +140,15 @@ body:has(.cdk-drag-dragging) {
 
 // При перемещении в списках
 body:has(.cdk-drop-list-dragging) {
-  cursor: not-allowed !important;
+  cursor: grabbing !important;
 
   * {
     pointer-events: none !important;
   }
-
-  .cdk-drop-list-dragging {
-    pointer-events: auto !important;
-    cursor: grabbing !important;
-
-    * {
-      pointer-events: none !important;
-    }
-  }
+}
+body:has(.cdk-drop-list-dragging) .cdk-drop-list-dragging,
+body:has(.cdk-drop-list-dragging) .cdk-drop-list-receiving {
+  cursor: grabbing !important;
 }
 
 // Стили для перемещения внутри списков
@@ -164,7 +206,7 @@ body:has(.cdk-drop-list-dragging) {
 }
 
 // /* -------------------------------------------------------------------------------------------------------- */
-// /* ---------------------------------- Пример возможностей scss (шпаргалка) -------------------------------- */
+// /* ---------------------------------------- Пример возможностей scss -------------------------------------- */
 // /* -------------------------------------------------------------------------------------------------------- */
 
 // /* Группировка стилей */

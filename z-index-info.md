@@ -8,9 +8,12 @@
 
 2 - .mouse-coords-cursor-field
 100 - #sightUiContainer, .cesium-viewer-fullscreenContainer
-101 - .coords-container-main, .navigationMixinDiv, .theme-changer-wrapper, .camera-height-wrapper, #distanceLegendDiv, .scene-mode-changer-button, .measuring-tools-tabs-panel, .header-buttons-container
-102- .measuring-tools-container
-103 - .measuring-tools-modal
-997 - mat-spinner (cursor-progress-spiner.ts)
+101 - .header-buttons-container, .tool-panel-button, .tool-chevron-button, .coords-container-main, .navigationMixinDiv, .camera-height-wrapper, #distanceLegendDiv, .floating-windows-tabs-panel
+102- .main-floating-windows-container
+103 - .floating-window
+104 - .floating-window (активное)
+105 - .tools-panel-group-hidden-raised
+997 - mat-spinner (cursor-progress-spinner.ts)
 998 - .routing-spinner
 999 - .routing-error-banner-wrapper
+1001 - CursorProgressSpinner template

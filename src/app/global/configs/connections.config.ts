@@ -5,13 +5,27 @@
 //   port: number;
 // }
 
-// const apiUrl: URL = new URL(environment.apiUrl); // environment.ts заменится при dev-сборке на environment.development.ts
+// interface AppCatalogConnection {
+//   host: string;
+//   clientPort: number;
+//   serverPort: number;
+// }
+
+// export const thisHostFullName = `http://${location.hostname}:${location.port}`;
+
+// // const devServerHost = window.location.origin.slice(7, 19);
+// // const devServerHost = location.hostname;
+// const apiUrl: URL = new URL(environment.apiUrl); // http://172.17.11.15:5001 - при dev-сборке (на проде environment.ts заменится не будет)
 // const apiHost: string = apiUrl.hostname;
 // const apiPort: number = +apiUrl.port;
 // const apiDomain = getDomain();
 // function getDomain() {
 //   return `http://${apiHost}:${apiPort}`;
 // }
+
+// const catalogUrl: URL = new URL(environment.catalogUrl);
+// const catalogHost: string = catalogUrl.hostname;
+// const catalogPort: number = +catalogUrl.port;
 
 // // Используется в get-default-domain.interceptor.ts.
 // export const appServerConnection: AppServerConnection = {
@@ -20,22 +34,28 @@
 //   port: apiPort,
 // };
 
-/* ---------------------------------------------------------------------------------------- */
-//   При наличии keycloack-авторизации
-
-// interface KeycloackServerConnection extends AppServerConnection {
-//   realm: string;
-//   clientId: string;
-// }
-
-// export const keycloackServerConnection: KeycloackServerConnection = {
-//   getDomain() {
-//     return `http://${this.host}:${this.port}`;
-//   },
-//   host: 'localhost',
-//   // host: '10.0.1.194',
-//   port: 8080,
-//   realm: 'travels_auth',
-//   clientId: 'travels_auth_client',
+// export const appCatalogConnection: AppCatalogConnection = {
+//   host: catalogHost,
+//   clientPort: catalogPort,
+//   serverPort: 5003,
 // };
-/* ---------------------------------------------------------------------------------------- */
+
+// /* ---------------------------------------------------------------------------------------- */
+// //   При наличии keycloack-авторизации
+
+// // interface KeycloackServerConnection extends AppServerConnection {
+// //   realm: string;
+// //   clientId: string;
+// // }
+
+// // export const keycloackServerConnection: KeycloackServerConnection = {
+// //   getDomain() {
+// //     return `http://${this.host}:${this.port}`;
+// //   },
+// //   host: 'localhost',
+// //   // host: '10.0.1.194',
+// //   port: 8080,
+// //   realm: 'travels_auth',
+// //   clientId: 'travels_auth_client',
+// // };
+// /* ---------------------------------------------------------------------------------------- */

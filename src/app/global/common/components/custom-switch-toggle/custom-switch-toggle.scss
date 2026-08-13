@@ -1,0 +1,103 @@
+.gui-switch {
+  // Задается инлайн стилем, возможно переопределение пропсом thumbSize
+  //   --thumb-size: 1rem;
+  --thumb-color: var(--mat-sys-outline);
+  --track-size: calc(var(--thumb-size) * 1.75);
+  --track-padding: 2px;
+  --track-color-inactive: none;
+  --track-color-active: var(--mat-sys-primary);
+  --isLTR: 1;
+
+  display: flex;
+  align-items: center;
+  gap: 2ch;
+  justify-content: space-between;
+  // cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:dir(rtl) {
+    --isLTR: -1;
+  }
+
+  //   &.-vertical {
+  //     min-block-size: calc(var(--track-size) + calc(var(--track-padding) * 2));
+
+  //     & > input {
+  //       transform: rotate(calc(90deg * var(--isLTR) * -1));
+  //       touch-action: pan-x;
+  //     }
+  //   }
+
+  & > input {
+    --thumb-position: 0%;
+    --thumb-transition-duration: 0.25s;
+
+    padding: var(--track-padding);
+    background: var(--track-color-inactive);
+    inline-size: var(--track-size);
+    block-size: calc(var(--thumb-size) - 1px);
+    border-radius: var(--track-size);
+    border: 1px solid var(--thumb-color);
+    margin: 0 5px 0 0;
+    appearance: none;
+    pointer-events: none;
+    touch-action: pan-y;
+    outline-offset: 5px;
+    box-sizing: content-box;
+    flex-shrink: 0;
+    display: grid;
+    align-items: center;
+    grid: [track] 1fr / [track] 1fr;
+    transition: background-color 0.25s ease;
+
+    &::before {
+      content: '';
+      // cursor: pointer;
+      pointer-events: auto;
+      grid-area: track;
+      inline-size: var(--thumb-size);
+      block-size: var(--thumb-size);
+      background: var(--thumb-color);
+      border-radius: 50%;
+      transform: translateX(var(--thumb-position));
+      transition:
+        transform var(--thumb-transition-duration) ease,
+        background-color 0.25s ease;
+    }
+
+    &:checked {
+      background: var(--track-color-active);
+      --thumb-position: calc((var(--track-size) - 100%) * var(--isLTR));
+    }
+    &:not(:disabled):hover::before {
+      --thumb-color: var(--mat-sys-on-surface-variant);
+      cursor: pointer;
+    }
+    &:checked::before {
+      --thumb-color: var(--mat-sys-on-primary);
+    }
+    &:checked:not(:disabled):hover::before {
+      --thumb-color: var(--mat-button-tonal-container-color, var(--mat-sys-secondary-container));
+      cursor: pointer;
+    }
+
+    // &:indeterminate {
+    //   --thumb-position: calc(
+    //     calc(calc(var(--track-size) / 2) - calc(var(--thumb-size) / 2)) * var(--isLTR)
+    //   );
+    // }
+
+    &:disabled {
+      // cursor: not-allowed;
+      cursor: auto;
+      opacity: 0.7;
+
+      &::before {
+        // cursor: not-allowed;
+        cursor: auto;
+        opacity: 0.7;
+      }
+    }
+  }
+}

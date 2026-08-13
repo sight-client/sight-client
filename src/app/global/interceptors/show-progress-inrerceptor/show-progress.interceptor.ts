@@ -13,15 +13,15 @@ import {
   Observable,
   finalize,
 } from 'rxjs';
-import { SetCursorProgressSpinerService } from '@global/services/set-cursor-progress-spiner-service/set-cursor-progress-spiner.service';
+import { SetCursorProgressSpinnerService } from '@global/services/set-cursor-progress-spinner-service/set-cursor-progress-spinner.service';
 import { Injectable } from '@angular/core';
 
 // Перехватчик, как класс (не рекомендовано документацией, т.к. порядок работы таких перехватчиков неочевиден)
 @Injectable()
 export class ShowProgressInterceptor implements HttpInterceptor {
-  constructor(private $setCursorProgressSpinerService: SetCursorProgressSpinerService) {}
+  constructor(private $setCursorProgressSpinnerService: SetCursorProgressSpinnerService) {}
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    this.$setCursorProgressSpinerService.setSpinnerOn();
+    this.$setCursorProgressSpinnerService.setSpinnerOn();
     return next.handle(req).pipe(
       tap((event: HttpEvent<unknown>) => {
         switch (event.type) {
@@ -39,7 +39,7 @@ export class ShowProgressInterceptor implements HttpInterceptor {
         }
       }),
       finalize(() => {
-        this.$setCursorProgressSpinerService.setSpinnerOff();
+        this.$setCursorProgressSpinnerService.setSpinnerOff();
       }),
     );
   }

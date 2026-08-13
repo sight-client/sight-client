@@ -16,21 +16,21 @@ import {
   withInterceptorsFromDi,
 } from '@angular/common/http';
 
+// import { GlobalErrorHandlerService } from '@global/services/global-error-handler-service/global-error-handler.service';
+
 import badHtmlInterceptor from '@global/interceptors/bad-html-interceptor/bad-html.interceptor';
 import stopDoubleRequestInterceptor from '@global/interceptors/stop-double-request-interceptor/stop-double-request.interceptor';
 import cachingGetReqInterceptor from '@global/interceptors/caching-get-req-interceptor/caching-get-req.interceptor';
 // import useApiServProxyInterceptor from '@global/interceptors/use-api-serv-proxy-interceptor/use-api-serv-proxy.interceptor';
 import { ShowProgressInterceptor } from '@global/interceptors/show-progress-inrerceptor/show-progress.interceptor';
 
-// import { GlobalErrorHandlerService } from '@global/services/global-error-handler-service/global-error-handler.service';
-
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes),
     // provideRouter(routes, withViewTransitions()), // поддержка анимаций переходов между роутами (включить, когда они будут)
-    // { provide: ErrorHandler, useClass: GlobalErrorHandlerService }, // в планах
+    provideRouter(routes), // заместо строки выше
+    // { provide: ErrorHandler, useClass: GlobalErrorHandlerService }, // в планах (кастомный обработчик)
 
     provideHttpClient(
       // Порядок перехватчиков в массиве имеет значение

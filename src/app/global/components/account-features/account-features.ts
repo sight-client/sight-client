@@ -1,42 +1,54 @@
-import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  untracked,
+  Input,
+} from '@angular/core';
 import chalk from 'chalk';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { UserDataService } from '@global/services/user-data-service/user-data.service';
 import { AuthModule } from '@global/components/account-features/components/auth-module/auth-module';
 
 @Component({
   selector: 'account-features',
-  imports: [MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule],
   templateUrl: './account-features.html',
   styleUrl: './account-features.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountFeatures {
+  @Input() inMenu: boolean;
   // Сервис функционала авторизации и регистрации пользователей
   constructor(protected $userDataService: UserDataService) {
     this.$userDataService.clearAuthResults();
     effect(() => {
       if (typeof this.$userDataService.userName() === 'string') {
-        // Срабатывает после успешной авторизации (освобождает submit-кнопку из форм)
-        this.dialog.getDialogById('AuthModule')?.close();
-        this.dialog
-          .getDialogById('AuthModule')
-          ?.afterClosed()
-          .subscribe(() => {
-            this.$userDataService.clearRegFormValuesReserv();
-          });
+        untracked(() => {
+          // Срабатывает после успешной авторизации (освобождает submit-кнопку из форм)
+          this.dialog.getDialogById('AuthModule')?.close();
+          this.dialog
+            .getDialogById('AuthModule')
+            ?.afterClosed()
+            .subscribe(() => {
+              this.$userDataService.clearRegFormValuesReserv();
+            });
+        });
       }
     });
   }
   readonly dialog = inject(MatDialog);
-  protected openAuthModal(event: MouseEvent): void {
+  public openAuthModal(): void {
     try {
-      event.stopPropagation();
+      // Событие не перехватвать (нужно для mat-menu)
+      // event.stopPropagation();
       this.$userDataService.clearAuthResults();
       this.dialog.open(AuthModule, {
         id: 'AuthModule',
@@ -61,9 +73,17 @@ export class AccountFeatures {
         hasBackdrop: true,
         autoFocus: false, // выставлен вручную
       });
+      // this.$userDataService.userName.set('user');
     } catch (error) {
       console.log(chalk.red('Auth forms opening failed'));
       throw error;
+    }
+  }
+  public clickFromParentMenu(): void {
+    if (this.$userDataService.userName()) {
+      this.$userDataService.getLogoutSubscription();
+    } else {
+      this.openAuthModal();
     }
   }
 }
