@@ -27,23 +27,8 @@
               },
               {
                 "glob": "**/*",
-                "input": "node_modules/cesium/Build/Cesium/Workers",
-                "output": "sight-client/assets/cesium/Workers"
-              },
-              {
-                "glob": "**/*",
-                "input": "node_modules/cesium/Build/Cesium/ThirdParty",
-                "output": "sight-client/assets/cesium/ThirdParty"
-              },
-              {
-                "glob": "**/*",
-                "input": "node_modules/cesium/Build/Cesium/Assets",
-                "output": "sight-client/assets/cesium/Assets"
-              },
-              {
-                "glob": "**/*",
-                "input": "node_modules/cesium/Build/Cesium/Widgets",
-                "output": "sight-client/assets/cesium/Widgets"
+                "input": "node_modules/cesium/Build/Cesium",
+                "output": "assets/cesium"
               }
             ],
             "stylePreprocessorOptions": {
@@ -66,6 +51,13 @@
                 }
               ],
               "outputHashing": "all"
+            },
+            "docs": {
+              "outputPath": {
+                "base": "docs",
+                "browser": ""
+              },
+              "baseHref": "/sight-client/"
             },
             "development": {
               "optimization": false,
@@ -117,22 +109,22 @@
               },
               {
                 "glob": "**/*",
-                "input": "node_modules/cesium/Build/Cesium/Workers",
+                "input": "node_modules/cesium/Build/Cesium/Workers**/*",
                 "output": "/assets/cesium/Workers"
               },
               {
                 "glob": "**/*",
-                "input": "node_modules/cesium/Build/Cesium/ThirdParty",
+                "input": "node_modules/cesium/Build/Cesium/ThirdParty**/*",
                 "output": "/assets/cesium/ThirdParty"
               },
               {
                 "glob": "**/*",
-                "input": "node_modules/cesium/Build/Cesium/Assets",
+                "input": "node_modules/cesium/Build/Cesium/Assets**/*",
                 "output": "/assets/cesium/Assets"
               },
               {
                 "glob": "**/*",
-                "input": "node_modules/cesium/Build/Cesium/Widgets",
+                "input": "node_modules/cesium/Build/Cesium/Widgets**/*",
                 "output": "/assets/cesium/Widgets"
               }
             ],
