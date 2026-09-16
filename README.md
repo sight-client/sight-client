@@ -9,7 +9,7 @@ Current project features:
 <li>Calculation of geographic coordinates under the mouse cursor;</li>
 <li>Selection of coordinate system ("WGS-84", "СК-42 м", "СК-42 °", "ПЗ-90.11");</li>
 <li>Applying marks and simple geometric shapes to a map with the ability to export them to a tabular .ods document and to import them latter;</li>
-<li>Export/import vector objects in .kml (.kmz) format</li>
+<li>Export/import vector objects in .kml (.kmz) format;</li>
 <li>Linear and area measurements on the map;</li>
 <li>Full camera control;</li>
 <li>Theme control (light/dark, plus four color palettes);</li>
