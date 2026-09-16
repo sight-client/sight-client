@@ -1,0 +1,41 @@
+@if ($drawingToolBlankFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$drawingToolBlankFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="drawing-tool-blank-floating-window-content-wrapper">
+    <p>
+      Entity id:
+      {{
+        $drawingToolBlankFloatingWindowService.validPickedEnttity()?.id
+          ? $drawingToolBlankFloatingWindowService.validPickedEnttity()?.id
+          : 'не определено'
+      }}
+    </p>
+    <p>
+      Entity description:
+      {{
+        $drawingToolBlankFloatingWindowService.validPickedEnttity()?.description
+          ? $drawingToolBlankFloatingWindowService.validPickedEnttity()?.description
+          : 'не определено'
+      }}
+    </p>
+    <p>
+      Entity length:
+      {{
+        $drawingToolBlankFloatingWindowService.validPickedEnttity()?.label?.text &&
+        $drawingToolBlankFloatingWindowService.validPickedEnttity()?.id?.includes('-line-')
+          ? $drawingToolBlankFloatingWindowService.validPickedEnttity()?.label?.text?.getValue()
+          : 'не определено'
+      }}
+    </p>
+    <p style="width: 290px; text-align: justify; margin: 0px">
+      Lorem ipsum dolor sit amet consectetur, adipisicing elit. Minus corporis ab, quisquam quod id
+      rem exercitationem quam reiciendis dolor quo officiis voluptatum hic tempore vero
+      necessitatibus corrupti porro aliquid accusantium.
+    </p>
+  </div>
+</ng-template>

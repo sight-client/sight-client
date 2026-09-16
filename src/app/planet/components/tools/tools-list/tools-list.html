@@ -1,0 +1,337 @@
+<div class="tools-list-wrapper">
+  <div class="tools-list-header">
+    <span class="tools-list-header-description">Добавлено на карту</span>
+    <span class="tools-list-header-auxiliary-buttons-container" (click)="$event.stopPropagation()">
+      <button
+        matIconButton
+        matTooltip="Дополнительно"
+        matTooltipShowDelay="1000"
+        [matMenuTriggerFor]="mapContentGlobalMenu"
+        [attr.aria-label]="'Map content global menu'"
+      >
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <mat-menu #mapContentGlobalMenu="matMenu" class="mat-content-global-menu">
+        <button mat-menu-item style="opacity: 0.8" (click)="clearingMap()">
+          <span>{{ 'Очистить холст' }}</span>
+        </button>
+        <button mat-menu-item style="opacity: 0.8" (click)="$toolsListKmlService.exportAllToKml()">
+          <span>{{ 'Экспорт в .kml' }}</span>
+        </button>
+        <button
+          mat-menu-item
+          style="opacity: 0.8"
+          (click)="$toolsListKmlService.exportAllToKml(true)"
+        >
+          <span>{{ 'Экспорт в .kmz' }}</span>
+        </button>
+        <input
+          #globalImportInput
+          style="display: none"
+          type="file"
+          accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz"
+          (change)="$toolsListKmlService.importAllFromKmlOrKmz($event)"
+        />
+        <button mat-menu-item style="opacity: 0.8" (click)="globalImportInput.click()">
+          <span>{{ 'Импорт из .kml/.kmz' }}</span>
+        </button>
+        <button
+          mat-menu-item
+          style="opacity: 0.8"
+          (click)="$toolsListReportService.provideReport()"
+        >
+          <span>{{ 'Сохранить в документ' }}</span>
+        </button>
+        <input
+          #reportFileInput
+          style="display: none"
+          type="file"
+          accept=".ods"
+          (change)="$toolsListReportService.uploadReport($event)"
+        />
+        <button mat-menu-item style="opacity: 0.8" (click)="reportFileInput.click()">
+          <span>{{ 'Выгрузить из докумнта' }}</span>
+        </button>
+      </mat-menu>
+    </span>
+  </div>
+
+  <div class="tools-list-accordion-wrapper">
+    @for (store of $toolsListService.drawingStores; track store.storeName) {
+      <mat-accordion
+        class="tools-list-accordion"
+        [class.hiden-element-quickly]="!store.collection().length"
+      >
+        <mat-expansion-panel class="tools-list-item" expanded="true">
+          <mat-expansion-panel-header
+            class="tools-list-item-header"
+            [class.tools-list-item-header-hidden]="!store.collection().length"
+          >
+            <mat-panel-title class="tools-list-item-header-name">{{
+              getRusDrawingToolName(store.storeName)
+            }}</mat-panel-title>
+            <mat-panel-description>
+              <span
+                class="tools-list-item-header-auxiliary-buttons-container"
+                (click)="$event.stopPropagation()"
+              >
+                <button
+                  matTooltip="Дополнительно"
+                  matTooltipShowDelay="1000"
+                  matIconButton
+                  [matMenuTriggerFor]="mapContentLocalMenu"
+                  [attr.aria-label]="'Map content local menu'"
+                >
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #mapContentLocalMenu="matMenu" class="mat-content-local-menu">
+                  <button
+                    mat-menu-item
+                    style="opacity: 0.8"
+                    (click)="$drawingService.allToolEntitiesCleaning(store.storeName)"
+                  >
+                    <span>{{ 'Стереть все' }}</span>
+                  </button>
+                  <!-- Сокращать список по обеспечению адекватного сохранения / восстановления таких типов сущностей -->
+                  @if (store.storeName) {
+                    <button
+                      mat-menu-item
+                      style="opacity: 0.8"
+                      (click)="$toolsListKmlService.exportToolToKml(store.storeName)"
+                    >
+                      <span>{{ 'Экспорт в .kml' }}</span>
+                    </button>
+                    <button
+                      mat-menu-item
+                      style="opacity: 0.8"
+                      (click)="$toolsListKmlService.exportToolToKml(store.storeName, true)"
+                    >
+                      <span>{{ 'Экспорт в .kmz' }}</span>
+                    </button>
+                  }
+                </mat-menu>
+              </span>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <ng-template matExpansionPanelContent>
+            <!-- уровень элементов списков -->
+            <div class="tools-list-item-entities-list">
+              @for (objInCollection of store.collection(); track objInCollection?.groupId) {
+                @if (objInCollection !== undefined) {
+                  <div
+                    class="tools-list-item-entities-list-line"
+                    [class.tools-list-item-entities-list-line-active]="
+                      objInCollection === store.activeObjInStore()
+                    "
+                  >
+                    <div
+                      class="tools-list-item-entity-info"
+                      (click)="
+                        $event.stopPropagation(); $toolsListService.setActiveEntity(objInCollection)
+                      "
+                    >
+                      @switch (store.storeName) {
+                        <!-- ...другие инструменты, которым недостаточно использования компонента, как в @default -->
+
+                        <!-- условие и пропсы, характерные для конкретного инструмента -->
+                        <!-- в колбэки можно передавать методы соответствующих сервисов инструментов (должны провайдиться в main.sight) -->
+                        <!-- @case ('YourInstrument') {
+                          <tools-list-entity-info
+                            [objInCollection]="objInCollection"
+                            [forcedName]="undefined"
+                            [callback]="undefined"
+                            [callbackArgs]="[]"
+                            (counterChangeEmitter)="changeLinesCounter($event)"
+                          />
+                        } -->
+                        @default {
+                          <tools-list-entity-info
+                            [objInCollection]="objInCollection"
+                            [forcedName]="objInCollection?.defaultEntity?.name"
+                            [callback]="undefined"
+                            [callbackArgs]="[]"
+                            (counterChangeEmitter)="changeLinesCounter($event)"
+                          />
+                        }
+                      }
+                    </div>
+                    <button
+                      style="margin-right: 5px"
+                      matIconButton
+                      matTooltip="Приблизиться"
+                      matTooltipShowDelay="1000"
+                      (click)="
+                        $event.stopPropagation();
+                        store.storeName === 'addMark' ||
+                        store.storeName === 'addAnnotation' ||
+                        store.storeName === 'addPhoto'
+                          ? $toolsListService.flyToEntity(
+                              objInCollection?.defaultEntity || objInCollection?.entitiesList[0],
+                              false
+                            )
+                          : $toolsListService.flyToEntity(
+                              objInCollection?.defaultEntity || objInCollection?.entitiesList[0],
+                              true
+                            )
+                      "
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none" />
+                        <path fill="currentColor" d="M21 3L3 10.53v.97l6.84 2.66L12.5 21h.96z" />
+                      </svg>
+                    </button>
+                    <button
+                      matIconButton
+                      matTooltip="Стереть"
+                      matTooltipShowDelay="1000"
+                      (click)="
+                        $event.stopPropagation();
+                        $drawingService.removeEntitiesByGroupId(
+                          objInCollection.groupId,
+                          store.collection
+                        )
+                      "
+                    >
+                      <mat-icon>
+                        <svg width="24" height="24" viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 16H5V5h14zM17 8.4L13.4 12l3.6 3.6l-1.4 1.4l-3.6-3.6L8.4 17L7 15.6l3.6-3.6L7 8.4L8.4 7l3.6 3.6L15.6 7z"
+                          />
+                        </svg>
+                      </mat-icon>
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+          </ng-template>
+        </mat-expansion-panel>
+      </mat-accordion>
+    }
+    <!-- для сущностей, не относящихся к конкретным инструментам -->
+    <mat-accordion
+      class="tools-list-accordion"
+      [class.hiden-element-quickly]="!$toolsListService.drawingStoreForOvers.collection().length"
+    >
+      <mat-expansion-panel class="tools-list-item" expanded="true">
+        <mat-expansion-panel-header
+          class="tools-list-item-header"
+          [class.tools-list-item-header-hidden]="
+            !$toolsListService.drawingStoreForOvers.collection().length
+          "
+        >
+          <mat-panel-title class="tools-list-item-header-name">{{
+            $toolsListService.drawingStoreForOvers.storeName
+          }}</mat-panel-title>
+          <mat-panel-description>
+            <span
+              class="tools-list-item-header-auxiliary-buttons-container"
+              (click)="$event.stopPropagation()"
+            >
+              <button
+                matTooltip="Дополнительно"
+                matTooltipShowDelay="1000"
+                matIconButton
+                [matMenuTriggerFor]="mapContentLocalMenu"
+                [attr.aria-label]="'Map content local menu'"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #mapContentLocalMenu="matMenu" class="mat-content-local-menu">
+                <button
+                  mat-menu-item
+                  style="opacity: 0.8"
+                  (click)="$drawingService.allOversEntitiesCleaning()"
+                >
+                  <span>{{ 'Стереть все' }}</span>
+                </button>
+                <button
+                  mat-menu-item
+                  style="opacity: 0.8"
+                  (click)="$toolsListKmlService.exportOversToKml()"
+                >
+                  <span>{{ 'Экспорт в .kml' }}</span>
+                </button>
+                <button
+                  mat-menu-item
+                  style="opacity: 0.8"
+                  (click)="$toolsListKmlService.exportOversToKml(true)"
+                >
+                  <span>{{ 'Экспорт в .kmz' }}</span>
+                </button>
+              </mat-menu>
+            </span>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <!-- уровень элементов списков -->
+          <div class="tools-list-item-entities-list">
+            @for (
+              objInCollection of $toolsListService.drawingStoreForOvers.collection();
+              track objInCollection?.groupId
+            ) {
+              @if (objInCollection !== undefined) {
+                <div class="tools-list-item-entities-list-line">
+                  <!-- [class.tools-list-item-entities-list-line-active]="
+                    objInCollection === store.activeObjInStore()
+                  " -->
+                  <div
+                    class="tools-list-item-entity-info tools-list-item-entity-info-overs"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <!-- $toolsListService.setActiveEntity(objInCollection) -->
+                    <tools-list-entity-info
+                      [objInCollection]="objInCollection"
+                      (counterChangeEmitter)="changeLinesCounter($event)"
+                    />
+                  </div>
+                  <button
+                    style="margin-right: 5px"
+                    matIconButton
+                    matTooltip="Приблизиться"
+                    matTooltipShowDelay="1000"
+                    (click)="
+                      $event.stopPropagation();
+                      $toolsListService.flyToEntity(
+                        objInCollection?.defaultEntity || objInCollection?.entitiesList[0]
+                      )
+                    "
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M12 4.5C7 4.5 2.7 7.6 1 12c1.7 4.4 6 7.5 11 7.5h1.1c-.1-.3-.1-.6-.1-1c0-.6.1-1.1.2-1.7c-.4.1-.8.2-1.2.2c-2.8 0-5-2.2-5-5s2.2-5 5-5s5 2.2 5 5c0 .3 0 .6-.1.9c.7-.2 1.4-.4 2.1-.4c1.2 0 2.3.3 3.3 1c.3-.5.5-1 .7-1.5c-1.7-4.4-6-7.5-11-7.5M12 9c-1.7 0-3 1.3-3 3s1.3 3 3 3s3-1.3 3-3s-1.3-3-3-3m7 12v-2h-4v-2h4v-2l3 3z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    matIconButton
+                    matTooltip="Стереть"
+                    matTooltipShowDelay="1000"
+                    (click)="
+                      $event.stopPropagation();
+                      $drawingService.removeEntitiesByGroupId(
+                        objInCollection?.groupId,
+                        $toolsListService.drawingStoreForOvers.collection
+                      )
+                    "
+                  >
+                    <mat-icon>
+                      <svg width="24" height="24" viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 16H5V5h14zM17 8.4L13.4 12l3.6 3.6l-1.4 1.4l-3.6-3.6L8.4 17L7 15.6l3.6-3.6L7 8.4L8.4 7l3.6 3.6L15.6 7z"
+                        />
+                      </svg>
+                    </mat-icon>
+                  </button>
+                </div>
+              }
+            }
+          </div>
+        </ng-template>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+</div>

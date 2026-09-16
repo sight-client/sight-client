@@ -1,0 +1,99 @@
+:host {
+  .tools-panel-container {
+    position: absolute;
+    // z-index: 101; // применено к кнопкам, причина - поднятие z-index спрятанного контейнера группы при его показе (по кнопке со стрелочкой)
+    // right: 15px;
+    // top: 75px;
+    left: 500px;
+    bottom: 15px;
+    // width: 35px;
+    width: max-content;
+    height: max-content;
+    display: flex;
+    flex-flow: row wrap;
+    gap: 5px;
+    pointer-events: none;
+
+    .tools-panel-group {
+      display: flex;
+      flex-flow: column-reverse wrap;
+      // gap: 5px;
+
+      .tools-panel-group-hidden {
+        margin: 5px 0px 5px 0px;
+        padding: 0;
+        border: none;
+        outline: none;
+        display: flex;
+        flex-flow: column-reverse wrap;
+        gap: 5px;
+        pointer-events: none;
+      }
+      .tools-panel-group-hidden > * {
+        pointer-events: auto;
+      }
+      .tools-panel-group-hidden > *:last-child:is(.tools-panel-group-hidden-last-element) {
+        margin-bottom: calc(var(--regular-btn-size) / 3);
+      }
+
+      .tools-panel-group-hidden-raised {
+        z-index: 105;
+      }
+    }
+  }
+  .tools-panel-container > * {
+    pointer-events: auto;
+    margin-left: auto;
+  }
+
+  .tool-chevron-button {
+    padding: 0px;
+    min-width: calc(var(--regular-btn-size) / 3);
+    width: calc(var(--regular-btn-size) / 3);
+    height: var(--regular-btn-size);
+    border-radius: 6px 0px 0px 6px;
+    outline: 1px solid var(--theme-outline-color);
+    border-right: 1px solid var(--theme-border-color);
+    z-index: 101; // как у остальных кнопок
+    // margin-right: -3px;
+    margin-bottom: -13px;
+    margin-left: 11px;
+    transform: rotate(90deg);
+    mat-icon {
+      padding: 0;
+      margin: 0;
+      width: var(--regular-btn-svg-size);
+      height: var(--regular-btn-svg-size);
+      svg {
+        opacity: 0.8;
+      }
+    }
+  }
+
+  .tool-panel-button-svg-mirrored svg {
+    transform: scaleX(-1);
+  }
+
+  // ----------------------- для дочерних элементов ---------------------- //
+
+  .tool-panel-button {
+    padding: 0px;
+    min-width: var(--regular-btn-size);
+    width: var(--regular-btn-size);
+    height: var(--regular-btn-size);
+    // border-radius: 16px;
+    border-radius: 6px;
+    outline: 1px solid var(--theme-outline-color);
+    z-index: 101;
+    mat-icon {
+      padding: 0;
+      margin: 0;
+      width: var(--regular-btn-svg-size);
+      height: var(--regular-btn-svg-size);
+      svg {
+        opacity: 0.8;
+      }
+    }
+    // есть исключение в mat-exceptions-core.scss
+  }
+}

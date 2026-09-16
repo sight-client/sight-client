@@ -1,0 +1,33 @@
+@if ($polygonalAreaMeasurementsFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$polygonalAreaMeasurementsFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="polygonal-area-measurements-floating-window-content-wrapper">
+    <div class="polygonal-area-measurements-floating-window-private">
+      @if (
+        $polygonalAreaMeasurementsFloatingWindowService
+          .validPickedEnttity()
+          ?.id?.includes('-polygon-')
+      ) {
+        <div class="polygonal-area-measurements-floating-window-private-info">
+          <p>
+            Площадь:
+            {{ $polygonalAreaMeasurementsFloatingWindowService.areaDescription() }}
+          </p>
+          <p>
+            <span>
+              Периметр:
+              {{ $polygonalAreaMeasurementsFloatingWindowService.perimeterDescription() }}
+            </span>
+          </p>
+        </div>
+        <!-- <div class="polygonal-area-measurements-floating-window-private-settings">
+        </div> -->
+      }
+    </div>
+  </div>
+</ng-template>

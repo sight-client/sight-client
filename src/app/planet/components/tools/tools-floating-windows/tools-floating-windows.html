@@ -1,0 +1,13 @@
+<div class="any-floating-windows-container">
+  @for (window of $floatingWindowsService.floatingWindowsList(); track window?.windowName) {
+    <!-- NOTICE: проверку и wrapper-div не убирать! (необходимы для работы animate.leave) -->
+    @if (checkFloatingWindow(window?.windowName)) {
+      <!-- animate.enter-анимация конфликтует с начальным z-index (окно должно СРАЗУ быть поверх всех), заменена на нативную css-анимацию в самих floating-window.scss -->
+      <div animate.leave="floating-window-leave-animation">
+        <ng-container
+          *ngComponentOutlet="getFloatingWindowComponentType(window?.windowName)"
+        ></ng-container>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,58 @@
+@if ($addRectangleFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$addRectangleFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="add-rectangle-floating-window-content-wrapper">
+    <div class="add-rectangle-floating-window-private">
+      @if ($addRectangleFloatingWindowService.validPickedEnttity()?.id?.includes('-polygon-')) {
+        <div class="add-rectangle-floating-window-private-info">
+          <div class="add-rectangle-floating-window-private-naming">
+            <span>Наименование:</span>
+            <input
+              maxlength="70"
+              placeholder="Введите наименование"
+              matTooltip="Наименование"
+              matTooltipShowDelay="1000"
+              [value]="$addRectangleFloatingWindowService.validPickedEnttity()?.name"
+              (input)="
+                $toolsService.changeEntityName(
+                  $event.target.value,
+                  $addRectangleFloatingWindowService.validPickedEnttity()!.id,
+                  this.$drawingService.addRectangleEntitiesList,
+                  $event.target.value
+                )
+              "
+            />
+          </div>
+        </div>
+        <div class="add-rectangle-floating-window-private-settings">
+          <div class="add-rectangle-floating-window-private-color">
+            <span>Цвет:</span>
+            <input
+              type="color"
+              matTooltip="Цвет"
+              matTooltipShowDelay="1000"
+              [value]="
+                $addRectangleFloatingWindowService
+                  .validPickedEnttity()
+                  ?.polyline?.material?.getValue()
+                  .color.toCssHexString()
+              "
+              (change)="
+                $toolsService.changeEntityColor(
+                  $event.target.value,
+                  $addRectangleFloatingWindowService.validPickedEnttity()!.id,
+                  this.$drawingService.addRectangleEntitiesList
+                )
+              "
+            />
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>
