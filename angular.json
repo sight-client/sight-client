@@ -60,6 +60,7 @@
               "baseHref": "/sight-client/"
             },
             "development": {
+              "baseHref": "/sight-client/",
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
