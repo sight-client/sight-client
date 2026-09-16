@@ -8,7 +8,7 @@ export class DeviceService {
     this.isMobile = this.checkMobile();
   }
   declare readonly isMobile: boolean;
-  private checkMobile(): boolean {
+  public checkMobile(): boolean {
     try {
       const userAgent: string = navigator.userAgent;
       const isMobileUA: boolean =

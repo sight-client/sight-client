@@ -7,28 +7,14 @@
   outline: none;
 }
 
-#cesiumContainer,
-#sightUiContainer {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  border: none;
-  outline: none;
-  overflow: hidden;
-  min-width: 275px;
-  min-height: 350px;
-}
-
 #cesiumContainer {
   position: absolute;
   // z-index: 1; // если оставить, окно ошибок цесиума будет под UI
   left: 0;
   top: 0;
   width: 100%;
+  min-width: var(--left-part-min-width);
+  min-height: var(--min-height-global);
   height: 100%;
   user-select: none;
 }
@@ -58,7 +44,9 @@
   .sight-main-sidenav {
     --sight-main-sidenav-inner-gap: 20px;
     // min-width: 20%;
-    min-width: 10%;
+    min-width: 230px;
+    max-width: 35%;
+    // max-width: 300px;
     height: 100%;
     background-color: var(--theme-container-background-color);
     pointer-events: auto;
@@ -105,15 +93,10 @@
     //     //   width: 100%;
     //     //   height: 100%;
     //     //   background-color: var(--theme-color);
-    //     //   mask-image: url('/assets/core/sight-main-sidenav/OKO-LOGO.svg');
+    //     //   mask-image: url('/assets/core/sight-main-sidenav/LOGO.svg');
     //     //   mask-size: cover;
     //     // }
     //   }
-    // }
-    // .sight-main-sidenav-geo-search-wrapprer {
-    //   width: 100%;
-    //   height: var(--sight-main-sidenav-geo-search-height);
-    //   margin-top: var(--sight-main-sidenav-inner-gap);
     // }
     .sight-main-sidenav-tabs-conteiner {
       width: 100%;
@@ -123,6 +106,11 @@
       //     ) - var(--sight-main-sidenav-inner-gap) *
       //     2 - calc(var(--sight-main-sidenav-inner-gap) / 2)
       // ); // точный расчет для адекватного включения скролла во вкладках
+      // height: calc(
+      //   100% - var(--sight-main-sidenav-logo-height) - var(--sight-main-sidenav-inner-gap) - calc(
+      //       var(--sight-main-sidenav-inner-gap) / 2
+      //     )
+      // );
       height: 100%;
       margin-top: calc(var(--sight-main-sidenav-inner-gap) / 2);
       .mat-mdc-tab-group {
@@ -146,7 +134,7 @@
       top: calc(50% - var(--regular-btn-size) / 2);
       min-width: calc(var(--regular-btn-size) / 2);
       width: calc(var(--regular-btn-size) / 2);
-      height: var(--regular-btn-size);
+      height: calc(var(--regular-btn-size) * 2);
       padding-inline: 0;
       border-radius: 0px 6px 6px 0px;
       mat-icon {
@@ -161,61 +149,36 @@
 
     .header-buttons-container {
       position: absolute;
-      left: 100px;
-      top: 0px;
+      left: 15px;
+      top: 15px;
+      // top: 18px;
       z-index: 101;
 
-      .to-landing-page-button {
-        position: absolute;
-        z-index: 101;
-        left: 150px;
-        top: 15px;
-        padding: 0px;
-        min-width: var(--regular-btn-size);
-        width: var(--regular-btn-size);
-        height: var(--regular-btn-size);
-        border-radius: 6px;
-        outline: 1px solid var(--theme-outline-color);
-        mat-icon {
-          padding: 0;
-          margin: 0;
-          width: var(--regular-btn-svg-size);
-          height: var(--regular-btn-svg-size);
-          svg {
-            opacity: 0.8;
-          }
-        }
-      }
-    }
-  }
-}
-
-.map-left-navbar-wrapper {
-  position: absolute;
-  z-index: 101;
-  left: 15px;
-  top: 15px;
-  .to-landing-page-button {
-    padding: 0px;
-    min-width: var(--regular-btn-size);
-    width: var(--regular-btn-size);
-    height: var(--regular-btn-size);
-    border-radius: 6px;
-    outline: 1px solid var(--theme-outline-color);
-    mat-icon {
-      padding: 0;
-      margin: 0;
-      width: 24px;
-      height: 24px;
-      svg {
-        opacity: 0.8;
-      }
+      // .header-buttons-container-button {
+      //   position: absolute;
+      //   z-index: 101;
+      //   padding: 0px;
+      //   min-width: var(--regular-btn-size);
+      //   width: var(--regular-btn-size);
+      //   height: var(--regular-btn-size);
+      //   border-radius: 6px;
+      //   outline: 1px solid var(--theme-outline-color);
+      //   mat-icon {
+      //     padding: 0;
+      //     margin: 0;
+      //     width: var(--regular-btn-svg-size);
+      //     height: var(--regular-btn-svg-size);
+      //     svg {
+      //       opacity: 0.8;
+      //     }
+      //   }
+      // }
     }
   }
 }
 
 #crosshairForMobiles {
-  position: absolute; /* or fixed for viewport center */
+  position: absolute;
   z-index: 3;
   top: 50%;
   left: 50%;
@@ -224,5 +187,5 @@
   font-weight: normal;
   color: red;
   -webkit-text-stroke: 1px #000;
-  pointer-events: none; /* Allows clicks to pass through the crosshair to elements underneath */
+  pointer-events: none;
 }

@@ -1,0 +1,77 @@
+<div
+  #floatingWindow
+  cdkDrag
+  cdkDragBoundary=".sight-main-ui-container"
+  class="floating-window"
+  [class.hiden-element]="
+    $floatingWindowsService.floatingWindowsList()[windowIndex()]?.collapsed() ||
+    $floatingWindowsService.floatingWindowsList()[windowIndex()]?.hidden()
+  "
+  [style.zIndex]="
+    !$floatingWindowsService.floatingWindowsList()[windowIndex()]?.isActive()
+      ? `${zIndexWhenActive - 1}`
+      : `${zIndexWhenActive}`
+  "
+  [style.top]="
+    customTop
+      ? customTop + 'px'
+      : $floatingWindowsService.floatingWindowsList()[windowIndex()]?.top
+        ? $floatingWindowsService.floatingWindowsList()[windowIndex()]?.top + 'px'
+        : '33px'
+  "
+  [style.right]="
+    customRight
+      ? customRight + 'px'
+      : $floatingWindowsService.floatingWindowsList()[windowIndex()]?.right
+        ? $floatingWindowsService.floatingWindowsList()[windowIndex()]?.right + 'px'
+        : '33px'
+  "
+  (mousedown)="$floatingWindowsService.setActiveWindow(parentName, $event)"
+>
+  <div #floatingWindowHeader class="floating-window-header">
+    <p
+      #toolName
+      cdkDragHandle
+      [matTooltip]="toolName.scrollHeight > toolName.offsetHeight ? headerName : ''"
+      matTooltipShowDelay="1000"
+      (touchstart)="$floatingWindowsService.setActiveWindow(parentName)"
+    >
+      <!-- [style.cursor]="toolName.scrollHeight > toolName.offsetHeight ? 'help' : 'grab'" -->
+      {{ headerName }}
+    </p>
+    <span>
+      <button
+        matButton="tonal"
+        matTooltip="свернуть"
+        matTooltipShowDelay="1000"
+        (mousedown)="$event.stopPropagation()"
+        (click)="$floatingWindowsService.collapseWindow(windowIndex(), $event)"
+      >
+        <mat-icon>call_to_action</mat-icon>
+      </button>
+      <button
+        matButton="tonal"
+        [matTooltip]="isMeasuringTool ? 'закрыть' : 'скрыть'"
+        matTooltipShowDelay="1000"
+        (mousedown)="$event.stopPropagation()"
+        (click)="closeOrHide($event)"
+      >
+        <!-- @if (isMeasuringTool) {
+          <mat-icon>close</mat-icon>
+        } @else {
+          <mat-icon>visibility_off</mat-icon>
+        } -->
+        <mat-icon>close</mat-icon>
+      </button>
+    </span>
+  </div>
+  <div class="floating-window-content-wrapper">
+    @if (contentTemplate) {
+      <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
+    } @else {
+      <p class="floating-window-content-gag">
+        Данному модльному окну не было передано его содержимое
+      </p>
+    }
+  </div>
+</div>

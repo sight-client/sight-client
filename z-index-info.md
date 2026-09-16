@@ -9,7 +9,7 @@
 2 - .mouse-coords-cursor-field
 100 - #sightUiContainer, .cesium-viewer-fullscreenContainer
 101 - .header-buttons-container, .tool-panel-button, .tool-chevron-button, .coords-container-main, .navigationMixinDiv, .camera-height-wrapper, #distanceLegendDiv, .floating-windows-tabs-panel
-102- .main-floating-windows-container
+102 - .main-floating-windows-container
 103 - .floating-window
 104 - .floating-window (активное)
 105 - .tools-panel-group-hidden-raised

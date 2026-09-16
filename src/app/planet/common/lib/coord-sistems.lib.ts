@@ -1,44 +1,71 @@
 import proj4 from 'proj4';
 import * as Cesium from 'cesium';
 
-export type CRS = 'WGS-84' | 'СК-42 м' | 'СК-42 °' | 'ПЗ-90.11';
+export const crsLiterals = Object.freeze(['WGS-84', 'СК-42 м', 'СК-42 °', 'ПЗ-90.11'] as const);
+export type CRS = (typeof crsLiterals)[number];
 
-export class CartographicVals {
+export class CartographicLike {
   latitude: Cesium.Cartographic['latitude'];
   longitude: Cesium.Cartographic['longitude'];
   height: Cesium.Cartographic['height'];
 }
-export class Cartesian3Vals {
+export class Cartesian3Like {
   x: Cesium.Cartesian3['x'];
   y: Cesium.Cartesian3['y'];
   z: Cesium.Cartesian3['z'];
 }
 
 export class CoordSystems {
-  static toCartographic(
-    nameCS: CRS,
-    coord: Cartesian3Vals,
-    zone?: number | '',
-  ): Cartesian3Vals | number[] {
+  // Перевод из указанной СК в WGS84 (EPSG:4326)
+  static toWGS84Cartesian(nameCS: CRS, coord: Cartesian3Like, zone?: number | ''): Cartesian3Like {
     if (nameCS === 'WGS-84') {
-      return coord;
+      return {
+        x: coord.x,
+        y: coord.y,
+        z: coord.z,
+      };
     }
-    const lonlat: number[] = proj4(
-      this.DEFS[nameCS].SRS(coord, zone),
-      '+proj=longlat +ellps=WGS84 +datum=WGS84 +units=degrees',
+    const projected: number[] = proj4(
+      this.DEFS[nameCS].SRS(coord, zone), // проекция для исходной СК
+      '+proj=longlat +ellps=WGS84 +datum=WGS84 +units=degrees', // проекция для WGS84 (EPSG:4326)
       [coord.x, coord.y, coord.z],
-    ); // -> EPSG:4326
-    return lonlat;
+    );
+    return {
+      x: projected[0],
+      y: projected[1],
+      z: projected[2],
+    };
   }
 
-  // Пересчет в указанную СК из широты-долготы
-  static fromCartographic(
+  // Перевод из указанной СК в WGS84 (EPSG:4326)
+  static toWGS84Cartographic(
     nameCS: CRS,
-    cartographic: CartographicVals,
+    coord: CartographicLike,
     zone?: number | '',
-  ): CartographicVals {
+  ): CartographicLike {
+    if (nameCS === 'WGS-84') {
+      return { longitude: coord.longitude, latitude: coord.latitude, height: coord.height };
+    }
+    const projected: number[] = proj4(
+      this.DEFS[nameCS].SRS(coord, zone), // проекция для исходной СК
+      '+proj=longlat +ellps=WGS84 +datum=WGS84 +units=degrees', // проекция для WGS84 (EPSG:4326)
+      [coord.longitude, coord.latitude, coord.height],
+    );
+    return {
+      longitude: projected[0],
+      latitude: projected[1],
+      height: projected[2],
+    };
+  }
+
+  // Пересчет в указанную СК из широты-долготы из WGS84 (используемой Cesium)
+  static fromWGS84Cartographic(
+    nameCS: CRS,
+    cartographic: CartographicLike,
+    zone?: number | '',
+  ): CartographicLike {
     zone = zone === '' ? zone : undefined;
-    return this.DEFS[nameCS].fromCartographic(cartographic, zone);
+    return this.DEFS[nameCS].fromWGS84Cartographic(cartographic, zone);
   }
 
   // Определения систем координат
@@ -47,18 +74,18 @@ export class CoordSystems {
       units: string;
       output: string[];
       systemHeight: string;
-      fromCartographic(
-        coordinates?: CartographicVals | Cartesian3Vals,
+      fromWGS84Cartographic(
+        coordinates?: CartographicLike | Cartesian3Like,
         zone?: number | '',
-      ): CartographicVals;
-      SRS(coordinates?: CartographicVals | Cartesian3Vals, zone?: number | ''): string;
+      ): CartographicLike;
+      SRS(coordinates?: CartographicLike | Cartesian3Like, zone?: number | ''): string;
     };
   } = {
     'WGS-84': {
       units: 'degrees',
       output: ['B', 'L'],
       systemHeight: 'высота над эллипсоидом WGS-84',
-      fromCartographic(cartographic: CartographicVals): CartographicVals {
+      fromWGS84Cartographic(cartographic: CartographicLike): CartographicLike {
         return cartographic;
       },
       SRS(): string {
@@ -70,7 +97,8 @@ export class CoordSystems {
       units: 'meters',
       output: ['X', 'Y'],
       systemHeight: 'средний уровень Мирового океана',
-      fromCartographic(cartographic: CartographicVals, zone?: number | ''): CartographicVals {
+      fromWGS84Cartographic(cartographic: CartographicLike, zone?: number | ''): CartographicLike {
+        // Если указана только одна проекция, предполагается, что она проецируется из системы координат WGS84 (из спецификации proj4js)
         const projected = proj4(this.SRS(cartographic, zone), [
           cartographic.longitude,
           cartographic.latitude,
@@ -82,9 +110,9 @@ export class CoordSystems {
           height: projected[2],
         };
       },
-      SRS(coordinates: CartographicVals | Cartesian3Vals, zone?: number | ''): string {
+      SRS(coordinates: CartographicLike | Cartesian3Like, zone?: number | ''): string {
         if (zone === undefined) {
-          if (coordinates instanceof CartographicVals) {
+          if (coordinates instanceof CartographicLike) {
             // if (coordinates?.longitude && coordinates?.latitude) {
             const sk42 = proj4(
               '+proj=longlat +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22', // this.CoordSystemsService.DEFS['СК-42 °'].SRS()
@@ -108,7 +136,7 @@ export class CoordSystems {
       units: 'degrees',
       output: ['B', 'L'],
       systemHeight: 'средний уровень Мирового океана',
-      fromCartographic(cartographic: CartographicVals): CartographicVals {
+      fromWGS84Cartographic(cartographic: CartographicLike): CartographicLike {
         const projected = proj4(this.SRS(), [
           cartographic.longitude,
           cartographic.latitude,
@@ -131,7 +159,7 @@ export class CoordSystems {
       units: 'degrees',
       output: ['B', 'L'],
       systemHeight: 'высота над эллипсоидом ПЗ-90.11',
-      fromCartographic(cartographic: CartographicVals): CartographicVals {
+      fromWGS84Cartographic(cartographic: CartographicLike): CartographicLike {
         const projected = proj4(this.SRS(), [
           cartographic.longitude,
           cartographic.latitude,
@@ -172,9 +200,9 @@ export class CoordSystems {
 //   }
 
 //   // Пересчет в указанную СК из широты-долготы
-//   static fromCartographic(nameCS, cartographic, zone) {
+//   static fromWGS84Cartographic(nameCS, cartographic, zone) {
 //     zone = zone === '' ? zone : undefined;
-//     return this.DEFS[nameCS].fromCartographic(cartographic, zone);
+//     return this.DEFS[nameCS].fromWGS84Cartographic(cartographic, zone);
 //   }
 
 //   // Определения систем координат
@@ -185,7 +213,7 @@ export class CoordSystems {
 //       units: 'degrees',
 //       output: ['B', 'L'],
 //       systemHeight: 'высота над эллипсоидом WGS-84',
-//       fromCartographic: function fromCartographic(cartographic) {
+//       fromWGS84Cartographic: function fromWGS84Cartographic(cartographic) {
 //         return cartographic;
 //       },
 //     },
@@ -194,7 +222,7 @@ export class CoordSystems {
 //       units: 'meters',
 //       output: ['X', 'Y'],
 //       systemHeight: 'средний уровень Мирового океана',
-//       fromCartographic: function fromCartographic(cartographic, zone) {
+//       fromWGS84Cartographic: function fromWGS84Cartographic(cartographic, zone) {
 //         const projected = proj4(this.SRS(cartographic, zone), [
 //           cartographic.longitude,
 //           cartographic.latitude,
@@ -232,7 +260,7 @@ export class CoordSystems {
 //       units: 'degrees',
 //       output: ['B', 'L'],
 //       systemHeight: 'средний уровень Мирового океана',
-//       fromCartographic: function fromCartographic(cartographic) {
+//       fromWGS84Cartographic: function fromWGS84Cartographic(cartographic) {
 //         const projected = proj4(this.SRS(), [
 //           cartographic.longitude,
 //           cartographic.latitude,
@@ -255,7 +283,7 @@ export class CoordSystems {
 //       units: 'degrees',
 //       output: ['B', 'L'],
 //       systemHeight: 'высота над эллипсоидом ПЗ-90.11',
-//       fromCartographic: function fromCartographic(cartographic) {
+//       fromWGS84Cartographic: function fromWGS84Cartographic(cartographic) {
 //         const projected = proj4(this.SRS(), [
 //           cartographic.longitude,
 //           cartographic.latitude,
@@ -281,12 +309,12 @@ export class CoordSystems {
 // import * as Cesium from 'cesium';
 
 // export type CRS = 'WGS-84' | 'СК-42 м' | 'СК-42 °' | 'ПЗ-90.11';
-// export class CartographicVals {
+// export class CartographicLike {
 //   latitude: Cesium.Cartographic['latitude'];
 //   longitude: Cesium.Cartographic['longitude'];
 //   height: Cesium.Cartographic['height'];
 // }
-// export class Cartesian3Vals {
+// export class Cartesian3Like {
 //   x: Cesium.Cartesian3['x'];
 //   y: Cesium.Cartesian3['y'];
 //   z: Cesium.Cartesian3['z'];
@@ -301,9 +329,9 @@ export class CoordSystems {
 //   // Пересчет в широту-долготу WGS-84 из указанной СК
 //   public toCartographic(
 //     nameCS: CRS,
-//     coord: Cartesian3Vals,
+//     coord: Cartesian3Like,
 //     zone?: number | '',
-//   ): Cartesian3Vals | number[] {
+//   ): Cartesian3Like | number[] {
 //     if (nameCS === 'WGS-84') {
 //       return coord;
 //     }
@@ -316,13 +344,13 @@ export class CoordSystems {
 //   }
 
 //   // Пересчет в указанную СК из широты-долготы
-//   public fromCartographic(
+//   public fromWGS84Cartographic(
 //     nameCS: CRS,
-//     cartographic: CartographicVals,
+//     cartographic: CartographicLike,
 //     zone?: number | '',
-//   ): CartographicVals {
+//   ): CartographicLike {
 //     zone = zone === '' ? zone : undefined;
-//     return this.DEFS[nameCS].fromCartographic(cartographic, zone);
+//     return this.DEFS[nameCS].fromWGS84Cartographic(cartographic, zone);
 //   }
 
 //   // Определения систем координат
@@ -331,18 +359,18 @@ export class CoordSystems {
 //       units: string;
 //       output: string[];
 //       systemHeight: string;
-//       fromCartographic(
-//         coordinates?: CartographicVals | Cartesian3Vals,
+//       fromWGS84Cartographic(
+//         coordinates?: CartographicLike | Cartesian3Like,
 //         zone?: number | '',
-//       ): CartographicVals;
-//       SRS(coordinates?: CartographicVals | Cartesian3Vals, zone?: number | ''): string;
+//       ): CartographicLike;
+//       SRS(coordinates?: CartographicLike | Cartesian3Like, zone?: number | ''): string;
 //     };
 //   } = {
 //     'WGS-84': {
 //       units: 'degrees',
 //       output: ['B', 'L'],
 //       systemHeight: 'высота над эллипсоидом WGS-84',
-//       fromCartographic(cartographic: CartographicVals): CartographicVals {
+//       fromWGS84Cartographic(cartographic: CartographicLike): CartographicLike {
 //         return cartographic;
 //       },
 //       SRS(): string {
@@ -354,7 +382,7 @@ export class CoordSystems {
 //       units: 'meters',
 //       output: ['X', 'Y'],
 //       systemHeight: 'средний уровень Мирового океана',
-//       fromCartographic(cartographic: CartographicVals, zone?: number | ''): CartographicVals {
+//       fromWGS84Cartographic(cartographic: CartographicLike, zone?: number | ''): CartographicLike {
 //         const projected = proj4(this.SRS(cartographic, zone), [
 //           cartographic.longitude,
 //           cartographic.latitude,
@@ -366,9 +394,9 @@ export class CoordSystems {
 //           height: projected[2],
 //         };
 //       },
-//       SRS(coordinates: CartographicVals | Cartesian3Vals, zone?: number | ''): string {
+//       SRS(coordinates: CartographicLike | Cartesian3Like, zone?: number | ''): string {
 //         if (zone === undefined) {
-//           if (coordinates instanceof CartographicVals) {
+//           if (coordinates instanceof CartographicLike) {
 //             // if (coordinates?.longitude && coordinates?.latitude) {
 //             const sk42 = proj4(
 //               '+proj=longlat +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22', // this.CoordSystemsService.DEFS['СК-42 °'].SRS()
@@ -392,7 +420,7 @@ export class CoordSystems {
 //       units: 'degrees',
 //       output: ['B', 'L'],
 //       systemHeight: 'средний уровень Мирового океана',
-//       fromCartographic(cartographic: CartographicVals): CartographicVals {
+//       fromWGS84Cartographic(cartographic: CartographicLike): CartographicLike {
 //         const projected = proj4(this.SRS(), [
 //           cartographic.longitude,
 //           cartographic.latitude,
@@ -415,7 +443,7 @@ export class CoordSystems {
 //       units: 'degrees',
 //       output: ['B', 'L'],
 //       systemHeight: 'высота над эллипсоидом ПЗ-90.11',
-//       fromCartographic(cartographic: CartographicVals): CartographicVals {
+//       fromWGS84Cartographic(cartographic: CartographicLike): CartographicLike {
 //         const projected = proj4(this.SRS(), [
 //           cartographic.longitude,
 //           cartographic.latitude,

@@ -4,7 +4,7 @@ import {
   computed,
   effect,
   signal,
-  ViewEncapsulation,
+  untracked,
 } from '@angular/core';
 import { fromEvent, Observable, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -12,20 +12,19 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { DeviceService } from '@global/services/device-service/device.service';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { MouseCoordsService } from '@/common/services/mouse-coords-service/mouse-coords.service';
-
 import type { CRS } from '@/common/lib/coord-sistems.lib';
+import { DeviceService } from '@global/services/device-service/device.service';
 
 @Component({
   selector: 'mouse-coords-info',
-  imports: [FormsModule, MatFormFieldModule, MatSelectModule, MatCheckboxModule],
+  imports: [FormsModule, MatFormFieldModule, MatSelectModule, MatCheckboxModule, MatTooltipModule],
   templateUrl: './mouse-coords-info.html',
   styleUrl: './mouse-coords-info.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None,
 })
 export class MouseCoordsInfo {
   constructor(
@@ -35,12 +34,14 @@ export class MouseCoordsInfo {
   ) {
     effect(() => {
       if (
-        this.$viewerService.viewerHasLoaded() &&
+        // this.$viewerService.viewerHasLoaded() &&
         this.$mouseCoordsService.underMouseEntityHasLoaded()
       ) {
-        if (!this.$deviceService.isMobile) {
-          this.mouseMoveSubscription = this.getMouseMoveSubscription();
-        }
+        untracked(() => {
+          if (!this.$deviceService.isMobile) {
+            this.mouseMoveSubscription = this.getMouseMoveSubscription();
+          }
+        });
       }
     });
   }
@@ -59,7 +60,7 @@ export class MouseCoordsInfo {
   protected crsVarsArr: Array<CRS> = ['WGS-84', 'СК-42 м', 'СК-42 °', 'ПЗ-90.11'];
   public selectedCRS = signal<CRS>('WGS-84');
 
-  // Подписка на движение курсора мыши по холсту
+  // Подписка на движение поля с координатами вместе с курсором мыши
   declare private mouseMoveSubscription: Subscription;
   private getMouseMoveSubscription(): Subscription {
     try {

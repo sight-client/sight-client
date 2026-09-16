@@ -23,7 +23,8 @@ import { SetLightDarkModeService } from '@global/services/set-light-dark-mode-se
   ],
   template: `
     @if (inMenu) {
-      <button (click)="setColorScheme()" class="user-menu-import-button">
+      <button class="user-menu-import-button" (click)="setColorScheme($event)">
+        <!-- (keydown.enter)="setColorScheme($event)" -->
         <mat-icon>
           @if (!isChecked()) {
             <svg width="24" height="24" viewBox="0 0 24 24">
@@ -62,7 +63,7 @@ import { SetLightDarkModeService } from '@global/services/set-light-dark-mode-se
         matTooltipShowDelay="1000"
         class="light-dark-mode-slider-button"
         matButton="tonal"
-        (click)="setColorScheme()"
+        (click)="setColorScheme($event)"
       >
         <mat-icon>
           <svg width="24" height="24" viewBox="0 0 24 24">
@@ -101,12 +102,13 @@ export class LightDarkModeSwitcher {
     this.$setLightDarkModeService.isDarkChecked(),
   );
   // Функция на кнопке:
-  public setColorScheme(checked?: boolean) {
-    // Событие не перехватвать (нужно для mat-menu)
-    if (checked !== undefined) {
-      this.$setLightDarkModeService.setColorScheme(checked);
-    } else {
-      this.$setLightDarkModeService.setColorScheme(!this.isChecked());
-    }
+  public setColorScheme(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    // if (checked !== undefined) {
+    //   this.$setLightDarkModeService.setColorScheme(checked);
+    // } else {
+    this.$setLightDarkModeService.setColorScheme(!this.isChecked());
+    // }
   }
 }

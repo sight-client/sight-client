@@ -20,6 +20,7 @@
   background-color: var(--theme-ui-background-color);
   border-radius: 15px;
   box-sizing: content-box;
+  outline: 1px solid var(--theme-outline-color);
   pointer-events: auto;
 }
 
@@ -44,29 +45,37 @@
 
 /* ------------------------------------------------------------------ */
 /* Нужны, чтобы перебить встроенные в миксин стили */
-// @media (max-width: 1450px) {
-//   #distanceLegendDiv {
-//     right: calc(50vw - 120px / 2);
-//   }
-// }
-// @media print {
-//   .distance-legend {
-//     display: block;
-//   }
-// }
-// @media screen and (max-width: 700px), screen and (max-height: 420px) {
-//   .distance-legend {
-//     display: block;
-//   }
-// }
+@media (max-width: 1450px) {
+  #distanceLegendDiv {
+    right: calc(50vw - 120px / 2);
+  }
+}
+@media print {
+  .distance-legend {
+    display: block;
+  }
+}
+@media screen and (max-width: 700px), screen and (max-height: 420px) {
+  .distance-legend {
+    display: block;
+  }
+}
 
 @media screen and (max-width: 700px), screen and (max-height: 420px) {
-  // .navigation-controls,
-  .compass {
+  .compass,
+  .navigation-controls {
     display: block;
   }
 }
 // ------------------------------------------------------------------ //
+// .navigationMixinDiv {
+//   position: absolute;
+//   z-index: 101;
+//   bottom: 125px;
+//   right: 10px;
+//   width: 110px;
+//   height: 240px;
+// }
 
 .compass {
   transform: scale(0.8);
@@ -95,6 +104,7 @@
   border: 18px solid var(--theme-ui-background-color);
   border-radius: 66px;
   box-sizing: content-box;
+  // outline: 1px solid var(--theme-outline-color);
 }
 
 .compass-outer-ring-background:hover {
@@ -133,7 +143,7 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 0.5px;
-  opacity: 75%;
+  // opacity: 75%;
 }
 
 .compass-gyro-background {
@@ -172,6 +182,50 @@
   top: 0;
 }
 
+.compass-blocked {
+  pointer-events: none !important;
+  .compass-outer-ring-background {
+    border: 18px solid
+      var(
+        --mat-button-tonal-disabled-container-color,
+        color-mix(
+          in srgb,
+          var(--mat-button-tonal-container-color, var(--mat-sys-secondary-container)) 30%,
+          transparent
+        )
+      );
+  }
+  .compass-outer-ring svg {
+    stroke: var(
+      --mat-button-tonal-disabled-label-text-color,
+      color-mix(in srgb, var(--mat-sys-on-surface) 30%, transparent)
+    );
+  }
+  .compass-gyro svg {
+    fill: var(
+      --mat-button-tonal-disabled-label-text-color,
+      color-mix(in srgb, var(--mat-sys-on-surface) 30%, transparent)
+    );
+    stroke: var(
+      --mat-button-tonal-disabled-label-text-color,
+      color-mix(in srgb, var(--mat-sys-on-surface) 30%, transparent)
+    );
+  }
+  .compass-gyro-background {
+    background-color: var(
+      --mat-button-tonal-disabled-container-color,
+      color-mix(
+        in srgb,
+        var(--mat-button-tonal-container-color, var(--mat-sys-secondary-container)) 30%,
+        transparent
+      )
+    );
+  }
+  .compass-rotation-marker {
+    fill: var(--theme-focus-text-color);
+  }
+}
+
 // ----------------------------------------- //
 
 .navigation-controls {
@@ -197,7 +251,7 @@
 
 .navigation-control svg {
   fill: var(--theme-color);
-  opacity: 75%;
+  opacity: 85%;
 }
 
 .navigation-control,
@@ -246,11 +300,37 @@
 .navigation-control-icon-zoom-out {
   position: relative;
   font-size: 30px;
-  opacity: 75%;
+  font-weight: bold;
+  // opacity: 75%;
 }
 
 .navigation-control-icon-reset {
   position: relative;
   width: 20px;
   height: 20px;
+}
+
+.navigation-controls-blocked {
+  pointer-events: none !important;
+  background-color: var(
+    --mat-button-tonal-disabled-container-color,
+    color-mix(
+      in srgb,
+      var(--mat-button-tonal-container-color, var(--mat-sys-secondary-container)) 30%,
+      transparent
+    )
+  );
+  .navigation-control,
+  .navigation-control-last {
+    color: var(
+      --mat-button-tonal-disabled-label-text-color,
+      color-mix(in srgb, var(--mat-sys-on-surface) 30%, transparent)
+    );
+  }
+  svg {
+    fill: var(
+      --mat-button-tonal-disabled-label-text-color,
+      color-mix(in srgb, var(--mat-sys-on-surface) 30%, transparent)
+    );
+  }
 }

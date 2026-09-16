@@ -1,0 +1,52 @@
+@if ($floatingWindowsService.floatingWindowsList().length) {
+  <div class="floating-windows-tabs-panel">
+    @for (
+      item of $floatingWindowsService.floatingWindowsList();
+      track item?.windowName;
+      let index = $index
+    ) {
+      @if (item && item.collapsed() === true) {
+        <div class="floating-window-tab">
+          <!-- animate.enter="floating-window-tab-enter-animation"
+          animate.leave="floating-window-tab-leave-animation" -->
+          <p
+            #tabName
+            [matTooltip]="
+              tabName.scrollHeight > tabName.offsetHeight ? normalizeName(item.windowName) : ''
+            "
+            matTooltipShowDelay="1000"
+            [style.cursor]="tabName.scrollHeight > tabName.offsetHeight ? 'help' : 'auto'"
+          >
+            {{ normalizeName(item.windowName) }}
+          </p>
+          <span>
+            <button
+              matButton="tonal"
+              matTooltip="развернуть"
+              matTooltipShowDelay="1000"
+              (click)="$floatingWindowsService.expandWindow(index, $event)"
+            >
+              <mat-icon>web_asset</mat-icon>
+            </button>
+            <button
+              matButton="tonal"
+              [matTooltip]="willClose(item.windowName) ? 'закрыть' : 'скрыть'"
+              matTooltipShowDelay="1000"
+              (click)="
+                willClose(item.windowName)
+                  ? $floatingWindowsService.deleteWindowItem(item.windowName, $event)
+                  : $floatingWindowsService.hideWindow(index, $event)
+              "
+            >
+              <!-- @if (checkIsMeasuringTool(item.windowName)) { -->
+              <mat-icon>close</mat-icon>
+              <!-- } @else {
+                <mat-icon>visibility_off</mat-icon>
+              } -->
+            </button>
+          </span>
+        </div>
+      }
+    }
+  </div>
+}

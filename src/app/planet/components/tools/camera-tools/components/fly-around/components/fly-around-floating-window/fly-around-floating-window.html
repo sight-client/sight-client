@@ -1,0 +1,41 @@
+<!-- @if ($flyAroundFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$flyAroundFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="fly-around-floating-window-content-wrapper">
+    <p>
+      Entity id:
+      {{
+        $flyAroundFloatingWindowService.validPickedEnttity()?.id
+          ? $flyAroundFloatingWindowService.validPickedEnttity()?.id
+          : 'не определено'
+      }}
+    </p>
+    <p>
+      Entity description:
+      {{
+        $flyAroundFloatingWindowService.validPickedEnttity()?.description
+          ? $flyAroundFloatingWindowService.validPickedEnttity()?.description
+          : 'не определено'
+      }}
+    </p>
+    <p>
+      Entity length:
+      {{
+        $flyAroundFloatingWindowService.validPickedEnttity()?.label?.text &&
+        $flyAroundFloatingWindowService.validPickedEnttity()?.id?.includes('-line-')
+          ? $flyAroundFloatingWindowService.validPickedEnttity()?.label?.text?.getValue()
+          : 'не определено'
+      }}
+    </p>
+    <p style="width: 290px; text-align: justify; margin: 0px">
+      Lorem ipsum dolor sit amet consectetur, adipisicing elit. Minus corporis ab, quisquam quod id
+      rem exercitationem quam reiciendis dolor quo officiis voluptatum hic tempore vero
+      necessitatibus corrupti porro aliquid accusantium.
+    </p>
+  </div>
+</ng-template> -->

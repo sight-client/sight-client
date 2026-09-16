@@ -1,0 +1,54 @@
+@if ($addLineFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$addLineFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="add-line-floating-window-content-wrapper">
+    <div class="add-line-floating-window-private">
+      @if ($addLineFloatingWindowService.validPickedEnttity()?.id?.includes('-line-')) {
+        <div class="add-line-floating-window-private-info">
+          <div class="add-line-floating-window-private-naming">
+            <span>Наименование:</span>
+            <input
+              maxlength="70"
+              placeholder="Введите наименование"
+              matTooltip="Наименование"
+              matTooltipShowDelay="1000"
+              [(ngModel)]="$addLineFloatingWindowService.validPickedEnttity()!.name"
+              (ngModelChange)="
+                $toolsService.changeEntityName(
+                  $event,
+                  $addLineFloatingWindowService.validPickedEnttity()!.id,
+                  this.$drawingService.addLineEntitiesList,
+                  $event
+                )
+              "
+            />
+          </div>
+        </div>
+        <div class="add-line-floating-window-private-settings">
+          <div class="add-line-floating-window-private-color">
+            <span>Цвет:</span>
+            <input
+              type="color"
+              matTooltip="Цвет"
+              matTooltipShowDelay="1000"
+              [(ngModel)]="newColor"
+              (ngModelChange)="
+                $toolsService.changeEntityColor(
+                  $event,
+                  $addLineFloatingWindowService.validPickedEnttity()!.id,
+                  this.$drawingService.addLineEntitiesList
+                );
+                changeColor(newColor)
+              "
+            />
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>

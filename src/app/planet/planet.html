@@ -4,8 +4,11 @@
     appCesiumDirective
     [style.cursor]="
       !$deviceService.isMobile &&
-      ($measureService.handler() !== undefined || $measureService.measuresBlocker() === true)
-        ? 'crosshair'
+      $mouseCoordsService.latitudeDescription() &&
+      ($toolsService.commonHandler() !== undefined || $toolsService.drawingsBlocker() === true)
+        ? $any($toolsService.commonHandler())?._initializer === 'flyAround'
+          ? emptyCursorStyle
+          : 'crosshair'
         : 'auto'
     "
   >
@@ -14,14 +17,17 @@
     }
   </div>
   <div id="sightUiContainer">
-    <mat-sidenav-container class="sight-main-sidenav-global" hasBackdrop="false">
+    <mat-sidenav-container
+      class="sight-main-sidenav-global"
+      [hasBackdrop]="$deviceService.isMobile ? 'true' : 'false'"
+    >
       <mat-sidenav
         class="sight-main-sidenav"
         #sidenavRef
-        mode="side"
+        [mode]="$deviceService.isMobile ? 'over' : 'side'"
         position="start"
-        opened="false"
-        disableClose="true"
+        [opened]="!$deviceService.isMobile"
+        [disableClose]="$deviceService.isMobile ? 'false' : 'true'"
       >
         <div class="sight-main-sidenav-left-content">
           <!-- <div class="sight-main-sidenav-logo">
@@ -33,27 +39,20 @@
             </div>
           </div> -->
           @defer (when $viewerService.viewerHasLoaded() === true) {
-            <!-- <div class="sight-main-sidenav-geo-search-wrapprer">
-              <geo-search />
-              Поиск [в разработке...]
-            </div> -->
             <div class="sight-main-sidenav-tabs-conteiner">
               <mat-tab-group
                 headerPosition="above"
                 preserveContent
-                [selectedIndex]="selectedTab()"
-                (selectedIndexChange)="selectedTab.set($event)"
+                [selectedIndex]="selectedTabIndex()"
+                (selectedIndexChange)="selectedTabIndex.set($event)"
               >
                 @for (tab of tabs(); track tab) {
                   <mat-tab [label]="tab" labelClass="non-user-select">
-                    <!-- @defer (when $viewerService.firstBaseLayerRenderFinished() === true) { -->
-                    <!-- <user-projects /> -->
-                    <p style="text-align: center; margin-top: 50px">[в разработке...]</p>
-                    <!-- } @placeholder {
-                        <p style="text-align: center">Loading...</p>
-                      } @error {
-                        <p style="text-align: center">Error!</p>
-                      } -->
+                    @if (tab === 'Рисование') {
+                      <tools-list />
+                    } @else {
+                      {{ '...в разработке...' }}
+                    }
                   </mat-tab>
                 }
               </mat-tab-group>
@@ -70,52 +69,42 @@
           class="sight-main-sidenav-toggle-button"
           type="button"
           matButton="tonal"
-          [title]="sidenavRef.opened ? 'Свернуть' : 'Развернуть'"
+          [matTooltip]="sidenavRef.opened ? 'Свернуть' : 'Развернуть'"
+          matTooltipShowDelay="1000"
           (click)="sidenavRef.toggle()"
         >
           <mat-icon>{{ sidenavRef.opened ? 'chevron_left' : 'chevron_right' }}</mat-icon>
         </button>
-
         @defer (when $viewerService.viewerHasLoaded() === true) {
           @defer (when $mouseCoordsService.underMouseEntityHasLoaded() === true) {
             <mouse-coords-info />
           }
-          @defer (when $measureService.measureServiceHasStarted() === true) {
-            <measuring-tools />
+          @defer (when $toolsService.toolsServiceHasStarted() === true) {
+            <tools-panel />
           }
           @defer (on idle) {
+            <floating-windows-container />
+            <floating-windows-tabs-panel />
+            <znemz-navigation-mixin />
             <camera-height-tool />
-            <scene-mode-changer />
           }
         }
-        <theme-changer />
-        <znemz-navigation-mixin />
 
-        <nav class="map-left-navbar-wrapper">
-          <button
-            title="Контакты"
-            class="to-landing-page-button"
-            matButton="tonal"
-            (click)="openContacts($event)"
-          >
-            <!-- routerLink="/landing" -->
-            <mat-icon>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8z" />
-              </svg>
-            </mat-icon>
-          </button>
-          <!-- <account-features /> -->
-          <!-- <button
-            title="Test"
-            class="to-landing-page-button"
-            style="top: 50px"
-            matButton="tonal"
-            (click)="benchmarkTest()"
+        <div class="header-buttons-container">
+          <user-menu />
+          <!-- @defer (on idle) {
+            <button
+              matTooltip="Test"
+              matTooltipShowDelay="1000"
+              class="header-buttons-container-button"
+              style="left: 0px; top: 38px"
+              matButton="tonal"
+              (click)="benchmarkTest()"
             >
-            Test
-          </button> -->
-        </nav>
+              Test
+            </button>
+          } -->
+        </div>
       </mat-sidenav-content>
     </mat-sidenav-container>
   </div>

@@ -1,6 +1,11 @@
-import { ChangeDetectionStrategy, Component, effect, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  untracked,
+  ViewEncapsulation,
+} from '@angular/core';
 import * as Cesium from 'cesium';
-// @ts-ignore
 import ViewerCesiumNavigationMixin from '@znemz/cesium-navigation';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
@@ -20,24 +25,44 @@ export class ZnemzNavigationMixin {
     private $deviceService: DeviceService,
   ) {
     effect(() => {
+      if (this.$viewerService.cameraIsFlyingAround() === true) {
+        const navigationControlsDiv: Element =
+          document.getElementsByClassName('navigation-controls')[0];
+        if (navigationControlsDiv) {
+          navigationControlsDiv?.classList.add('navigation-controls-blocked');
+        }
+        const compassDiv: Element = document.getElementsByClassName('compass')[0];
+        if (compassDiv) {
+          compassDiv?.classList.add('compass-blocked');
+        }
+      } else {
+        const navigationControlsDiv: Element =
+          document.getElementsByClassName('navigation-controls')[0];
+        if (navigationControlsDiv) {
+          navigationControlsDiv?.classList.remove('navigation-controls-blocked');
+        }
+        const compassDiv: Element = document.getElementsByClassName('compass')[0];
+        if (compassDiv) {
+          compassDiv?.classList.remove('compass-blocked');
+        }
+      }
+    });
+
+    effect(() => {
       if (this.$viewerService.viewerHasLoaded() && !this.$deviceService.isMobile) {
         // не работает на точпадах, даже с эмуляцией событий мыши
-        this.setNavMixin();
-        this.replaceNavMixin();
-        this.translateNavMixin();
-        this.getUsability();
-        this.getCursorListeners();
+        untracked(() => {
+          this.setNavMixin();
+          this.replaceNavMixin();
+          this.translateNavMixin();
+          this.getUsability();
+          this.getCursorListeners();
+        });
       } else {
         const navigationMixinDiv = document?.getElementsByClassName(
           'cesium-widget-cesiumNavigationContainer',
         )?.[0];
         if (navigationMixinDiv) navigationMixinDiv.remove();
-        const fullScreenBtn: Element | null = document.getElementsByClassName(
-          'cesium-viewer-fullscreenContainer',
-        )?.[0];
-        if (fullScreenBtn) {
-          (fullScreenBtn as HTMLElement).style.right = '15px';
-        }
       }
     });
   }
@@ -55,8 +80,10 @@ export class ZnemzNavigationMixin {
         enableCompass: true,
         enableCompassOuterRing: true,
         enableZoomControls: true,
-        defaultResetView: Cesium.Cartographic.fromDegrees(39, 50, 24000000.0),
-        enableDistanceLegend: true,
+        defaultResetView: Cesium.Cartographic.fromCartesian(
+          this.$viewerService.startCamDestination,
+        ),
+        enableDistanceLegend: false,
         distanceLabelFormatter: this.distanceLabelFormatter,
       };
       /* Подключение миксина к вьюеру (в #cesiumContainer) - по умолчанию в новый контейнер класса 'cesium-widget-[контейнер миксина]',
@@ -102,26 +129,38 @@ export class ZnemzNavigationMixin {
 
   private translateNavMixin(): void {
     try {
-      document
-        .getElementsByClassName('compass-outer-ring')[0]
-        .setAttribute('title', 'Нажмите и тащите чтобы вращать камеру.');
-      document
-        .getElementsByClassName('compass')[0]
-        .setAttribute(
-          'title',
-          'Внешнее кольцо: вращение камеры. Внутренний гироскоп: свободный обзор.',
-        );
-      document
-        .getElementsByClassName('navigation-controls')[0]
-        .children[0].setAttribute('title', 'Приблизить');
-      document
-        .getElementsByClassName('navigation-controls')[0]
-        .children[1].setAttribute('title', 'Вернуть начальный вид');
-      document
-        .getElementsByClassName('navigation-controls')[0]
-        .children[2].setAttribute('title', 'Отдалить');
+      // Отключено, т.к. выбивается из общего использования matTooltip заместо title-атрибута
+      // document
+      //   .getElementsByClassName('compass-outer-ring')[0]
+      //   .setAttribute('title', 'Нажмите и тащите чтобы вращать камеру.');
+      // document
+      //   .getElementsByClassName('compass')[0]
+      //   .setAttribute(
+      //     'title',
+      //     'Внешнее кольцо: вращение камеры. Внутренний гироскоп: свободный обзор.',
+      //   );
+      // document
+      //   .getElementsByClassName('navigation-controls')[0]
+      //   .children[0].setAttribute('title', 'Приблизить');
+      // document
+      //   .getElementsByClassName('navigation-controls')[0]
+      //   .children[1].setAttribute('title', 'Вернуть начальный вид');
+      // document
+      //   .getElementsByClassName('navigation-controls')[0]
+      //   .children[2].setAttribute('title', 'Отдалить');
+      // document.getElementById('distanceLegendDiv')!.title = 'Длина отрезка на текущей высоте камеры';
 
-      document.getElementById('distanceLegendDiv')!.title = 'Текущий масштаб';
+      document.getElementsByClassName('compass-outer-ring')[0].removeAttribute('title');
+      document.getElementsByClassName('compass')[0].removeAttribute('title');
+      document
+        .getElementsByClassName('navigation-controls')[0]
+        .children[0].removeAttribute('title');
+      document
+        .getElementsByClassName('navigation-controls')[0]
+        .children[1].removeAttribute('title');
+      document
+        .getElementsByClassName('navigation-controls')[0]
+        .children[2].removeAttribute('title');
     } catch (error: any) {
       error.cause = 'red';
       throw error;
@@ -156,12 +195,12 @@ export class ZnemzNavigationMixin {
     )?.[0] as HTMLElement;
     function mouseUpCallback(): void {
       document.body.style.cursor = 'auto';
-      // document.removeEventListener('mouseup', mouseUpCallback);
+      document.removeEventListener('mouseup', mouseUpCallback);
     }
     if (compassRingEl) {
       compassRingEl.addEventListener('mousedown', () => {
         document.body.style.cursor = 'grabbing';
-        document.addEventListener('mouseup', mouseUpCallback, { once: true });
+        document.addEventListener('mouseup', mouseUpCallback);
       });
     }
     const compassGyroEl: HTMLElement | null = document.getElementsByClassName(
@@ -170,7 +209,7 @@ export class ZnemzNavigationMixin {
     if (compassGyroEl) {
       compassGyroEl.addEventListener('mousedown', () => {
         document.body.style.cursor = 'move';
-        document.addEventListener('mouseup', mouseUpCallback, { once: true });
+        document.addEventListener('mouseup', mouseUpCallback);
       });
     }
   }

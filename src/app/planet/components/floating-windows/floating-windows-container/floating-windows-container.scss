@@ -1,0 +1,51 @@
+.main-floating-windows-container {
+  z-index: 102;
+}
+
+.main-floating-windows-container,
+.any-floating-windows-container {
+  max-width: 100vw;
+  max-height: 100vh;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
+}
+
+.main-floating-windows-container > * {
+  user-select: auto;
+  pointer-events: all;
+}
+
+.any-floating-windows-container > * {
+  user-select: auto;
+  pointer-events: all;
+}
+
+// такая анимация появления конфликтует с начальным z-index (окно должно СРАЗУ быть поверх всех), заменена на нативную css-анимацию в самих floating-window.scss
+// .floating-window-enter-animation {
+//   animation: fade-enter 0.4s;
+//   @keyframes fade-enter {
+//     from {
+//       opacity: 0;
+//     }
+//     to {
+//       opacity: 1;
+//     }
+//   }
+// }
+
+.floating-window-leave-animation {
+  animation: fade-leave 0.4s;
+  @keyframes fade-leave {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+}

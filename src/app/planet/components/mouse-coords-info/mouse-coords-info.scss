@@ -15,24 +15,24 @@
 }
 .mouse-coords-cursor-field-enter-animation {
   animation: fade-enter 0.4s;
-}
-@keyframes fade-enter {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
+  @keyframes fade-enter {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 }
 .mouse-coords-cursor-field-leave-animation {
   animation: fade-leave 0.4s;
-}
-@keyframes fade-leave {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
+  @keyframes fade-leave {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
   }
 }
 // ------------------------------------------------------------------------- //
@@ -42,6 +42,7 @@
   padding: 1px;
 }
 // ------------------------------------------------------------------------- //
+// Имеет исключение в mat-exceptions-core.scss
 .coords-container-main {
   position: absolute;
   z-index: 101;
@@ -49,43 +50,57 @@
   bottom: 15px;
   width: 130px;
   .coords-container-form-field {
+    // Имеет исключения в mat-exceptions-core.scss
     width: 100%;
   }
   .coords-container-form-field:not(.mat-focused) {
     outline: 1px solid var(--theme-outline-color);
   }
-  .mdc-text-field--filled:not(.mdc-text-field--disabled) {
-    background-color: var(--theme-ui-background-color);
+  .coords-description-main {
+    width: calc(100% - 5px * 2);
+    margin-bottom: 3px;
+    padding: 5px;
+    border-radius: 4px;
+    user-select: none;
+    overflow: hidden;
+    outline: 1px solid var(--theme-outline-color);
+    .mouse-coords-cursor-field-display-option {
+      display: flex;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+    }
+    .mouse-coords-cursor-field-display-option svg:last-child {
+      fill: white;
+      stroke: black;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1px;
+      margin-left: -8px;
+      margin-bottom: -12px;
+      opacity: 0.9;
+    }
   }
-}
-.coords-description-main {
-  width: calc(100% - 5px * 2);
-  margin-bottom: 5px;
-  padding: 5px;
-  border-radius: 4px;
-  user-select: none;
-  overflow: hidden;
-  outline: 1px solid var(--theme-outline-color);
-}
-.coords-description-main-enter-animation {
-  animation: fade-enter 0.4s;
-}
-.coords-description-main-leave-animation {
-  animation: fade-leave 0.4s;
-}
-.mouse-coords-cursor-field-display-option {
-  display: flex;
-  align-items: center;
-  margin: 0;
-  padding: 0;
-}
-.mouse-coords-cursor-field-display-option svg:last-child {
-  fill: white;
-  stroke: black;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1px;
-  margin-left: -8px;
-  margin-bottom: -12px;
-  opacity: 0.8;
+  .coords-description-main-enter-animation {
+    animation: fade-enter 0.4s;
+    @keyframes fade-enter {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  }
+  .coords-description-main-leave-animation {
+    animation: fade-leave 0.4s;
+    @keyframes fade-leave {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+  }
 }

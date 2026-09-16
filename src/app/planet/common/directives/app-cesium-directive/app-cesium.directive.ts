@@ -3,7 +3,8 @@ import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { MouseCoordsService } from '@/common/services/mouse-coords-service/mouse-coords.service';
-import { MeasureService } from '@/common/services/measure-service/measure.service';
+import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
+import { ToolsListService } from '@/components/tools/tools-list/services/tools-list-service/tools-list.service';
 
 @Directive({
   selector: '[appCesiumDirective]',
@@ -12,7 +13,8 @@ export class AppCesiumDirective {
   constructor(
     private $viewerService: ViewerService,
     private $mouseCoordsService: MouseCoordsService,
-    private $measureService: MeasureService,
+    private $toolsService: ToolsService,
+    private $toolsListService: ToolsListService,
   ) {
     const el = inject<ElementRef<Element>>(ElementRef);
     afterNextRender(() => {
@@ -43,13 +45,23 @@ export class AppCesiumDirective {
       if (this.$viewerService.viewerHasLoaded()) {
         untracked(() => {
           this.$mouseCoordsService.startMouseCoordsService();
+          // console.log('viewer has loaded, MouseCoordsService have started');
         });
       }
     });
     effect(() => {
       if (this.$mouseCoordsService.underMouseEntityHasLoaded()) {
         untracked(async () => {
-          await this.$measureService.startMeasureService();
+          await this.$toolsService.startToolsService();
+          // console.log('MouseCoordsService has loaded, StartToolsService have started');
+        });
+      }
+    });
+    effect(() => {
+      if (this.$toolsService.toolsServiceHasStarted()) {
+        untracked(() => {
+          this.$toolsListService.startToolsListService();
+          // console.log('ToolsListService has loaded, StartToolsListService have started');
         });
       }
     });

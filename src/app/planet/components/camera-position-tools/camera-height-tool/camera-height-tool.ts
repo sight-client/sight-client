@@ -13,6 +13,8 @@ import { ViewerService } from '@/common/services/viewer-service/viewer.service';
         type="number"
         name="camera-height-input"
         min="0.1"
+        max="35000"
+        step="any"
         [value]="camHeightKm()"
         (change)="camFly(+$event.target.value)"
       />
@@ -62,6 +64,11 @@ export class CameraHeightTool implements OnDestroy {
         ),
       );
       this.$viewerService.viewer.scene.camera.changed.addEventListener(this.setCamHeightKm);
+      this.camHeightKm.set(
+        Math.round(
+          Cesium.Cartographic.fromCartesian(this.$viewerService.startCamDestination).height / 1000,
+        ),
+      );
     }
   }
 
@@ -69,31 +76,21 @@ export class CameraHeightTool implements OnDestroy {
     this.$viewerService.viewer.scene.camera.changed.removeEventListener(this.setCamHeightKm);
   }
 
-  protected camHeightKm = signal<number>(3000);
+  protected camHeightKm = signal<number>(2500);
 
   private setCamHeightKm = () => {
     if (this.$viewerService.viewer.scene.camera.pitch > 0.12) {
       this.camFly(0.1, 0.1, 0.12);
     }
-    const newCamHeight: number = this.getCamHeightKm();
-    if (this.camHeightKm() < 0.1) {
+    const newCamHeight: number =
+      this.$viewerService.viewer.scene.camera.positionCartographic.height;
+    if (newCamHeight < 100) {
       this.camFly(0.1, 0.3);
       this.camHeightKm.set(0.1);
     } else {
-      this.camHeightKm.set(newCamHeight);
+      this.camHeightKm.set(Math.round(newCamHeight / 1000));
     }
   };
-
-  private getCamHeightKm(): number {
-    const cameraCoords = this.$viewerService.viewer.scene.camera.positionCartographic;
-    let height: number;
-    if (cameraCoords.height >= 1000) {
-      height = Number((cameraCoords.height / 1000).toFixed(1));
-    } else {
-      height = Number((cameraCoords.height / 1000).toFixed(3));
-    }
-    return height;
-  }
 
   protected camFly(
     km: number,

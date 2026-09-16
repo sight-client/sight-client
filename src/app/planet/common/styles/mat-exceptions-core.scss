@@ -6,11 +6,88 @@
     font-weight: bold;
   }
 }
+// ------------------------------- drawing-tools.scss ------------------------------- //
+#toolsPanelContainer {
+  .tool-panel-button {
+    .mat-badge-content {
+      background-color: var(--theme-badge-color);
+      color: var(--theme-badge-color);
+      left: 92%;
+      bottom: 92%;
+    }
+  }
+  .mat-tonal-button[disabled],
+  .mat-tonal-button.mat-mdc-button-disabled {
+    color: var(
+      --mat-button-tonal-disabled-label-text-color,
+      color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)
+    );
+    background-color: var(
+      --mat-button-tonal-disabled-container-color,
+      color-mix(
+        in srgb,
+        var(--mat-button-tonal-container-color, var(--mat-sys-secondary-container)) 50%,
+        transparent
+      )
+    );
+  }
+}
 
+.any-floating-windows-container {
+  .mat-mdc-form-field-infix {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+  }
+  input[type='color'] {
+    opacity: var(0.7r);
+    transform: scale(0.7);
+    margin: -2px;
+    padding: 0px;
+  }
+  input[type='color']:hover:not(:disabled) {
+    cursor: pointer;
+  }
+}
 // ------------------------------ mouse-coords-info.scss ------------------------------ //
 .coords-container-main {
   .mdc-text-field--filled:not(.mdc-text-field--disabled) {
     background-color: var(--theme-ui-background-color);
+  }
+  .coords-container-form-field {
+    height: var(--regular-btn-size);
+    .mat-mdc-form-field-flex {
+      height: var(--regular-btn-size);
+      .mat-mdc-form-field-infix {
+        padding-top: 0px;
+        padding-bottom: 0px;
+        .mat-mdc-select-trigger {
+          margin-top: 4px;
+        }
+      }
+    }
+  }
+}
+div.mat-mdc-select-panel:has(.coords-container-form-field-select-option) {
+  padding: 0px;
+  .coords-container-form-field-select-option {
+    min-height: var(--regular-btn-size);
+  }
+}
+
+// ------------------------------- tools-list.scss ------------------------------ //
+.mat-mdc-menu-panel.mat-content-menu {
+  min-width: auto;
+  max-width: none;
+}
+
+// ---------------------------------- Стили для mat-menu ---------------------------------- //
+.mat-mdc-menu-content {
+  background-color: var(--theme-ui-background-color);
+  .mat-mdc-menu-item {
+    .mat-mdc-menu-item-text {
+      font-family: bold;
+      font: var(--mat-sys-body-large);
+    }
   }
 }
 
@@ -20,211 +97,291 @@
 // Notice: т.к. drag-элемент стилизуется в видимости <body>, необходимо использовать только чистые единицы измерения (например, px или rem), а также стили тождественные body (например, font)
 // Курсоры для drag'n'drop - в common-global.scss
 
-// // -------------------------------- user-projects.scss -------------------------------- //
-// // drag'n'drop целых проектов
-// .cdk-drag-preview.user-projects-list-accordion,
-// .user-projects-list-accordion {
-//   width: 100%;
-//   display: block;
-//   overflow: hidden;
-//   // --- требует глобальной видимости и без drag'n'drop (start) --- //
-//   .mat-expansion-panel-body {
-//     padding: 0px 0px 0px 16px;
-//   }
-//   .user-project-accordion {
-//     .mat-expansion-panel-body {
-//       padding: 0px 0px 0px 0px;
-//     }
-//   }
-//   // --- требует глобальной видимости и без drag'n'drop (end) --- //
-//   .user-project-item {
-//     mat-expansion-panel-header {
-//       height: 3em;
-//       margin-top: 3px;
-//     }
-//     .mat-content {
-//       justify-content: right;
-//       .user-project-name-title {
-//         flex-grow: 1;
-//         font-size: large;
-//         font-weight: bold;
-//         opacity: 0.9;
-//         letter-spacing: normal;
-//         display: -webkit-box;
-//         -webkit-line-clamp: 1;
-//         line-clamp: 1;
-//         -webkit-box-orient: vertical;
-//         text-overflow: ellipsis;
-//         overflow: hidden;
-//       }
-//     }
-//   }
-//   // -------------------------------------------- //
-//   // Подблок стилей :host из user-projects.scss (до drag'n'drop между проектами)
-//   .mat-expansion-panel-header-description {
-//     flex-grow: 0;
-//   }
-//   mat-expansion-panel {
-//     background-color: var(--theme-container-background-color);
-//   }
-//   mat-expansion-panel-header {
-//     background-color: var(--theme-ui-background-color);
-//   }
-//   .mat-expansion-panel:not([class*='mat-elevation-z']) {
-//     box-shadow: none;
-//   }
-//   .mat-expansion-panel-spacing {
-//     margin: 0px;
-//   }
-//   .user-project-layers {
-//     overflow: hidden;
-//     border-radius: 6px;
-//     mat-expansion-panel-header {
-//       height: 2em;
-//       margin-top: 3px;
-//     }
-//   }
-//   .user-project-auxiliary-buttons-container {
-//     height: max-content;
-//     display: flex;
-//     justify-content: start;
-//     align-items: center;
-//     button {
-//       width: var(--regular-btn-svg-size);
-//       min-width: var(--regular-btn-svg-size);
-//       height: var(--regular-btn-svg-size);
-//       margin: 0px 3px;
-//       padding: 0px;
-//       border-radius: 12px;
-//       mat-icon {
-//         padding: 0;
-//         margin: -1px;
-//         width: var(--regular-btn-svg-size);
-//         height: var(--regular-btn-svg-size);
-//         svg {
-//           opacity: 0.8;
-//         }
-//       }
-//     }
-//     // -------------------------------------------- //
-//   }
-// }
-// .cdk-drag-preview.user-projects-list-accordion:not(:last-child),
-// .user-projects-list-accordion:not(:last-child) {
-//   margin-bottom: 0.3rem;
+// -------------------------------- user-projects.scss и tools-list.scss -------------------------------- //
+// drag'n'drop целых проектов
+.cdk-drag-preview.user-projects-list-accordion,
+.user-projects-list-accordion,
+.cdk-drag-preview.user-project-accordion,
+.tools-list-accordion {
+  width: 100%;
+  display: block;
+  overflow: hidden;
+  // --- требует глобальной видимости и без drag'n'drop (start) --- //
+  .mat-expansion-panel-body {
+    padding: 0px 0px 2px 16px;
+  }
+  .user-project-accordion {
+    .mat-expansion-panel-body {
+      padding: 0px 0px 2px 10px;
+    }
+  }
+  // --- требует глобальной видимости и без drag'n'drop (end) --- //
+  .user-project-item,
+  .tools-list-item {
+    .user-project-panel-header {
+      height: 3em;
+      // margin-top: 3px;
+    }
+    .tools-list-item-header {
+      margin-top: 0.3rem;
+    }
+    .tools-list-item-header {
+      height: 2em;
+
+      &.selected {
+        background-color: var(--mat-sys-primary);
+      }
+    }
+    .tools-list-item-header-hidden {
+      height: 0px;
+      margin-top: 0px;
+      // transition: height 300ms ease-in-out;
+    }
+
+    .mat-content {
+      justify-content: right;
+      .user-project-name-title,
+      .tools-list-item-header-name {
+        flex-grow: 1;
+        font-size: large;
+        font-weight: bold;
+        opacity: 0.9;
+        letter-spacing: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+    }
+  }
+  // -------------------------------------------- //
+  // Подблок стилей :host из user-projects.scss (до drag'n'drop между проектами)
+  .mat-expansion-panel-header-description {
+    flex-grow: 0;
+  }
+  mat-expansion-panel {
+    background-color: var(--theme-container-background-color);
+  }
+  mat-expansion-panel-header {
+    background-color: var(--theme-ui-background-color);
+  }
+  .mat-expansion-panel:not([class*='mat-elevation-z']) {
+    box-shadow: none;
+  }
+  .mat-expansion-panel-spacing {
+    margin: 0px;
+  }
+  .user-project-layers {
+    overflow: hidden;
+    border-radius: 6px;
+    mat-expansion-panel-header {
+      height: 2em;
+      margin-top: 3px;
+    }
+  }
+  .user-project-auxiliary-buttons-container,
+  .tools-list-item-header-auxiliary-buttons-container {
+    height: max-content;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    button {
+      width: var(--regular-btn-svg-size);
+      min-width: var(--regular-btn-svg-size);
+      height: var(--regular-btn-svg-size);
+      margin: 0px 3px;
+      padding: 0px;
+      border-radius: 12px;
+      mat-icon {
+        padding: 0;
+        margin: -1px;
+        width: var(--regular-btn-svg-size);
+        height: var(--regular-btn-svg-size);
+        svg {
+          opacity: 0.8;
+        }
+      }
+    }
+    // -------------------------------------------- //
+  }
+}
+.cdk-drag-preview.user-projects-list-accordion:not(:last-child),
+.user-projects-list-accordion:not(:last-child) {
+  margin-bottom: 0.3rem;
+}
+
+// ------------------------------------------------------------------------ //
+// drag'n'drop внутри проектов
+.cdk-drag-preview.user-project-layer-container,
+.user-project-layer-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: var(--regular-btn-svg-size);
+  height: 1.5rem;
+  padding: 5px 0px 0px 0px;
+  box-sizing: border-box;
+  overflow: hidden;
+  // --- требует глобальной видимости и без drag'n'drop (start) --- //
+  // mat-slide-toggle {
+  //   button {
+  //     transform: scale(0.6);
+  //   }
+  //   .mdc-label {
+  //     padding: 0px;
+  //   }
+  // }
+  // --- требует глобальной видимости и без drag'n'drop (end) --- //
+  .user-project-layer-name {
+    flex-grow: 1;
+    font: var(--mat-sys-body-medium);
+    letter-spacing: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  .user-project-layer-features {
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    box-sizing: border-box;
+    // --- требует глобальной видимости и без drag'n'drop (start) --- //
+    // mat-slider {
+    //   min-width: 50px;
+    //   max-width: 50px;
+    //   margin-right: 9px;
+    //   opacity: 0.8;
+    //   .mdc-slider__thumb-knob {
+    //     width: 12px;
+    //     height: 12px;
+    //     border: none;
+    //   }
+    //   .mat-focus-indicator {
+    //     display: none;
+    //   }
+    // }
+    // --- требует глобальной видимости и без drag'n'drop (end) --- //
+    .user-project-layer-range {
+      width: 80px;
+      accent-color: var(--mat-sys-primary);
+      opacity: 0.7;
+      transform: scale(0.7);
+      margin: -7px;
+    }
+    button {
+      // width: var(--regular-btn-svg-size);
+      // min-width: var(--regular-btn-svg-size);
+      // height: var(--regular-btn-svg-size);
+      margin-right: 5px;
+      padding: 0px;
+      border-radius: 12px;
+      // opacity: 0.7;
+
+      --user-project-layer-features-btn-size: 1.15rem;
+      width: var(--user-project-layer-features-btn-size);
+      height: var(--user-project-layer-features-btn-size);
+      // background-color: var(--theme-container-background-color);
+      background-color: unset;
+      border: unset;
+      transition: box-shadow 0.3s ease;
+      // mat-icon {
+      //   padding: 0;
+      //   margin: -1px;
+      //   width: var(--regular-btn-svg-size);
+      //   height: var(--regular-btn-svg-size);
+      //   svg {
+      //     opacity: 0.8;
+      //   }
+      // }
+      svg {
+        background-color: unset;
+        color: unset;
+        fill: unset;
+        // width: calc(var(--user-project-layer-features-btn-size) * 0.8);
+        // height: calc(var(--user-project-layer-features-btn-size) * 0.8);
+        width: calc(var(--user-project-layer-features-btn-size));
+        height: calc(var(--user-project-layer-features-btn-size));
+        opacity: 0.8;
+      }
+    }
+    button:hover {
+      cursor: pointer;
+      // box-shadow: 0 0 5px var(--theme-color);
+      background-color: rgb(from var(--theme-color) r g b / 20%);
+    }
+  }
+  .user-project-layer-icons {
+    font-size: large;
+    margin: 0px 5px 0px 0px;
+    max-height: min-content;
+    max-width: min-content;
+  }
+}
+
+// всегда применять составной селектор для .cdk-drag-preview
+.cdk-drag-preview.user-projects-list-accordion,
+.cdk-drag-preview.user-project-accordion,
+.cdk-drag-preview.user-project-layer-container {
+  opacity: 0.8;
+  border: none;
+  box-sizing: border-box;
+  box-shadow:
+    0 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0 8px 10px 1px rgba(0, 0, 0, 0.14),
+    0 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+.cdk-drag-preview.user-projects-list-accordion,
+.cdk-drag-preview.user-project-accordion {
+  border-radius: 12px;
+}
+.cdk-drag-preview.user-project-layer-container {
+  border-radius: 4px;
+}
+.user-project-drop-list.cdk-drop-list-dragging
+  .user-project-layer-container:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.user-project-drop-list {
+  min-height: 1.5rem;
+  box-sizing: border-box;
+}
+
+.user-project-drop-list.cdk-drop-list-receiving {
+  outline: 2px dashed var(--mat-sys-primary);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+.user-project-drop-list.cdk-drag-placeholder {
+  opacity: 0.4;
+  border-radius: 4px;
+  background: var(--mat-sys-primary);
+}
+
+.user-projects-list-accordion.cdk-drag-placeholder {
+  opacity: 0.4;
+  border-radius: 12px;
+  background: var(--mat-sys-primary);
+}
+
 // }
 
-// // ------------------------------------------------------------------------ //
-// // drag'n'drop внутри проектов
-// .cdk-drag-preview.user-project-layer-container,
-// .user-project-layer-container {
-//   display: flex;
-//   justify-content: space-between;
-//   align-items: center;
-//   width: 100%;
-//   min-height: var(--regular-btn-svg-size);
-//   height: 1.5rem;
-//   padding: 5px 0px 0px 0px;
-//   box-sizing: border-box;
-//   overflow: hidden;
-//   // --- требует глобальной видимости и без drag'n'drop (start) --- //
-//   // mat-slide-toggle {
-//   //   button {
-//   //     transform: scale(0.6);
-//   //   }
-//   //   .mdc-label {
-//   //     padding: 0px;
-//   //   }
-//   // }
-//   // --- требует глобальной видимости и без drag'n'drop (end) --- //
-//   .user-project-layer-name {
-//     flex-grow: 1;
-//     font: var(--mat-sys-body-medium);
-//     letter-spacing: normal;
-//     display: -webkit-box;
-//     -webkit-line-clamp: 1;
-//     line-clamp: 1;
-//     -webkit-box-orient: vertical;
-//     text-overflow: ellipsis;
-//     overflow: hidden;
-//   }
-//   .user-project-layer-features {
-//     display: flex;
-//     justify-content: end;
-//     align-items: center;
-//     box-sizing: border-box;
-//     // --- требует глобальной видимости и без drag'n'drop (start) --- //
-//     // mat-slider {
-//     //   min-width: 50px;
-//     //   max-width: 50px;
-//     //   margin-right: 9px;
-//     //   opacity: 0.8;
-//     //   .mdc-slider__thumb-knob {
-//     //     width: 12px;
-//     //     height: 12px;
-//     //     border: none;
-//     //   }
-//     //   .mat-focus-indicator {
-//     //     display: none;
-//     //   }
-//     // }
-//     // --- требует глобальной видимости и без drag'n'drop (end) --- //
-//     .user-project-layer-range {
-//       width: 80px;
-//       accent-color: var(--mat-sys-primary);
-//       opacity: 0.7;
-//       transform: scale(0.7);
-//       margin: -7px;
-//     }
-//     button {
-//       // width: var(--regular-btn-svg-size);
-//       // min-width: var(--regular-btn-svg-size);
-//       // height: var(--regular-btn-svg-size);
-//       margin-right: 5px;
-//       padding: 0px;
-//       border-radius: 12px;
-//       opacity: 0.7;
-
-//       --user-project-layer-features-btn-size: 1.15rem;
-//       width: var(--user-project-layer-features-btn-size);
-//       height: var(--user-project-layer-features-btn-size);
-//       background-color: var(--theme-container-background-color);
-//       transition: box-shadow 0.3s ease;
-//       // mat-icon {
-//       //   padding: 0;
-//       //   margin: -1px;
-//       //   width: var(--regular-btn-svg-size);
-//       //   height: var(--regular-btn-svg-size);
-//       //   svg {
-//       //     opacity: 0.8;
-//       //   }
-//       // }
-//       svg {
-//         width: calc(var(--user-project-layer-features-btn-size) * 0.8);
-//         height: calc(var(--user-project-layer-features-btn-size) * 0.8);
-//       }
-//     }
-//     button:hover {
-//       cursor: pointer;
-//       box-shadow: 0 0 5px var(--theme-color);
-//     }
-//   }
-// }
-
-// // всегда применять составной селектор для .cdk-drag-preview
-// .cdk-drag-preview.user-projects-list-accordion,
-// .cdk-drag-preview.user-project-layer-container {
-//   opacity: 0.8;
-//   border: none;
-//   box-sizing: border-box;
-//   box-shadow:
-//     0 5px 5px -3px rgba(0, 0, 0, 0.2),
-//     0 8px 10px 1px rgba(0, 0, 0, 0.14),
-//     0 3px 14px 2px rgba(0, 0, 0, 0.12);
-// }
-// .cdk-drag-preview.user-projects-list-accordion {
-//   border-radius: 12px;
-// }
-// .cdk-drag-preview.user-project-layer-container {
-//   border-radius: 4px;
-// }
+// ----------------------------- base-layer-picker.scss ----------------------------- //
+.mat-mdc-dialog-surface:has(.base-layer-picker-container) {
+  border-radius: 6px 6px 20px 20px;
+  // background-color: unset;
+  background-color: color-mix(in srgb, var(--theme-ui-background-color) 70%, transparent);
+}
+.mat-mdc-card.base-layer-picker-container {
+  background-color: color-mix(in srgb, var(--theme-ui-background-color) 20%, transparent);
+  .mat-mdc-card {
+    background-color: transparent;
+  }
+}

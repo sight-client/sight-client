@@ -8,7 +8,7 @@ export function getMomentName(startsWith?: string, extention?: string): string {
     const utcDate = new Date(localDate.getTime() - timeZoneOffset * 60 * 1000);
     const trueTodayDate = utcDate.toISOString().split('T')[0];
     const time = localDate.toLocaleTimeString('it-IT');
-    return `${startsWith ? startsWith + '-' : ''}${trueTodayDate}-${time}${extention ? '.oko.' + extention : ''}`;
+    return `${startsWith ? startsWith + '-' : ''}${trueTodayDate}-${time}${extention ? '.sight.' + extention : ''}`;
   } catch (error: unknown) {
     throw error;
   }

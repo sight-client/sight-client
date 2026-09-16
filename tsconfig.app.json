@@ -10,6 +10,7 @@
   "include": ["src/**/*.ts"],
   "exclude": [
     "src/**/*.spec.ts",
-    "src/app/main-oko/core/tools/drawing-tools/components/drawing-tool-blank/**/*"
+    "src/app/planet/components/tools/drawing-tools/components/drawing-tool-blank/**/*",
+    "node_modules/**/*"
   ]
 }

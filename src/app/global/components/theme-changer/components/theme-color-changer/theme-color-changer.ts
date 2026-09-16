@@ -11,7 +11,7 @@ import { SetUserThemeService } from '@global/services/set-user-theme-service/set
   template: `
     @if (themesPalettesList().length) {
       @if (inMenu) {
-        <button (click)="changeColorTheme()" class="user-menu-import-button">
+        <button class="user-menu-import-button">
           <mat-icon>
             <svg width="24" height="24" viewBox="0 0 24 24">
               <path
@@ -26,7 +26,7 @@ import { SetUserThemeService } from '@global/services/set-user-theme-service/set
         <button
           class="theme-color-changer-button"
           matButton="tonal"
-          (click)="changeColorTheme()"
+          (click)="changeColorTheme($event)"
           matTooltip="Палитра интерфейса"
           matTooltipShowDelay="1000"
         >
@@ -40,6 +40,18 @@ import { SetUserThemeService } from '@global/services/set-user-theme-service/set
           </mat-icon>
         </button>
       }
+    } @else {
+      <button disabled class="user-menu-import-button">
+        <mat-icon>
+          <svg width="24" height="24" viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2M4 12c0-4.42 3.58-8 8-8c1.85 0 3.55.63 4.9 1.69L5.69 16.9A7.9 7.9 0 0 1 4 12m8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1A7.9 7.9 0 0 1 20 12c0 4.42-3.58 8-8 8"
+            />
+          </svg>
+        </mat-icon>
+        <span>Палитры отсутствуют</span>
+      </button>
     }
   `,
   styles: `
@@ -75,11 +87,14 @@ export class ThemeColorChanger {
   );
   // Функция на кнопке:
   public changeColorTheme(
-    // Событие не перехватвать (нужно для mat-menu)
+    event: Event,
     themesList: string[] | undefined[] = this.themesPalettesList(),
     themePalettes: string = this.nowThemePalettes(),
   ) {
     try {
+      // if (inMenu) console.log(event); // события keydown.enter / keydown.space сюда не дойдут (останутся на mat-menu button)
+      event.preventDefault();
+      event.stopPropagation();
       const nowThemeIndex = this.getNowThemeIndex(themesList, themePalettes);
       if (nowThemeIndex === themesList.length - 1) {
         this.$setUserThemeService.setUserTheme(themesList[nowThemeIndex], themesList[0]);

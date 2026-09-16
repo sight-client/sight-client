@@ -44,6 +44,10 @@
 
   --theme-badge-color: var(--mat-sys-primary);
 
+  --left-part-min-width: 230px;
+  --right-part-min-width: 350px;
+  --min-height-global: 440px;
+
   // ---------------------------- //
 
   color-scheme: light dark; /* light || dark || light dark (user's system settings) */
@@ -127,6 +131,18 @@
 
 .cdk-drag-handle:active {
   cursor: grabbing;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+body {
+  position: relative !important; // важно: при скроле ui не отлипает от границ
+  min-width: var(--right-part-min-width);
+  min-height: var(--min-height-global);
+  overflow: auto !important;
 }
 
 // При перемещения модалки по экрану
