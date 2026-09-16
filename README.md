@@ -19,7 +19,7 @@ Current project features:
 </ul>
 Also if I have time I plan to add: searching, navigation, L10n (eng), loading and visualizing user's raster, vector, and 3D images.<br />
 <br />
-P.S.: my great thanks to <a href="https://www.openstreetmap.org/about">Openstreetmap community</a>!<br />!
+P.S.: my great thanks to <a href="https://www.openstreetmap.org/about">Openstreetmap community</a>!<br />
 <br />
 My contacts: <br />
 e-mail: <a href="mailto:porphirik88@gmail.com">porphirik88@gmail.com</a><br />

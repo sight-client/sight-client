@@ -19,7 +19,7 @@
 </ul>
 Также, если у меня будет время, я планирую добавить: поиск, навигацию, локализацию (L10n (eng)), загрузку и визуализацию пользовательских растровых, векторных и 3D-изображений.<br />
 <br />
-P.S.: выражаю большую благодарность <a href="https://www.openstreetmap.org/about">сообществу Openstreetmap</a>!<br />!
+P.S.: выражаю большую благодарность <a href="https://www.openstreetmap.org/about">сообществу Openstreetmap</a>!<br />
 <br />
 Мои контакты: <br />
 e-mail: <a href="mailto:porphirik88@gmail.com">porphirik88@gmail.com</a><br />
