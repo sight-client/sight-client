@@ -1,0 +1,26 @@
+---
+description: Angular and TypeScript conventions already used in this repo
+globs: "**/*.{ts,html,scss}"
+alwaysApply: false
+---
+
+# Angular conventions
+
+Match existing files. Do not introduce a second style.
+
+- Standalone components; zoneless change detection (`provideZonelessChangeDetection()` in tests).
+- File names omit `.component`: `add-mark.ts`, not `add-mark.component.ts`.
+- Colocate `*.ts` / `*.html` / `*.scss` / `*.spec.ts`. Nest feature services under `services/<name>/`.
+- Path aliases: `@/*` → `src/app/planet/*`, `@global/*` → `src/app/global/*`, `@landing/*` → `src/app/landing-page/*`.
+- Selectors have no `app-` prefix except `app-root` (schematic `prefix` is empty).
+- Injected services are often `$serviceName`. Keep that pattern in the file you edit.
+- SCSS; global mixins live in `src/app/global/styles` and `src/app/planet/common/styles`.
+- Tests: Jasmine + Karma via `ng test`. Colocated `*.spec.ts` with `TestBed` + `provideZonelessChangeDetection()`.
+
+```typescript
+// ❌ BAD — new layer outside existing aliases
+import { ViewerService } from 'src/app/planet/common/services/viewer-service/viewer.service';
+
+// ✅ GOOD
+import { ViewerService } from '@/common/services/viewer-service/viewer.service';
+```

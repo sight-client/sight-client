@@ -1,0 +1,53 @@
+---
+description: Superpowers workflow and artifact paths for this repo
+alwaysApply: true
+---
+
+# Superpowers
+
+Check for a relevant Superpowers skill before any task. Skills override default habits.
+
+User instructions in `AGENTS.md` take precedence over skills.
+
+## Artifact paths (override Superpowers defaults)
+
+- Specs: `.cursor/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+- Plans: `.cursor/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
+- AI session log: `.cursor/superpowers/log/YYYY-MM-DD.md` (append-only)
+- Worktrees: `.worktrees/<branch>/`
+
+Never write specs, plans, or source into `docs/`. That directory is GitHub Pages build output (`ng build --configuration docs`) and will be overwritten.
+
+## Superpowers subagents (SDD)
+
+Implementer/reviewer subagents start with a clean context. They will not auto-load `.cursor/skills/`.
+
+When dispatching a task:
+
+1. Name **1–3** project skills that match the task, with full paths (example: `.cursor/skills/sight-cesium-map/SKILL.md`).
+2. Put the same paths in the plan task and in the implementer brief. Instruct the worker to Read those files before coding.
+3. Do not attach the whole catalog. Do not tell the reviewer to apply unnamed skills or the Angular Style Guide over `AGENTS.md`.
+
+The controller chooses the skills. The worker follows the brief.
+
+## Standing decisions → existing AI docs
+
+After the human approves a **standing** decision (new convention, stack change, ask-before item, copyable checklist, path/command/alias), update the file that already owns that topic in the same change or immediately after.
+
+| Kind | File |
+|---|---|
+| Short permanent rule | `AGENTS.md` or `.cursor/rules/*.mdc` |
+| Domain trap / checklist | existing `.cursor/skills/sight-*/SKILL.md` |
+| Architecture / new subsystem | new file under `.cursor/superpowers/specs/` + row in README and in the product spec |
+
+**Product contract (as-is specs):** if the approved change adds or removes a user-facing feature, tool literal, CRS, route, or file format, update the **owning child spec** in the same change. If it shows up in the README feature table, update `2026-09-17-sight-product-design.md` too. A brand-new spec file also gets a link in `.cursor/superpowers/README.md`. If it does not fit the four child specs, ask before creating a fifth — do not dump it into the product index.
+
+Do not grow `AGENTS.md` with feature lists. Do not add a skill for a one-off. Do not document ordinary bugfixes, copy tweaks, refactors with unchanged behavior, or “user approved this diff”. If the owner file is unclear, ask. If an SDD worker must know the new rule, name that file in the next brief (1–3 skills still).
+
+## AI session log
+
+The parent agent appends to `.cursor/superpowers/log/YYYY-MM-DD.md` at the **end of a completed unit of work** (feature, standing-decision batch, or session wrap). Not after every “yes”. Not a Cursor transcript dump.
+
+Each block: goal; spec/plan paths; 1–3 skills from the brief; consequential files; standing decisions and which owner file was updated; status (`done` / `parked` / `needs spec`).
+
+Do not log: bugfixes with unchanged product contract, prompts, secrets, raw test output, every edited path. Superpowers SDD ledgers stay plan-scoped; they do not replace this file.

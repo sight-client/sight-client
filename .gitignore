@@ -39,6 +39,9 @@ yarn-error.log
 testem.log
 /typings
 
+# Superpowers isolated worktrees (not .cursor/superpowers/, which is tracked)
+.worktrees/
+
 # System files
 .DS_Store
 Thumbs.db

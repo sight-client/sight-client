@@ -1,0 +1,33 @@
+# Cursor Agent / Tab / @-mention exclusions.
+# Syntax matches .gitignore. Cursor already honors .gitignore; this file
+# adds tracked noise and hard-blocks Agent file tools on the paths below.
+# Terminal and MCP are not bound by these patterns.
+#
+# Do not ignore: src/, .cursor/, AGENTS.md, angular.json, package.json.
+
+# --- generated / vendor (repeat of .gitignore: Agent must not read copies) ---
+node_modules/
+dist/
+.angular/
+coverage/
+out-tsc/
+tmp/
+.worktrees/
+
+# --- committed GitHub Pages build, not source (ng build --configuration docs) ---
+# Contains hashed chunks and a full Cesium vendor tree. Never use as context.
+docs/
+
+# --- secrets ---
+.env
+.env.*
+!.env.example
+credentials.json
+secrets.json
+*.pem
+*.key
+
+# --- logs / dumps ---
+*.log
+*.har
+npm-debug.log*
