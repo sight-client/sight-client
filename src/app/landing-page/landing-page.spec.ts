@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
 
 import { LandingPage } from './landing-page';
 
@@ -10,7 +11,7 @@ describe('LandingPage', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [LandingPage],
-      providers: [provideZonelessChangeDetection()],
+      providers: [provideZonelessChangeDetection(), provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LandingPage);

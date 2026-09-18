@@ -8,7 +8,7 @@ describe('GlobalErrorHandlerService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideZonelessChangeDetection()],
+      providers: [provideZonelessChangeDetection(), GlobalErrorHandlerService],
     });
     service = TestBed.inject(GlobalErrorHandlerService);
   });

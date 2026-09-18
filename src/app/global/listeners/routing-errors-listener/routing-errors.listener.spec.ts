@@ -1,18 +1,23 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
 import { RoutingErrorsListener } from './routing-errors.listener';
 
-describe('UserDataService', () => {
-  let listener: RoutingErrorsListener;
+describe('RoutingErrorsListener', () => {
+  let fixture: ComponentFixture<RoutingErrorsListener>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [provideZonelessChangeDetection()],
-    });
-    listener = TestBed.inject(RoutingErrorsListener);
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RoutingErrorsListener],
+      providers: [provideZonelessChangeDetection(), provideRouter([])],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(RoutingErrorsListener);
+    fixture.detectChanges();
   });
 
   it('should be created', () => {
-    expect(listener).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });

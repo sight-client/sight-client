@@ -8,7 +8,7 @@ describe('ViewerService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideZonelessChangeDetection()],
+      providers: [provideZonelessChangeDetection(), ViewerService],
     });
     service = TestBed.inject(ViewerService);
   });

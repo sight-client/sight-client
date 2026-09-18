@@ -15,6 +15,7 @@ describe('ToolsListEntityInfo', () => {
 
     fixture = TestBed.createComponent(ToolsListEntityInfo);
     component = fixture.componentInstance;
+    component.objInCollection = { groupId: 'g', entitiesList: [] };
     fixture.detectChanges();
   });
 
