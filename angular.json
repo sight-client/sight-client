@@ -70,6 +70,18 @@
                   "with": "src/environments/environment.development.ts"
                 }
               ]
+            },
+            "testing": {
+              "baseHref": "/sight-client/",
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.test.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -99,31 +111,14 @@
           "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
+            "buildTarget": "sight-client:build:testing",
             "tsConfig": "tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              },
-              {
-                "glob": "**/*",
-                "input": "node_modules/cesium/Build/Cesium",
-                "output": "assets/cesium"
-              }
-            ],
-            "stylePreprocessorOptions": {
-              "includePaths": ["src/app/global/styles", "src/app/planet/common/styles"]
-            },
-            "styles": ["node_modules/cesium/Build/Cesium/Widgets/widgets.css", "src/styles.scss"],
-            "progress": true,
-            "fileReplacements": [
-              {
-                "replace": "src/environments/environment.ts",
-                "with": "src/environments/environment.test.ts"
-              }
+            "runner": "vitest",
+            "exclude": [
+              "src/app/planet/components/tools/drawing-tools/components/drawing-tool-blank/**/*.spec.ts",
+              "src/app/global/interceptors/use-api-serv-proxy-interceptor/**/*.spec.ts"
             ]
           }
         }
