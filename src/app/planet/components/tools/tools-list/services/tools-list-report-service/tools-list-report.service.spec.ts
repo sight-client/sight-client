@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideZonelessChangeDetection } from '@angular/core';
 
 import { ToolsListReportService } from './tools-list-report.service';
 
@@ -6,7 +7,9 @@ describe('ToolsListReportService', () => {
   let service: ToolsListReportService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection()],
+    });
     service = TestBed.inject(ToolsListReportService);
   });
 
