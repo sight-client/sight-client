@@ -13,6 +13,7 @@ This file overrides Superpowers default artifact paths. **`docs/` is the GitHub 
 | Design specs | `.cursor/superpowers/specs/` — index: `2026-09-17-sight-product-design.md` |
 | Implementation plans | `.cursor/superpowers/plans/YYYY-MM-DD-<feature-name>.md` |
 | AI session log | `.cursor/superpowers/log/YYYY-MM-DD.md` (append-only, end of a work unit) |
+| Slash command `/save-chat-text` | `.cursor/commands/save-chat-text.md` — полный диалог чата в `.chats/` (gitignored) |
 | Isolated worktrees | `.worktrees/<branch-name>/` (gitignored) |
 
 Ask before creating a worktree unless this file already records a standing preference.

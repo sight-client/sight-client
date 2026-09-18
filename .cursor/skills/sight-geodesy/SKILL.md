@@ -15,6 +15,9 @@ Cesium внутри работает в WGS-84. Пользовательские
 - Вывод в UI → `fromWGS84Cartographic`.
 - Определения SRS только в `CoordSystems.DEFS`. Не плодить `proj4.defs` по компонентам.
 - Зона Гаусса–Крюгера для СК-42 м обязательна, где её уже спрашивает API (`zone`).
+- `fromWGS84Cartographic(..., zone)`: `''` и `undefined` значат автозону. Не оставлять `zone === ''` (это становилось зоной 0, `lon_0=-3`). Явное число зоны не затирать.
+- Автозона СК-42 м: смотреть `longitude`/`latitude` у plain object. HUD и tools передают литерал, не `new CartographicLike()` — `instanceof` не сработает.
+- Обратный ход (`toWGS84Cartographic` / импорт ODS): в тех же полях могут быть метры Гаусса–Крюгера (Y ≈ 7e6, не градусы). Зону брать из easting `floor(lon/1e6)` / `floor(x/1e6)`. Не кормить метры в longlat-автозону — будет NaN / «normalized result is not a number».
 - Длины: `EllipsoidGeodesic` + поправка по высоте (`calculatePosDistancesWhithoutHumanify`). Комментарий в lib: `Cartesian3.distance` срезает дугу — только для отладки.
 - Площади: Turf в `basic-measure-calculations.lib.ts`, не сырой план на Web Mercator.
 - Высоты: учитывать `systemHeight` в DEFS и `egm96-universal`, если трогаешь ортометрическую высоту. Не смешивать ellipsoidal и orthometric без спроса.

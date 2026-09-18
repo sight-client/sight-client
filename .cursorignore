@@ -31,3 +31,6 @@ secrets.json
 *.log
 *.har
 npm-debug.log*
+
+# --- local chat exports (/save-chat-text); not source, not Agent context ---
+.chats/

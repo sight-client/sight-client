@@ -58,6 +58,8 @@ export class MouseCoordsService {
       this.$viewerService.viewer.camera.moveEnd.addEventListener(
         this.getCartesianFromCursor.bind(this),
       );
+      // Т.к. курсов всегда в центре экрана
+      this.cursorOnViewerCanvas.set(true);
     }
     // this.$viewerService.viewer.camera.changed.addEventListener(this.clearCoords.bind(this));
   }
@@ -226,6 +228,13 @@ export class MouseCoordsService {
         return undefined;
       }
       const targetPoint: Cesium.Cartesian2 | undefined = this.getCursorXY(event);
+      // Курсор на UI
+      if (targetPoint === undefined) {
+        if (firstTimeOnMobile) {
+          setTimeout(() => this.getCartesianFromCursor(undefined, true), 1000); // когда эллипсоид еще не успел отрендериться
+        }
+        return undefined;
+      }
       let cartesian: Cesium.Cartesian3 | undefined = undefined;
       if (targetPoint?.x && targetPoint?.y)
         // deprecated (страдает точность у поверхности при отсутствии кастомного рельефа)
@@ -239,8 +248,8 @@ export class MouseCoordsService {
         // );
         // Современное решение (проверено, значения совпадают):
         cartesian = this.$viewerService?.viewer?.scene?.pickPosition(targetPoint);
-      // Если курсор на холсте, но не на эллипсоиде
-      if (targetPoint === undefined || cartesian === undefined) {
+      // Если курсор на холсте, но не на эллипсоиде (курсор "в космосе")
+      if (cartesian === undefined) {
         this.clearCoords();
         if (firstTimeOnMobile) {
           setTimeout(() => this.getCartesianFromCursor(undefined, true), 1000); // когда эллипсоид еще не успел отрендериться
@@ -272,6 +281,7 @@ export class MouseCoordsService {
         return undefined;
       }
       if ((event instanceof TouchEvent && event.type === 'touchmove') || this._isMobile) {
+        if (this.cursorOnViewerCanvas() === false) this.cursorOnViewerCanvas.set(true);
         return new Cesium.Cartesian2(this.canvasCenterX, this.canvasCenterY);
       }
       if (

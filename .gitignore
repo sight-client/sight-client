@@ -42,6 +42,9 @@ testem.log
 # Superpowers isolated worktrees (not .cursor/superpowers/, which is tracked)
 .worktrees/
 
+# Local full-chat exports from /save-chat-text (do not commit)
+.chats/
+
 # System files
 .DS_Store
 Thumbs.db

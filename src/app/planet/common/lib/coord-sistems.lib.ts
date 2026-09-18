@@ -64,7 +64,7 @@ export class CoordSystems {
     cartographic: CartographicLike,
     zone?: number | '',
   ): CartographicLike {
-    zone = zone === '' ? zone : undefined;
+    zone = zone === '' ? undefined : zone;
     return this.DEFS[nameCS].fromWGS84Cartographic(cartographic, zone);
   }
 
@@ -111,19 +111,33 @@ export class CoordSystems {
         };
       },
       SRS(coordinates: CartographicLike | Cartesian3Like, zone?: number | ''): string {
-        if (zone === undefined) {
-          if (coordinates instanceof CartographicLike) {
-            // if (coordinates?.longitude && coordinates?.latitude) {
+        if (zone === undefined || zone === '') {
+          const lon = (coordinates as CartographicLike | undefined)?.longitude;
+          const lat = (coordinates as CartographicLike | undefined)?.latitude;
+          const looksGeographic =
+            typeof lon === 'number' &&
+            typeof lat === 'number' &&
+            Number.isFinite(lon) &&
+            Number.isFinite(lat) &&
+            Math.abs(lon) <= 180 &&
+            Math.abs(lat) <= 90;
+          if (looksGeographic) {
             const sk42 = proj4(
-              '+proj=longlat +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22', // this.CoordSystemsService.DEFS['СК-42 °'].SRS()
-              [coordinates?.longitude, coordinates?.latitude, coordinates?.height],
+              '+proj=longlat +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22',
+              [lon, lat, (coordinates as CartographicLike).height],
             );
             const sk42longitude = sk42[0];
             zone = sk42longitude / 6;
             if (zone <= 0) zone += 60;
             zone = Math.ceil(zone);
           } else {
-            if (coordinates?.x) zone = Math.floor(coordinates?.x / 1000000);
+            const easting =
+              typeof lon === 'number' && Number.isFinite(lon) && Math.abs(lon) > 180
+                ? lon
+                : (coordinates as Cartesian3Like | undefined)?.x;
+            if (typeof easting === 'number' && Number.isFinite(easting)) {
+              zone = Math.floor(easting / 1000000);
+            }
           }
         }
         const lon0 = (zone as number) * 6 - 3;
