@@ -1,10 +1,10 @@
 {
   "name": "sight-client",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build:docs": "ng build --configuration docs",
+    "build:docs": "ng build --configuration docs && copy docs\\index.html docs\\404.html",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
