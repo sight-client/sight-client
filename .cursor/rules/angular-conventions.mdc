@@ -15,7 +15,7 @@ Match existing files. Do not introduce a second style.
 - Selectors have no `app-` prefix except `app-root` (schematic `prefix` is empty).
 - Injected services are often `$serviceName`. Keep that pattern in the file you edit.
 - SCSS; global mixins live in `src/app/global/styles` and `src/app/planet/common/styles`.
-- Tests: Jasmine + Karma via `ng test`. Colocated `*.spec.ts` with `TestBed` + `provideZonelessChangeDetection()`.
+- Tests: Vitest 4.1 via `ng test` (`@angular/build:unit-test`, jsdom). Colocated `*.spec.ts` with `TestBed` + `provideZonelessChangeDetection()`.
 
 ```typescript
 // ❌ BAD — new layer outside existing aliases

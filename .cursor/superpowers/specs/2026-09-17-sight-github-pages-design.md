@@ -15,7 +15,7 @@ parent: 2026-09-17-sight-product-design.md
 | Команда | Роль |
 |---|---|
 | `npm start` | `ng serve`, host `0.0.0.0`, порт **9002**, конфигурация по умолчанию `development` |
-| `npm test` | Karma / Jasmine; `fileReplacements` → `environment.test.ts` |
+| `npm test` | Vitest 4.1 (`@angular/build:unit-test`); `buildTarget` `testing` → `environment.test.ts` |
 | `npm run build:docs` | `ng build --configuration docs` |
 | `npm run watch` | watch-сборка development |
 

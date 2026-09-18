@@ -11,11 +11,11 @@ description: Use when adding npm dependencies, changing architecture, renaming f
 
 ## Спроси человека до
 
-- Новая зависимость или замена существующей (`ol`, Vitest, NgRx, SSR, i18n-фреймворк).
+- Новая зависимость или замена существующей (`ol`, NgRx, SSR, i18n-фреймворк, Vitest 5+).
 - Смена нейминга: `*.component.ts`, префикс `app-`, отказ от `$` у инжектов.
 - Бэкенд, прокси API, секреты в клиенте, Cesium Ion token в репозитории.
 - Смена `outputPath` / запись исходников в `docs/` (это GitHub Pages-сборка).
-- Включение `requestRenderMode` у Viewer, переход с Jasmine/Karma на Vitest.
+- Включение `requestRenderMode` у Viewer, смена unit-test раннера (уход с Vitest 4.1 / `@angular/build:unit-test`).
 
 ## GitHub Pages
 
@@ -26,7 +26,7 @@ description: Use when adding npm dependencies, changing architecture, renaming f
 ## Не использовать
 
 - `ol` / OpenLayers — в `package.json` есть, в `src/` нет. Карта = Cesium.
-- Vitest как раннер — в `package.json` есть, тесты = Jasmine + `ng test`.
+- Karma / Jasmine как раннер — снят; unit-тесты = Vitest 4.1 через `ng test`.
 - Копирование Superpowers-скилов (TDD, отладка, review) сюда.
 
 ## After asking

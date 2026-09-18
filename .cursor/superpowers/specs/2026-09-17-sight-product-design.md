@@ -9,7 +9,7 @@ created: 2026-09-17
 
 **Цель:** бесплатная фронтенд-карта в браузере на GitHub Pages: координаты, рисование/измерения, экспорт/импорт векторов, камера и тема.
 
-**Non-goals (не начинать без новой одобренной спеки):** backend/API, Keycloak, Cesium Ion, использование OpenLayers, Vitest как раннер, включение роута landing, geocoder/поиск, английская L10n, пользовательские растры/3D Tiles.
+**Non-goals (не начинать без новой одобренной спеки):** backend/API, Keycloak, Cesium Ion, использование OpenLayers, включение роута landing, geocoder/поиск, английская L10n, пользовательские растры/3D Tiles.
 
 ## Product
 
@@ -34,7 +34,7 @@ Sight (пакет `sight-client` v1.4.0) — некоммерческий CV-п�
 | Geodesy | `proj4`, `@turf/turf`. `egm96-universal` есть в `package.json`, но **в `src/` не импортируется** |
 | UI | Angular Material / CDK, SCSS |
 | Files | `odf-kit` (ODS), Cesium KML, `dompurify` |
-| Tests | Jasmine + Karma (`ng test`). `vitest` в `package.json` есть, как раннер не используется |
+| Tests | Vitest 4.1 (`ng test`, `@angular/build:unit-test`, jsdom). `environment.test.ts` через build-конфиг `testing` |
 | Unused dep | `ol` (OpenLayers) — не подключать без одобрения |
 
 Алиасы путей: `@/*` → `src/app/planet/*`, `@global/*` → `src/app/global/*`, `@landing/*` → `src/app/landing-page/*`.

@@ -16,7 +16,7 @@ parent: 2026-09-17-sight-product-design.md
 - Имена файлов без `.component` (`user-menu.ts`). У селекторов **нет** префикса `app-`, кроме `app-root` (`prefix` в `angular.json` — `""`).
 - Инжекты в существующих файлах с префиксом `$` — в правимом файле сохранять.
 - Колокация `*.ts` / `*.html` / `*.scss` / `*.spec.ts`. Сервисы фичи: `services/<name>/<name>.service.ts`.
-- Тесты: `TestBed` + `provideZonelessChangeDetection()`. Раннер: `ng test` (Jasmine/Karma).
+- Тесты: `TestBed` + `provideZonelessChangeDetection()`. Раннер: `ng test` (Vitest 4.1).
 
 Конструктор `App` вызывает `SetLightDarkModeService.getStartColorScheme()` и `SetUserThemeService.setUserTheme()`.
 

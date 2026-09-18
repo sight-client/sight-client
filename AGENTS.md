@@ -30,7 +30,7 @@ At the end of a completed work unit, append a short block to `.cursor/superpower
 
 - Angular 22 (zoneless), TypeScript strict, SCSS, Angular Material
 - Cesium, OpenLayers, Turf, proj4, odf-kit
-- Tests: Jasmine + Karma (`ng test`), colocated `*.spec.ts`
+- Tests: Vitest 4.1 (`ng test` / `@angular/build:unit-test`), colocated `*.spec.ts`
 - Prettier: `printWidth` 100, `singleQuote` true
 
 ## Layout
@@ -47,7 +47,7 @@ At the end of a completed work unit, append a short block to `.cursor/superpower
 
 ```bash
 npm start          # ng serve, host 0.0.0.0 port 9002
-npm test           # Karma / Jasmine
+npm test           # Vitest via ng test
 npm run build:docs # write GitHub Pages build into docs/
 ```
 
@@ -60,3 +60,9 @@ npm run build:docs # write GitHub Pages build into docs/
 - New tests must call `provideZonelessChangeDetection()`.
 - Follow existing folder patterns. Do not invent a parallel architecture.
 - Do not commit secrets, `node_modules`, or `.worktrees/`.
+
+## Agent permissions
+
+Shared Auto-review allowlist and classifier hints: `.cursor/permissions.json` (commit this). Personal overlay for all projects: `~/.cursor/permissions.json`. Do not allowlist the prefix `git` — it matches `git push`. Keep read-only git prefixes (`git status`, `git diff`, `git log`, `git show`). Push, deploy, `npm publish`, and destructive deletes stay on approval.
+
+IDE Run Mode: **Auto-review** (Settings → Agents → Approvals & Execution). Cursor CLI is separate: `approvalMode` in `~/.cursor/cli-config.json`.

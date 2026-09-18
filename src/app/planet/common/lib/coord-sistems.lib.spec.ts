@@ -12,7 +12,7 @@ describe('CoordSystems SK-42 m zone', () => {
   it('treats empty zone as auto-detect so Moscow easting stays in GK zone 7', () => {
     const sk42 = CoordSystems.fromWGS84Cartographic('СК-42 м', MOSCOW_WGS84, '');
 
-    expect(Number.isFinite(sk42.longitude)).toBeTrue();
+    expect(Number.isFinite(sk42.longitude)).toBe(true);
     expect(sk42.longitude).toBeGreaterThan(7_000_000);
     expect(sk42.longitude).toBeLessThan(8_000_000);
     expect(sk42.latitude).toBeGreaterThan(6_000_000);
@@ -23,7 +23,7 @@ describe('CoordSystems SK-42 m zone', () => {
     const zone7 = CoordSystems.fromWGS84Cartographic('СК-42 м', MOSCOW_WGS84, 7);
     const zone8 = CoordSystems.fromWGS84Cartographic('СК-42 м', MOSCOW_WGS84, 8);
 
-    expect(Number.isFinite(zone7.longitude)).toBeTrue();
+    expect(Number.isFinite(zone7.longitude)).toBe(true);
     expect(zone7.longitude).toBeGreaterThan(7_000_000);
     expect(zone7.longitude).toBeLessThan(8_000_000);
     expect(zone8.longitude).toBeGreaterThan(8_000_000);
@@ -46,8 +46,8 @@ describe('CoordSystems SK-42 m zone', () => {
     const sk42 = CoordSystems.fromWGS84Cartographic('СК-42 м', MOSCOW_WGS84, '');
     const wgs = CoordSystems.toWGS84Cartographic('СК-42 м', sk42, '');
 
-    expect(Number.isFinite(wgs.longitude)).toBeTrue();
-    expect(Number.isFinite(wgs.latitude)).toBeTrue();
+    expect(Number.isFinite(wgs.longitude)).toBe(true);
+    expect(Number.isFinite(wgs.latitude)).toBe(true);
     expect(wgs.longitude).toBeCloseTo(MOSCOW_WGS84.longitude, 4);
     expect(wgs.latitude).toBeCloseTo(MOSCOW_WGS84.latitude, 4);
   });

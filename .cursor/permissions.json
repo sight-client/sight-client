@@ -1,0 +1,27 @@
+{
+  // Sight: Auto-review guidance for agents and subagents.
+  // Prefix "git" is too broad (matches git push). Keep read-only git prefixes only.
+  // IDE: Settings → Agents → Approvals & Execution → Auto-review.
+  "terminalAllowlist": [
+    "git status",
+    "git diff",
+    "git log",
+    "git show",
+    "npx ng test",
+    "npm test",
+    "npm start",
+    "npm run build:docs",
+    "head",
+    "ls"
+  ],
+  "autoRun": {
+    "allow_instructions": [
+      "Allow read-only git inspection and running the unit test suite (ng test / npm test) in this Sight repo.",
+      "Allow listing and reading files in the workspace."
+    ],
+    "block_instructions": [
+      "Always ask before git push, force-push, rebase onto remote, deploy, publishing packages, or changing git config.",
+      "Always ask before destructive file deletion outside the repo, rm -rf, or wiping worktrees."
+    ]
+  }
+}

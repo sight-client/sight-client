@@ -51,10 +51,10 @@ describe('MouseCoordsService on a mobile device', () => {
   });
 
   it('sets cursorOnViewerCanvas when resolving the canvas center', () => {
-    expect(service.cursorOnViewerCanvas()).toBeFalse();
+    expect(service.cursorOnViewerCanvas()).toBe(false);
 
     service.getCursorXY();
 
-    expect(service.cursorOnViewerCanvas()).toBeTrue();
+    expect(service.cursorOnViewerCanvas()).toBe(true);
   });
 });
