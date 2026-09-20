@@ -68,6 +68,8 @@ function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
     setCameraFlyingAroundFlag: () => {},
     getNewViewer: () => {},
     setImageryProvider: () => {},
+    flyTo: vi.fn().mockResolvedValue(undefined),
+    setNewPickedEntity: vi.fn(),
   } as unknown as ViewerService;
 }
 

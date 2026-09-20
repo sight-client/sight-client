@@ -5,7 +5,6 @@ import * as Cesium from 'cesium';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
-import { DrawingService } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 import { MeasureService } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
 import { CameraViewToolsService } from '@/components/tools/camera-view-tools/services/camera-view-tools-service/camera-view-tools.service';
 import { DrawMarkService } from '@/components/tools/drawing-tools/components/draw-mark/services/draw-mark-service/draw-mark.service';
@@ -20,6 +19,11 @@ import { CalculateCircleService } from '@/components/tools/measuring-tools/compo
 import { CalculatePolygonService } from '@/components/tools/measuring-tools/components/calculate-polygon/services/calculate-polygon-service/calculate-polygon.service';
 import { FlyAroundService } from '@/components/tools/camera-view-tools/components/fly-around/services/fly-around-service/fly-around.service';
 import { FloatingWindowsService } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
+import {
+  drawingToolsNames,
+  DrawingService,
+} from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
+import type { EntitiesGroup } from '@/components/tools/services/tools-service/tools.service';
 import { DrawingsListService } from '@/components/tools/drawings-list/services/drawings-list-service/drawings-list.service';
 import { DrawingsListKmlService } from '@/components/tools/drawings-list/services/drawings-list-kml-service/drawings-list-kml.service';
 import { DrawingsListReportService } from '@/components/tools/drawings-list/services/drawings-list-report-service/drawings-list-report.service';
@@ -67,17 +71,21 @@ function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
     setCameraFlyingAroundFlag: () => {},
     getNewViewer: () => {},
     setImageryProvider: () => {},
+    flyTo: vi.fn().mockResolvedValue(undefined),
+    setNewPickedEntity: vi.fn(),
   } as unknown as ViewerService;
 }
 
 describe('DrawingsListService', () => {
   let service: DrawingsListService;
+  let viewerMock: ViewerService;
 
   beforeEach(() => {
+    viewerMock = fakeViewerService();
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        { provide: ViewerService, useValue: fakeViewerService() },
+        { provide: ViewerService, useValue: viewerMock },
         CursorCoordsService,
         ToolsService,
         DrawingService,
@@ -115,5 +123,46 @@ describe('DrawingsListService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('startDrawingsListService binds flyTo and fills drawingStores', () => {
+    service.startDrawingsListService();
+
+    expect(typeof service.flyToEntity).toBe('function');
+    expect(service.drawingStores).toHaveLength(drawingToolsNames.length);
+    for (const toolName of drawingToolsNames) {
+      expect(service.drawingStores.some((store) => store.storeName === toolName)).toBe(true);
+    }
+  });
+
+  it('startDrawingsListService flyToEntity delegates to viewer flyTo mock', async () => {
+    service.startDrawingsListService();
+    const entity = new Cesium.Entity({ id: 'fly-test' });
+
+    await service.flyToEntity(entity);
+
+    expect(viewerMock.flyTo).toHaveBeenCalledWith(entity);
+  });
+
+  it('setActiveEntity picks defaultEntity via viewerService', () => {
+    const defaultEntity = new Cesium.Entity({ id: 'group-mark', name: 'TestMark' });
+    const objInCollection: EntitiesGroup = {
+      groupId: 'group',
+      entitiesList: [defaultEntity],
+      defaultEntity,
+    };
+
+    const result = service.setActiveEntity(objInCollection);
+
+    expect(result).toBe(true);
+    expect(viewerMock.setNewPickedEntity).toHaveBeenCalledWith(defaultEntity);
+  });
+
+  it('changeLineCounter adds to linesCounter signal', () => {
+    expect(service.linesCounter()).toBe(0);
+
+    service.changeLineCounter(2);
+
+    expect(service.linesCounter()).toBe(2);
   });
 });
