@@ -72,6 +72,7 @@ function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
 
 describe('EntityRubberService', () => {
   let service: EntityRubberService;
+  let drawingService: DrawingService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -111,9 +112,20 @@ describe('EntityRubberService', () => {
       ],
     });
     service = TestBed.inject(EntityRubberService);
+    drawingService = TestBed.inject(DrawingService);
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('with empty drawing stores, storesAreEmpty() is true', () => {
+    expect(service.storesAreEmpty()).toBe(true);
+  });
+
+  it('after pushGroupWithoutTemporal([entity], g1, drawMark), storesAreEmpty() is false', () => {
+    const entity = new Cesium.Entity({ id: 'g1-mark' });
+    drawingService.pushGroupWithoutTemporal([entity], 'g1', 'drawMark');
+    expect(service.storesAreEmpty()).toBe(false);
   });
 });

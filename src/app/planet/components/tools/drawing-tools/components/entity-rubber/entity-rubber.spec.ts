@@ -122,4 +122,12 @@ describe('EntityRubber', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('alerts on left mousedown when drawing stores are empty', () => {
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const button = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
+    button.dispatchEvent(new MouseEvent('mousedown', { button: 0, bubbles: true }));
+    expect(alertSpy).toHaveBeenCalledWith('Сущности к удалению отсутствуют');
+    alertSpy.mockRestore();
+  });
 });
