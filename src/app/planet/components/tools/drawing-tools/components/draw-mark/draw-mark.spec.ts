@@ -71,55 +71,154 @@ function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
   } as unknown as ViewerService;
 }
 
+function fakeViewerServiceForActivation(overrides: Partial<{ viewer: object }> = {}) {
+  return {
+    ...fakeViewerService(overrides),
+    onEntityPickingBlock: () => {},
+    offEntityPickingBlock: () => {},
+    setNewPickedEntity: () => {},
+  } as unknown as ViewerService;
+}
+
+function fakeCursorCoordsServiceForActivation() {
+  return {
+    cursorOnViewerCanvas: signal(true),
+    getCursorXY: () => undefined,
+    selectedCrs: signal('WGS-84'),
+  } as unknown as CursorCoordsService;
+}
+
+function fakeToolsServiceForActivation() {
+  const drawingsBlocker = signal(false);
+  return {
+    drawingsBlocker,
+    setDrawingsBlocker: vi.fn((v: boolean) => drawingsBlocker.set(v)),
+    clearCommonHandler: vi.fn(),
+    createNewCommonHandler: vi.fn(),
+    setCommonHandler: vi.fn(),
+    isMobile: false,
+    findEntityPathInStore: vi.fn(),
+    drawingToolsLayerName: 'drawLayer',
+    drawRouteLayerName: 'drawRoute',
+  } as unknown as ToolsService;
+}
+
+const drawMarkComponentProviders = (
+  viewer: ViewerService,
+  tools: ToolsService,
+  cursor: CursorCoordsService,
+) => [
+  provideZonelessChangeDetection(),
+  { provide: ViewerService, useValue: viewer },
+  { provide: CursorCoordsService, useValue: cursor },
+  { provide: ToolsService, useValue: tools },
+  DrawingService,
+  MeasureService,
+  CameraViewToolsService,
+  DrawMarkService,
+  DrawLineService,
+  DrawRectangleService,
+  DrawCircleService,
+  DrawPolygonService,
+  EntityRubberService,
+  CalculateLineService,
+  CalculateRectangleService,
+  CalculateCircleService,
+  CalculatePolygonService,
+  FlyAroundService,
+  FloatingWindowsService,
+  DrawingsListService,
+  DrawingsListKmlService,
+  DrawingsListReportService,
+  DrawMarkFloatingWindowService,
+  DrawLineFloatingWindowService,
+  DrawRectangleFloatingWindowService,
+  DrawCircleFloatingWindowService,
+  DrawPolygonFloatingWindowService,
+  CalculateLineFloatingWindowService,
+  CalculateRectangleFloatingWindowService,
+  CalculateCircleFloatingWindowService,
+  CalculatePolygonFloatingWindowService,
+  FlyAroundFloatingWindowService,
+];
+
 describe('DrawMark', () => {
-  let component: DrawMark;
-  let fixture: ComponentFixture<DrawMark>;
+  describe('TestBed hygiene', () => {
+    let component: DrawMark;
+    let fixture: ComponentFixture<DrawMark>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [DrawMark],
-      providers: [
-        provideZonelessChangeDetection(),
-        { provide: ViewerService, useValue: fakeViewerService() },
-        CursorCoordsService,
-        ToolsService,
-        DrawingService,
-        MeasureService,
-        CameraViewToolsService,
-        DrawMarkService,
-        DrawLineService,
-        DrawRectangleService,
-        DrawCircleService,
-        DrawPolygonService,
-        EntityRubberService,
-        CalculateLineService,
-        CalculateRectangleService,
-        CalculateCircleService,
-        CalculatePolygonService,
-        FlyAroundService,
-        FloatingWindowsService,
-        DrawingsListService,
-        DrawingsListKmlService,
-        DrawingsListReportService,
-        DrawMarkFloatingWindowService,
-        DrawLineFloatingWindowService,
-        DrawRectangleFloatingWindowService,
-        DrawCircleFloatingWindowService,
-        DrawPolygonFloatingWindowService,
-        CalculateLineFloatingWindowService,
-        CalculateRectangleFloatingWindowService,
-        CalculateCircleFloatingWindowService,
-        CalculatePolygonFloatingWindowService,
-        FlyAroundFloatingWindowService,
-      ],
-    }).compileComponents();
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [DrawMark],
+        providers: [
+          provideZonelessChangeDetection(),
+          { provide: ViewerService, useValue: fakeViewerService() },
+          CursorCoordsService,
+          ToolsService,
+          DrawingService,
+          MeasureService,
+          CameraViewToolsService,
+          DrawMarkService,
+          DrawLineService,
+          DrawRectangleService,
+          DrawCircleService,
+          DrawPolygonService,
+          EntityRubberService,
+          CalculateLineService,
+          CalculateRectangleService,
+          CalculateCircleService,
+          CalculatePolygonService,
+          FlyAroundService,
+          FloatingWindowsService,
+          DrawingsListService,
+          DrawingsListKmlService,
+          DrawingsListReportService,
+          DrawMarkFloatingWindowService,
+          DrawLineFloatingWindowService,
+          DrawRectangleFloatingWindowService,
+          DrawCircleFloatingWindowService,
+          DrawPolygonFloatingWindowService,
+          CalculateLineFloatingWindowService,
+          CalculateRectangleFloatingWindowService,
+          CalculateCircleFloatingWindowService,
+          CalculatePolygonFloatingWindowService,
+          FlyAroundFloatingWindowService,
+        ],
+      }).compileComponents();
 
-    fixture = TestBed.createComponent(DrawMark);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+      fixture = TestBed.createComponent(DrawMark);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    it('should create', () => {
+      expect(component).toBeTruthy();
+    });
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  describe('tool activation button', () => {
+    let fixture: ComponentFixture<DrawMark>;
+    let drawMarkService: DrawMarkService;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [DrawMark],
+        providers: drawMarkComponentProviders(
+          fakeViewerServiceForActivation(),
+          fakeToolsServiceForActivation(),
+          fakeCursorCoordsServiceForActivation(),
+        ),
+      }).compileComponents();
+
+      drawMarkService = TestBed.inject(DrawMarkService);
+      fixture = TestBed.createComponent(DrawMark);
+      fixture.detectChanges();
+    });
+
+    it('left mousedown on tool button sets isActive() true', () => {
+      const button = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
+      button.dispatchEvent(new MouseEvent('mousedown', { button: 0, bubbles: true }));
+      expect(drawMarkService.isActive()).toBe(true);
+    });
   });
 });
