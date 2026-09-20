@@ -116,4 +116,76 @@ describe('DrawingsListKmlService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('exportAllToKml alerts when CustomDataSource has no entities', async () => {
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const emptyLayer = new Cesium.CustomDataSource('empty-export-layer');
+
+    const result = await service.exportAllToKml(false, emptyLayer);
+
+    expect(result).toBe(false);
+    expect(alertSpy).toHaveBeenCalledWith('Сущностей для экспорта не обнаружено');
+    alertSpy.mockRestore();
+  });
+
+  it('exportAllToKml downloads KML containing TestMark for a drawMark point entity', async () => {
+    const blobs: Blob[] = [];
+    const createUrlSpy = vi.spyOn(URL, 'createObjectURL').mockImplementation((obj) => {
+      blobs.push(obj as Blob);
+      return 'blob:test';
+    });
+    const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const layer = new Cesium.CustomDataSource('export-layer');
+    const entity = new Cesium.Entity({
+      id: 'g1-drawMark-point-1',
+      name: 'TestMark',
+      position: Cesium.Cartesian3.fromDegrees(37.6, 55.7),
+      point: {
+        pixelSize: 8,
+        color: Cesium.Color.YELLOW,
+      },
+    });
+    // @ts-expect-error Sight custom property on Entity
+    entity.toolName = 'drawMark';
+    layer.entities.add(entity);
+
+    const result = await service.exportAllToKml(false, layer);
+
+    expect(result).toBe(true);
+    expect(clickSpy).toHaveBeenCalled();
+    expect(blobs[0]).toBeInstanceOf(Blob);
+    const kmlText = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(blobs[0]);
+    });
+    expect(kmlText).toContain('TestMark');
+
+    createUrlSpy.mockRestore();
+    revokeSpy.mockRestore();
+    clickSpy.mockRestore();
+  });
+
+  it('prepareKmlEntities does not reject javascript: in parsed entity.name (parked: no DOMPurify)', () => {
+    const $toolsService = TestBed.inject(ToolsService);
+    vi.spyOn($toolsService, 'setClampingToGroudForEntity').mockImplementation(() => true);
+    const maliciousName = 'javascript:alert(1)';
+    const payload = JSON.stringify({
+      toolName: 'drawMark',
+      id: 'g1-drawMark-point-1',
+      name: maliciousName,
+      show: true,
+    });
+    const entity = new Cesium.Entity({
+      id: 'g1-drawMark-point-1',
+      description: `<div class="cesium-infoBox-description-lighter">${payload}</div>`,
+    });
+
+    const parsed = (service as any).prepareKmlEntities([entity]);
+
+    expect(parsed).toBeTruthy();
+    expect(entity.name).toBe(maliciousName);
+  });
 });
