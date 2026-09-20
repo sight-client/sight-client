@@ -6,7 +6,11 @@ import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
 import { DrawingService } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
-import { MeasureService } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
+import {
+  MeasureService,
+  measuringToolsNames,
+  getRusMeasuringToolName,
+} from '@/components/tools/measuring-tools/services/measure-service/measure.service';
 import { CameraViewToolsService } from '@/components/tools/camera-view-tools/services/camera-view-tools-service/camera-view-tools.service';
 import { DrawMarkService } from '@/components/tools/drawing-tools/components/draw-mark/services/draw-mark-service/draw-mark.service';
 import { DrawLineService } from '@/components/tools/drawing-tools/components/draw-line/services/draw-line-service/draw-line.service';
@@ -117,3 +121,19 @@ describe('MeasureService', () => {
     expect(service).toBeTruthy();
   });
 });
+
+describe('measuring tool name mapping', () => {
+  it('maps frozen measuring literals to Russian labels', () => {
+    expect([...measuringToolsNames]).toEqual([
+      'calculateLine',
+      'calculateRectangle',
+      'calculateCircle',
+      'calculatePolygon',
+    ]);
+    expect(getRusMeasuringToolName('calculateLine')).toBe('Дистанция');
+    expect(getRusMeasuringToolName('calculateRectangle')).toBe('Прямоугольная площадь');
+    expect(getRusMeasuringToolName('calculateCircle')).toBe('Площадь окружности');
+    expect(getRusMeasuringToolName('calculatePolygon')).toBe('Площадь многоугольника');
+  });
+});
+
