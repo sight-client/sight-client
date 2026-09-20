@@ -21,4 +21,11 @@ describe('CustomSwitchToggle', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('checkbox change emits checkedChange', () => {
+    const emitted: Event[] = [];
+    component.checkedChange.subscribe((event) => emitted.push(event));
+    fixture.nativeElement.querySelector('input')?.dispatchEvent(new Event('change'));
+    expect(emitted.length).toBe(1);
+  });
 });
