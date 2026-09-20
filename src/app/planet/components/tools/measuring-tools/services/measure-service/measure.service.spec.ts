@@ -120,6 +120,59 @@ describe('MeasureService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('starts with empty measuring stores so entity presence flags are false', () => {
+    expect(service.isLines()).toBe(false);
+    expect(service.isRectangles()).toBe(false);
+    expect(service.isCircles()).toBe(false);
+    expect(service.isPoligons()).toBe(false);
+  });
+
+  it('pushGroupWithoutTemporal adds a calculateLine group and isLines becomes true', () => {
+    const defaultEntity = new Cesium.Entity({ id: 'line-default' });
+    const entity = new Cesium.Entity({ id: 'line-1' });
+
+    expect(
+      service.pushGroupWithoutTemporal([entity], 'line-group-1', 'calculateLine', defaultEntity),
+    ).toBe(true);
+    expect(service.isLines()).toBe(true);
+    expect(service.linearMeasurmentsLinesList()[0]?.groupId).toBe('line-group-1');
+    expect(service.linearMeasurmentsLinesList()[0]?.entitiesList).toEqual([entity]);
+    expect(service.linearMeasurmentsLinesList()[0]?.defaultEntity).toBe(defaultEntity);
+  });
+
+  it('removeEntitiesByGroupId removes the group from the store so isLines is false', () => {
+    const entity = new Cesium.Entity({ id: 'line-rm' });
+    service.pushGroupWithoutTemporal([entity], 'line-rm-group', 'calculateLine');
+    expect(service.isLines()).toBe(true);
+
+    service.removeEntitiesByGroupId('line-rm-group', service.linearMeasurmentsLinesList);
+
+    expect(service.isLines()).toBe(false);
+  });
+
+  it('clearTemporalEntitiesList empties _temporalEntitiesList', () => {
+    service._temporalEntitiesList.set([new Cesium.Entity({ id: 'tmp-1' })]);
+    expect(service.temporalEntitiesList().length).toBe(1);
+
+    expect(service.clearTemporalEntitiesList()).toBe(true);
+
+    expect(service._temporalEntitiesList().length).toBe(0);
+    expect(service.temporalEntitiesList().length).toBe(0);
+  });
+
+  it('allToolEntitiesCleaning clears the calculateLine store so isLines is false', () => {
+    service.pushGroupWithoutTemporal(
+      [new Cesium.Entity({ id: 'line-clean' })],
+      'clean-group',
+      'calculateLine',
+    );
+    expect(service.isLines()).toBe(true);
+
+    service.allToolEntitiesCleaning('calculateLine');
+
+    expect(service.isLines()).toBe(false);
+  });
 });
 
 describe('measuring tool name mapping', () => {
