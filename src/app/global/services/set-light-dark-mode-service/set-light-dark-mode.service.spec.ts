@@ -17,6 +17,7 @@ describe('SetLightDarkModeService', () => {
     localStorage.removeItem('colorScheme');
     document.documentElement.classList.remove('light-mode', 'dark-mode');
     vi.restoreAllMocks();
+    Reflect.deleteProperty(window, 'matchMedia');
   });
 
   it('should be created', () => {
