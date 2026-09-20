@@ -1,0 +1,33 @@
+@if ($calculatePolygonFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$calculatePolygonFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="calculate-polygon-floating-window-content-wrapper">
+    <div class="calculate-polygon-floating-window-private">
+      @if (
+        $calculatePolygonFloatingWindowService
+          .validPickedEnttity()
+          ?.id?.includes('-polygon-')
+      ) {
+        <div class="calculate-polygon-floating-window-private-info">
+          <p>
+            Площадь:
+            {{ $calculatePolygonFloatingWindowService.areaDescription() }}
+          </p>
+          <p>
+            <span>
+              Периметр:
+              {{ $calculatePolygonFloatingWindowService.perimeterDescription() }}
+            </span>
+          </p>
+        </div>
+        <!-- <div class="calculate-polygon-floating-window-private-settings">
+        </div> -->
+      }
+    </div>
+  </div>
+</ng-template>

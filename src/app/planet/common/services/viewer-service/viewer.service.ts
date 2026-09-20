@@ -23,7 +23,7 @@ import chalk from 'chalk';
 import * as MeasuresLib from '@/components/tools/lib/basic-measure-calculations.lib';
 import * as Humanify from '@/common/lib/humanify.lib';
 
-import { SetCursorProgressSpinnerService } from '@global/services/set-cursor-progress-spinner-service/set-cursor-progress-spinner.service';
+import { SetProgressSpinnerService } from '@global/services/set-progress-spinner-service/set-progress-spinner.service';
 
 export interface CustomViewer extends Cesium.Viewer {
   newPickedEntity?: WritableSignal<Cesium.Entity | undefined>;
@@ -40,7 +40,7 @@ export type SceneModeLiterals = '3D' | '2D' | 'Columbus';
 // Применение сервиса - на уровне planet.ts
 @Injectable()
 export class ViewerService {
-  constructor(private $SetCursorProgressSpinnerService: SetCursorProgressSpinnerService) {
+  constructor(private $SetProgressSpinnerService: SetProgressSpinnerService) {
     effect(() => {
       this.clampToGroundSignal();
       if (this.viewer?.clampToGround !== undefined) {
@@ -122,7 +122,7 @@ export class ViewerService {
   public viewerHasLoaded = signal<boolean>(false);
   public firstBaseLayerRenderFinished = signal<boolean>(false);
 
-  // viewer получает первое значение из app-cesium.directive.ts однократно при первом рендеринге planet.html
+  // viewer получает первое значение из run-viewer.directive.ts однократно при первом рендеринге planet.html
   public getNewViewer(container: Element | string) {
     try {
       this.viewer = new Cesium.Viewer(container, {
@@ -718,7 +718,7 @@ export class ViewerService {
           s = Math.sqrt(s ** 2 + (p2Cartographic.height - p1Cartographic.height) ** 2);
           distance += s;
         } else {
-          this.$SetCursorProgressSpinnerService.setSpinnerOn();
+          this.$SetProgressSpinnerService.setSpinnerOn();
           // Если нужен точный расчет по всем неровностям рельефа, необходимо дробить отрезок на множество частей и проводить расчет по нему с поднятием данных по высотам
           const geodesic = new Cesium.EllipsoidGeodesic(p1Cartographic, p2Cartographic);
           const n = distanceSegmentLengthM ? distanceSegmentLengthM : this.distanceSegmentLengthM; // длина сегмента в метрах
@@ -759,7 +759,7 @@ export class ViewerService {
       if (withHumanify) return Humanify.distanceM(distance);
       else return distance;
     } finally {
-      this.$SetCursorProgressSpinnerService.setSpinnerOff();
+      this.$SetProgressSpinnerService.setSpinnerOff();
     }
   }
 

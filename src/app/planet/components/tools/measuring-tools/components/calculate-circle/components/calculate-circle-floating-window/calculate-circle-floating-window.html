@@ -1,0 +1,44 @@
+@if ($calculateCircleFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$calculateCircleFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="calculate-circle-floating-window-content-wrapper">
+    <div class="calculate-circle-floating-window-private">
+      @if (
+        $calculateCircleFloatingWindowService.validPickedEnttity()?.id?.includes('-ellipse-')
+      ) {
+        <div class="calculate-circle-floating-window-private-info">
+          <p>
+            <span>
+              Площадь:
+              {{ $calculateCircleFloatingWindowService.areaDescription() }}
+            </span>
+            <!-- {{ ' ' }} -->
+            <!-- <span>
+              {{ '(' }}радиус: {{ $calculateCircleFloatingWindowService.radiusDescription()
+              }}{{ ')' }}
+            </span> -->
+          </p>
+          <p>
+            <span>
+              Радиус:
+              {{ $calculateCircleFloatingWindowService.radiusDescription() }}
+            </span>
+          </p>
+          <p>
+            <span>
+              Длина окружности:
+              {{ $calculateCircleFloatingWindowService.perimeterDescription() }}
+            </span>
+          </p>
+        </div>
+        <!-- <div class="calculate-circle-floating-window-private-settings">
+        </div> -->
+      }
+    </div>
+  </div>
+</ng-template>

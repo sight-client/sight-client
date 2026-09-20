@@ -15,9 +15,9 @@ description: Use when adding or changing map drawing tools, measuring tools, flo
 
 1. Имя в `drawingToolsNames` и ветка в `getRusDrawingToolName()` (`drawing.service.ts`).
 2. Стор групп сущностей; при clamp-to-ground — в соответствующий `effect`.
-3. Флаг «есть сущности» + учёт в `erase-entity.service.ts` (`storesAreEmpty`).
+3. Флаг «есть сущности» + учёт в `entity-rubber.service.ts` (`storesAreEmpty`).
 4. Ссылка в `_allEntitiesListsLinks`.
-5. При необходимости: KML (`tools-list-kml.service.ts`, `setEntitiesGroupDefaultEntity`), список (`tools-list`), отчёт ODS (`tools-list-report.service.ts`).
+5. При необходимости: KML (`drawings-list-kml.service.ts`, `setEntitiesGroupDefaultEntity`), список (`drawings-list`), отчёт ODS (`drawings-list-report.service.ts`).
 6. Кнопка в родителе (`drawing-tools.ts`), floating window в `tools-floating-windows.ts`.
 7. `toolName` на entity должен совпадать с литералом типа `DrawingToolName`.
 

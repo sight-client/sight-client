@@ -9,7 +9,7 @@ import * as Cesium from 'cesium';
 import ViewerCesiumNavigationMixin from '@znemz/cesium-navigation';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { DeviceService } from '@global/services/device-service/device.service';
+import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 
 @Component({
   selector: 'znemz-navigation-mixin',
@@ -22,7 +22,7 @@ import { DeviceService } from '@global/services/device-service/device.service';
 export class ZnemzNavigationMixin {
   constructor(
     private $viewerService: ViewerService,
-    private $deviceService: DeviceService,
+    private $checkMobileDeviceService: CheckMobileDeviceService,
   ) {
     effect(() => {
       if (this.$viewerService.cameraIsFlyingAround() === true) {
@@ -49,7 +49,7 @@ export class ZnemzNavigationMixin {
     });
 
     effect(() => {
-      if (this.$viewerService.viewerHasLoaded() && !this.$deviceService.isMobile) {
+      if (this.$viewerService.viewerHasLoaded() && !this.$checkMobileDeviceService.isMobile) {
         // не работает на точпадах, даже с эмуляцией событий мыши
         untracked(() => {
           this.setNavMixin();

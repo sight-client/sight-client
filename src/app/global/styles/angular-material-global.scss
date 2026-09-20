@@ -41,7 +41,7 @@ body {
 // }
 /* ---------------------------- default preset (end) ------------------------------ */
 
-// Предустановка селекторов тем приложения для planet.ts и theme-color-changer.ts
+// Предустановка селекторов тем приложения для planet.ts и theme-color-palette.ts
 @each $name-chank-primary, $name-chank-tertiary, $primary-palette,
   $tertiary-palette in config.$theme-poletts-list
 {

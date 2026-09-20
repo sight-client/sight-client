@@ -7,7 +7,7 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import { ThemeChanger } from '@global/components/theme-changer/theme-changer';
+import { UiTheme } from '@global/components/ui-theme/ui-theme';
 
 @Component({
   selector: 'landing-page',
@@ -17,7 +17,7 @@ import { ThemeChanger } from '@global/components/theme-changer/theme-changer';
     // RouterLinkActive,
     MatButtonModule,
     MatIconModule,
-    ThemeChanger,
+    UiTheme,
   ],
   templateUrl: './landing-page.html',
   styleUrl: './landing-page.scss',

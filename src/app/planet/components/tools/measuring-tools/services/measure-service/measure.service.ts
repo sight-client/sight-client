@@ -23,22 +23,22 @@ export interface MeasureOptions extends ToolOptions {
 
 // Пополнять при добавлении новых инструментов (ТОЛЬКО ДЛЯ ИНСТРУМЕНТОВ, ДОБАВЛЯЮЩИХ СУЩНОСТИ В МЕСТНЫЕ СТОРЫ)
 export const measuringToolsNames = Object.freeze([
-  'linearMeasurements',
-  'rectangleAreaMeasurements',
-  'circleAreaMeasurements',
-  'polygonalAreaMeasurements',
+  'calculateLine',
+  'calculateRectangle',
+  'calculateCircle',
+  'calculatePolygon',
 ] as const);
 export type MeasuringToolName = (typeof measuringToolsNames)[number];
 
 export function getRusMeasuringToolName(toolName: MeasuringToolName | string) {
   switch (toolName) {
-    case 'linearMeasurements':
+    case 'calculateLine':
       return 'Дистанция';
-    case 'rectangleAreaMeasurements':
+    case 'calculateRectangle':
       return 'Прямоугольная площадь';
-    case 'circleAreaMeasurements':
+    case 'calculateCircle':
       return 'Площадь окружности';
-    case 'polygonalAreaMeasurements':
+    case 'calculatePolygon':
       return 'Площадь многоугольника';
     // case 'newTool':
     //   return 'Новый инструмент';
@@ -82,14 +82,14 @@ export class MeasureService {
               this._rectangleAreaMesurmentsList,
               onFlag,
             );
-          if (this._circleAreaMeasurementsList()?.length)
+          if (this._calculateCircleList()?.length)
             this.$toolsService.switchClampingToGroudForOneStoreEntities(
-              this._circleAreaMeasurementsList,
+              this._calculateCircleList,
               onFlag,
             );
-          if (this._polygonalAreaMeasurementsList()?.length)
+          if (this._calculatePolygonList()?.length)
             this.$toolsService.switchClampingToGroudForOneStoreEntities(
-              this._polygonalAreaMeasurementsList,
+              this._calculatePolygonList,
               onFlag,
             );
         });
@@ -125,31 +125,31 @@ export class MeasureService {
     () => !!this._rectangleAreaMesurmentsList().length,
   );
 
-  private _circleAreaMeasurementsList = signal<Array<EntitiesGroup | undefined>>([]);
-  get circleAreaMeasurementsList() {
-    return this._circleAreaMeasurementsList;
+  private _calculateCircleList = signal<Array<EntitiesGroup | undefined>>([]);
+  get calculateCircleList() {
+    return this._calculateCircleList;
   }
-  public readonly isCircles = computed<boolean>(() => !!this._circleAreaMeasurementsList().length);
+  public readonly isCircles = computed<boolean>(() => !!this._calculateCircleList().length);
 
-  private _polygonalAreaMeasurementsList = signal<Array<EntitiesGroup | undefined>>([]);
-  get polygonalAreaMeasurementsList() {
-    return this._polygonalAreaMeasurementsList;
+  private _calculatePolygonList = signal<Array<EntitiesGroup | undefined>>([]);
+  get calculatePolygonList() {
+    return this._calculatePolygonList;
   }
   public readonly isPoligons = computed<boolean>(
-    () => !!this._polygonalAreaMeasurementsList().length,
+    () => !!this._calculatePolygonList().length,
   );
 
   private _allEntitiesListsLinks: {
     [P in MeasuringToolName]: WritableSignal<Array<EntitiesGroup | undefined>>;
   } = {
     // prettier-ignore
-    'linearMeasurements': this._linearMesurmentsLinesList,
+    'calculateLine': this._linearMesurmentsLinesList,
     // prettier-ignore
-    'rectangleAreaMeasurements': this._rectangleAreaMesurmentsList,
+    'calculateRectangle': this._rectangleAreaMesurmentsList,
     // prettier-ignore
-    'circleAreaMeasurements': this._circleAreaMeasurementsList,
+    'calculateCircle': this._calculateCircleList,
     // prettier-ignore
-    'polygonalAreaMeasurements': this._polygonalAreaMeasurementsList,
+    'calculatePolygon': this._calculatePolygonList,
     // ...другие сторы
   };
   get allEntitiesListsLinks() {

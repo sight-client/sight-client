@@ -48,7 +48,7 @@
     cursor: pointer;
   }
 }
-// ------------------------------ mouse-coords-info.scss ------------------------------ //
+// ------------------------------ cursor-coords-info.scss ------------------------------ //
 .coords-container-main {
   .mdc-text-field--filled:not(.mdc-text-field--disabled) {
     background-color: var(--theme-ui-background-color);
@@ -74,7 +74,7 @@ div.mat-mdc-select-panel:has(.coords-container-form-field-select-option) {
   }
 }
 
-// ------------------------------- tools-list.scss ------------------------------ //
+// ------------------------------- drawings-list.scss ------------------------------ //
 .mat-mdc-menu-panel.mat-content-menu {
   min-width: auto;
   max-width: none;
@@ -97,12 +97,12 @@ div.mat-mdc-select-panel:has(.coords-container-form-field-select-option) {
 // Notice: т.к. drag-элемент стилизуется в видимости <body>, необходимо использовать только чистые единицы измерения (например, px или rem), а также стили тождественные body (например, font)
 // Курсоры для drag'n'drop - в common-global.scss
 
-// -------------------------------- user-projects.scss и tools-list.scss -------------------------------- //
+// -------------------------------- user-projects.scss и drawings-list.scss -------------------------------- //
 // drag'n'drop целых проектов
 .cdk-drag-preview.user-projects-list-accordion,
 .user-projects-list-accordion,
 .cdk-drag-preview.user-project-accordion,
-.tools-list-accordion {
+.drawings-list-accordion {
   width: 100%;
   display: block;
   overflow: hidden;
@@ -117,22 +117,22 @@ div.mat-mdc-select-panel:has(.coords-container-form-field-select-option) {
   }
   // --- требует глобальной видимости и без drag'n'drop (end) --- //
   .user-project-item,
-  .tools-list-item {
+  .drawings-list-item {
     .user-project-panel-header {
       height: 3em;
       // margin-top: 3px;
     }
-    .tools-list-item-header {
+    .drawings-list-item-header {
       margin-top: 0.3rem;
     }
-    .tools-list-item-header {
+    .drawings-list-item-header {
       height: 2em;
 
       &.selected {
         background-color: var(--mat-sys-primary);
       }
     }
-    .tools-list-item-header-hidden {
+    .drawings-list-item-header-hidden {
       height: 0px;
       margin-top: 0px;
       // transition: height 300ms ease-in-out;
@@ -141,7 +141,7 @@ div.mat-mdc-select-panel:has(.coords-container-form-field-select-option) {
     .mat-content {
       justify-content: right;
       .user-project-name-title,
-      .tools-list-item-header-name {
+      .drawings-list-item-header-name {
         flex-grow: 1;
         font-size: large;
         font-weight: bold;
@@ -182,7 +182,7 @@ div.mat-mdc-select-panel:has(.coords-container-form-field-select-option) {
     }
   }
   .user-project-auxiliary-buttons-container,
-  .tools-list-item-header-auxiliary-buttons-container {
+  .drawings-list-item-header-auxiliary-buttons-container {
     height: max-content;
     display: flex;
     justify-content: start;

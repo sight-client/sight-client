@@ -6,18 +6,18 @@ import { SetUserThemeService } from '@global/services/set-user-theme-service/set
 
 import { RoutingSpinnerListener } from '@global/listeners/routing-spinner-listener/routing-spinner.listener';
 import { RoutingErrorsListener } from '@global/listeners/routing-errors-listener/routing-errors.listener';
-import { CursorProgressSpinner } from '@global/components/cursor-progress-spinner/cursor-progress-spinner';
-import { SetCursorProgressSpinnerService } from '@global/services/set-cursor-progress-spinner-service/set-cursor-progress-spinner.service';
+import { ProgressSpinner } from '@global/components/progress-spinner/progress-spinner';
+import { SetProgressSpinnerService } from '@global/services/set-progress-spinner-service/set-progress-spinner.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RoutingSpinnerListener, RoutingErrorsListener, CursorProgressSpinner],
+  imports: [RouterOutlet, RoutingSpinnerListener, RoutingErrorsListener, ProgressSpinner],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
   constructor(
-    protected $setCursorProgressSpinnerService: SetCursorProgressSpinnerService,
+    protected $setProgressSpinnerService: SetProgressSpinnerService,
     private $setUserThemeService: SetUserThemeService,
     private $setLightDarkModeService: SetLightDarkModeService,
   ) {

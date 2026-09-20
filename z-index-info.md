@@ -6,14 +6,14 @@
 
 <!-- 1 - #cesiumContainer - не выставлять (окно ошибок цесиума будет под UI) -->
 
-2 - .mouse-coords-cursor-field
+2 - .cursor-coords-cursor-field
 100 - #sightUiContainer, .cesium-viewer-fullscreenContainer
 101 - .header-buttons-container, .tool-panel-button, .tool-chevron-button, .coords-container-main, .navigationMixinDiv, .camera-height-wrapper, #distanceLegendDiv, .floating-windows-tabs-panel
 102 - .main-floating-windows-container
 103 - .floating-window
 104 - .floating-window (активное)
 105 - .tools-panel-group-hidden-raised
-997 - mat-spinner (cursor-progress-spinner.ts)
+997 - mat-spinner (progress-spinner.ts)
 998 - .routing-spinner
 999 - .routing-error-banner-wrapper
-1001 - CursorProgressSpinner template
+1001 - ProgressSpinner template

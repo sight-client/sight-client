@@ -19,10 +19,10 @@ import {
 // import { GlobalErrorHandlerService } from '@global/services/global-error-handler-service/global-error-handler.service';
 
 import badHtmlInterceptor from '@global/interceptors/bad-html-interceptor/bad-html.interceptor';
-import stopDoubleRequestInterceptor from '@global/interceptors/stop-double-request-interceptor/stop-double-request.interceptor';
-import cachingGetReqInterceptor from '@global/interceptors/caching-get-req-interceptor/caching-get-req.interceptor';
-// import useApiServProxyInterceptor from '@global/interceptors/use-api-serv-proxy-interceptor/use-api-serv-proxy.interceptor';
-import { ShowProgressInterceptor } from '@global/interceptors/show-progress-inrerceptor/show-progress.interceptor';
+import doubleReqPreventionInterceptor from '@global/interceptors/double-req-prevention-interceptor/double-req-prevention.interceptor';
+import getReqCachingInterceptor from '@global/interceptors/get-req-caching-interceptor/get-req-caching.interceptor';
+// import apiUrlChunkProxyInterceptor from '@global/interceptors/api-url-chunk-proxy-interceptor/api-url-chunk-proxy.interceptor';
+import { DownloadProgressInterceptor } from '@global/interceptors/download-progress-interceptor/download-progress.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -36,12 +36,12 @@ export const appConfig: ApplicationConfig = {
       // Порядок перехватчиков в массиве имеет значение
       withInterceptors([
         badHtmlInterceptor,
-        stopDoubleRequestInterceptor,
-        cachingGetReqInterceptor,
-        // useApiServProxyInterceptor, // (включить, если будет бэкенд)
+        doubleReqPreventionInterceptor,
+        getReqCachingInterceptor,
+        // apiUrlChunkProxyInterceptor, // (включить, если будет бэкенд)
       ]),
       withInterceptorsFromDi(), // разрешает провайдить перехватчики в виде классов
     ),
-    { provide: HTTP_INTERCEPTORS, useClass: ShowProgressInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: DownloadProgressInterceptor, multi: true },
   ],
 };

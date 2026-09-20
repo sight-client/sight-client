@@ -4,7 +4,7 @@
 
 **Goal:** Make `npx ng test --no-watch` exit 0 on the current stub specs, with zoneless TestBed, a compiling Autofocus spec, and broken filenames fixed — without deepening behavior and without changing production.
 
-**Architecture:** Characterization hygiene only. Provide mocks so constructors do not create `Cesium.Viewer`. Keep `drawing-tool-blank/**` and `use-api-serv-proxy/**` excluded. Remove Autofocus from exclude after its spec compiles.
+**Architecture:** Characterization hygiene only. Provide mocks so constructors do not create `Cesium.Viewer`. Keep `drawing-tool-blank/**` and `api-url-chunk-proxy/**` excluded. Remove Autofocus from exclude after its spec compiles.
 
 **Tech Stack:** Angular 22 zoneless, Vitest 4.1, `@angular/build:unit-test`, jsdom
 
@@ -17,7 +17,7 @@
 - `toBe(true)` / `toBe(false)`, not `toBeTrue()` / `toBeFalse()`.
 - Do not create `Cesium.Viewer` / WebGL. Fake `ViewerService` as in the spec.
 - Production TypeScript under `src/app` is frozen except if a spec cannot compile without a type-only import path fix — prefer fixing the spec.
-- `drawing-tool-blank/**` and `use-api-serv-proxy/**` stay in `tsconfig.spec.json` and `angular.json` `test.exclude`.
+- `drawing-tool-blank/**` and `api-url-chunk-proxy/**` stay in `tsconfig.spec.json` and `angular.json` `test.exclude`.
 - Do not add behavior assertions beyond `should create` / `should be created` in this plan.
 - Skills: `.cursor/skills/sight-testing/SKILL.md`, `.cursor/skills/sight-change-control/SKILL.md`
 
@@ -26,8 +26,8 @@
 ### Task 1: Rename the caching interceptor spec
 
 **Files:**
-- Rename: `src/app/global/interceptors/caching-get-req-interceptor/caching-get-req,interceptor.spec.ts` → `caching-get-req.interceptor.spec.ts`
-- Do not modify: `caching-get-req.interceptor.ts`
+- Rename: `src/app/global/interceptors/get-req-caching-interceptor/caching-get-req,interceptor.spec.ts` → `get-req-caching.interceptor.spec.ts`
+- Do not modify: `get-req-caching.interceptor.ts`
 
 **Skills:** `.cursor/skills/sight-testing/SKILL.md`
 
@@ -35,7 +35,7 @@
 
 Git mv (or delete+add) so the spec sits next to the interceptor:
 
-`src/app/global/interceptors/caching-get-req-interceptor/caching-get-req.interceptor.spec.ts`
+`src/app/global/interceptors/get-req-caching-interceptor/get-req-caching.interceptor.spec.ts`
 
 Keep the existing `should be created` body. Add zoneless if missing:
 
@@ -43,11 +43,11 @@ Keep the existing `should be created` body. Add zoneless if missing:
 import { TestBed } from '@angular/core/testing';
 import { HttpInterceptorFn } from '@angular/common/http';
 import { provideZonelessChangeDetection } from '@angular/core';
-import cachingGetReqInterceptor from './caching-get-req.interceptor';
+import getReqCachingInterceptor from './get-req-caching.interceptor';
 
-describe('cachingGetReqInterceptor', () => {
+describe('getReqCachingInterceptor', () => {
   const interceptor: HttpInterceptorFn = (req, next) =>
-    TestBed.runInInjectionContext(() => cachingGetReqInterceptor(req, next));
+    TestBed.runInInjectionContext(() => getReqCachingInterceptor(req, next));
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -63,14 +63,14 @@ describe('cachingGetReqInterceptor', () => {
 
 - [ ] **Step 2: Run the renamed spec**
 
-Run: `npx ng test --no-watch --include=src/app/global/interceptors/caching-get-req-interceptor/caching-get-req.interceptor.spec.ts`
+Run: `npx ng test --no-watch --include=src/app/global/interceptors/get-req-caching-interceptor/get-req-caching.interceptor.spec.ts`
 
 Expected: PASS (create-only).
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/app/global/interceptors/caching-get-req-interceptor/
+git add src/app/global/interceptors/get-req-caching-interceptor/
 git commit -m "$(cat <<'EOF'
 test: colocate caching GET interceptor spec filename
 
@@ -159,13 +159,13 @@ EOF
 ### Task 3: Zoneless on remaining TestBeds
 
 **Files (missing `provideZonelessChangeDetection` today):**
-- Modify: `src/app/planet/components/user-menu/user-menu.spec.ts`
+- Modify: `src/app/planet/components/main-menu/main-menu.spec.ts`
 - Modify: `src/app/planet/components/tools/services/tools-service/tools.service.spec.ts`
-- Modify: `src/app/planet/components/tools/tools-list/services/tools-list-kml-service/tools-list-kml.service.spec.ts`
-- Modify: `src/app/planet/components/tools/tools-list/services/tools-list-report-service/tools-list-report.service.spec.ts`
-- Modify: `src/app/planet/common/directives/app-cesium-directive/app-cesium.directive.spec.ts`
+- Modify: `src/app/planet/components/tools/drawings-list/services/drawings-list-kml-service/drawings-list-kml.service.spec.ts`
+- Modify: `src/app/planet/components/tools/drawings-list/services/drawings-list-report-service/drawings-list-report.service.spec.ts`
+- Modify: `src/app/planet/common/directives/run-viewer-directive/run-viewer.directive.spec.ts`
 - Do not add zoneless to `coord-sistems.lib.spec.ts` (no TestBed).
-- `stop-double-request.interceptor.spec.ts` — add zoneless if the file on disk still lacks it.
+- `double-req-prevention.interceptor.spec.ts` — add zoneless if the file on disk still lacks it.
 
 **Skills:** `.cursor/skills/sight-testing/SKILL.md`
 
@@ -179,48 +179,48 @@ TestBed.configureTestingModule({
 });
 ```
 
-User-menu: add `providers: [provideZonelessChangeDetection()]` next to `imports: [UserMenu]`.
+User-menu: add `providers: [provideZonelessChangeDetection()]` next to `imports: [MainMenu]`.
 
-AppCesiumDirective: stop constructing with class tokens. Use TestBed + fakes (still create-only):
+RunViewerDirective: stop constructing with class tokens. Use TestBed + fakes (still create-only):
 
 ```typescript
 import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
-import { AppCesiumDirective } from './app-cesium.directive';
+import { RunViewerDirective } from './run-viewer.directive';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { MouseCoordsService } from '@/common/services/mouse-coords-service/mouse-coords.service';
+import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
-import { ToolsListService } from '@/components/tools/tools-list/services/tools-list-service/tools-list.service';
+import { DrawingsListService } from '@/components/tools/drawings-list/services/drawings-list-service/drawings-list.service';
 
-describe('AppCesiumDirective', () => {
+describe('RunViewerDirective', () => {
   it('should create', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        AppCesiumDirective,
+        RunViewerDirective,
         { provide: ViewerService, useValue: { viewerHasLoaded: signal(false), getNewViewer: () => {}, setImageryProvider: () => {} } },
-        { provide: MouseCoordsService, useValue: { startMouseCoordsService: () => {}, underMouseEntityHasLoaded: signal(false) } },
+        { provide: CursorCoordsService, useValue: { startCursorCoordsService: () => {}, underMouseEntityHasLoaded: signal(false) } },
         { provide: ToolsService, useValue: { startToolsService: async () => {}, toolsServiceHasStarted: signal(false) } },
-        { provide: ToolsListService, useValue: { startToolsListService: () => {} } },
+        { provide: DrawingsListService, useValue: { startDrawingsListService: () => {} } },
       ],
     });
-    expect(TestBed.inject(AppCesiumDirective)).toBeTruthy();
+    expect(TestBed.inject(RunViewerDirective)).toBeTruthy();
   });
 });
 ```
 
-Directive needs `ElementRef` — if inject fails, wrap a host component with `[appCesiumDirective]` on a `div` instead of injecting the directive directly. Keep `viewerHasLoaded` false so OSM is not set.
+Directive needs `ElementRef` — if inject fails, wrap a host component with `[runViewerDirective]` on a `div` instead of injecting the directive directly. Keep `viewerHasLoaded` false so OSM is not set.
 
 - [ ] **Step 2: Run the touched specs**
 
-Run: `npx ng test --no-watch --include=src/app/planet/components/user-menu/user-menu.spec.ts`
+Run: `npx ng test --no-watch --include=src/app/planet/components/main-menu/main-menu.spec.ts`
 
 Repeat for the other files in this task until each PASSes or the remaining failure is missing Cesium providers (Task 4).
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/app/planet/components/user-menu/user-menu.spec.ts src/app/planet/components/tools/services/tools-service/tools.service.spec.ts src/app/planet/components/tools/tools-list/services/tools-list-kml-service/tools-list-kml.service.spec.ts src/app/planet/components/tools/tools-list/services/tools-list-report-service/tools-list-report.service.spec.ts src/app/planet/common/directives/app-cesium-directive/app-cesium.directive.spec.ts
+git add src/app/planet/components/main-menu/main-menu.spec.ts src/app/planet/components/tools/services/tools-service/tools.service.spec.ts src/app/planet/components/tools/drawings-list/services/drawings-list-kml-service/drawings-list-kml.service.spec.ts src/app/planet/components/tools/drawings-list/services/drawings-list-report-service/drawings-list-report.service.spec.ts src/app/planet/common/directives/run-viewer-directive/run-viewer.directive.spec.ts
 git commit -m "$(cat <<'EOF'
 test: add zoneless TestBed to remaining stub specs
 
@@ -235,7 +235,7 @@ EOF
 **Files (likely failures from the 67-fail baseline):**
 - Modify: `src/app/planet/planet.spec.ts`
 - Modify: `src/app/app.spec.ts` (if theme services throw without DOM CSS vars — stub `SetUserThemeService` / `SetLightDarkModeService` only if create fails)
-- Modify: `src/app/global/interceptors/show-progress-inrerceptor/show-progress.interceptor.spec.ts`
+- Modify: `src/app/global/interceptors/download-progress-interceptor/download-progress.interceptor.spec.ts`
 - Modify: any tool/component spec that `detectChanges()` into a missing `ViewerService`
 
 **Skills:** `.cursor/skills/sight-testing/SKILL.md`, `.cursor/skills/sight-change-control/SKILL.md`
@@ -248,11 +248,11 @@ Record fail messages. Do not start rewriting behavior tests.
 
 - [ ] **Step 2: Planet — fake ViewerService, do not boot a Viewer**
 
-`Planet` imports `AppCesiumDirective`. After first CD, `afterNextRender` calls `getNewViewer`. Override `ViewerService` at TestBed with the spec fake (`getNewViewer` no-op, `viewerHasLoaded` false). Provide the other `Planet` services as the real classes **only if** their constructors do not touch `viewer.scene`; otherwise fake them too. `should create` must not call WebGL.
+`Planet` imports `RunViewerDirective`. After first CD, `afterNextRender` calls `getNewViewer`. Override `ViewerService` at TestBed with the spec fake (`getNewViewer` no-op, `viewerHasLoaded` false). Provide the other `Planet` services as the real classes **only if** their constructors do not touch `viewer.scene`; otherwise fake them too. `should create` must not call WebGL.
 
 If `createComponent(Planet)` still pulls Cesium internals, skip `fixture.detectChanges()` in this plan and assert `component` is truthy after `createComponent` only — note that in the commit body. Prefer providing fakes so `detectChanges` can stay.
 
-- [ ] **Step 3: ShowProgressInterceptor spec — provide HTTP testing**
+- [ ] **Step 3: DownloadProgressInterceptor spec — provide HTTP testing**
 
 Replace the incomplete spec (TestBed without `provideHttpClient` / `HttpTestingController`) with create-only that actually injects:
 
@@ -261,16 +261,16 @@ import { TestBed } from '@angular/core/testing';
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { ShowProgressInterceptor } from './show-progress.interceptor';
+import { DownloadProgressInterceptor } from './download-progress.interceptor';
 
-describe('ShowProgressInterceptor', () => {
+describe('DownloadProgressInterceptor', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-        { provide: HTTP_INTERCEPTORS, useClass: ShowProgressInterceptor, multi: true },
+        { provide: HTTP_INTERCEPTORS, useClass: DownloadProgressInterceptor, multi: true },
       ],
     });
   });
@@ -296,7 +296,7 @@ Expected: exit 0, 0 failed, 0 unhandled. Output may log Cesium warnings — if t
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/app/planet/planet.spec.ts src/app/app.spec.ts src/app/global/interceptors/show-progress-inrerceptor/show-progress.interceptor.spec.ts
+git add src/app/planet/planet.spec.ts src/app/app.spec.ts src/app/global/interceptors/download-progress-interceptor/download-progress.interceptor.spec.ts
 # plus any other spec patched in the sweep
 git commit -m "$(cat <<'EOF'
 test: keep stub suite green without Cesium.Viewer
@@ -320,7 +320,7 @@ EOF
 Both files must still list:
 
 - `drawing-tool-blank/**`
-- `use-api-serv-proxy-interceptor/**`
+- `api-url-chunk-proxy-interceptor/**`
 
 Must **not** list autofocus.
 

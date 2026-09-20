@@ -7,7 +7,7 @@ description: Use when creating or changing Cesium Viewer, scene modes, imagery, 
 
 ## Overview
 
-Один Viewer живёт в `ViewerService`. Создание — `afterNextRender` в `app-cesium.directive.ts`, после `viewerHasLoaded()` стартуют mouse-coords и tools **по цепочке effect**.
+Один Viewer живёт в `ViewerService`. Создание — `afterNextRender` в `run-viewer.directive.ts`, после `viewerHasLoaded()` стартуют cursor-coords и tools **по цепочке effect**.
 
 ## Viewer
 
@@ -21,7 +21,7 @@ description: Use when creating or changing Cesium Viewer, scene modes, imagery, 
 ## Производительность
 
 - Не создавать Viewer повторно. Не оборачивать его в Angular signal.
-- `ScreenSpaceEventHandler` и listeners: `.destroy()` / `removeInputAction` в `ngOnDestroy` (как `tools.service.ts`, `mouse-coords.service.ts`).
+- `ScreenSpaceEventHandler` и listeners: `.destroy()` / `removeInputAction` в `ngOnDestroy` (как `tools.service.ts`, `cursor-coords.service.ts`).
 - Не грузить 3D Tiles / terrain / Ion assets без спроса (объём, ключи, не-OSM лицензии).
 - Тяжёлые расчёты — существующие lib (`basic-measure-calculations.lib.ts`), не в шаблоне.
 

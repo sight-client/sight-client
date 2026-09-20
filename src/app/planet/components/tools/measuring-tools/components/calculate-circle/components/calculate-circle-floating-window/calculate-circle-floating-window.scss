@@ -1,0 +1,22 @@
+.calculate-circle-floating-window-content-wrapper {
+  min-width: 18rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  .calculate-circle-floating-window-private {
+    width: 100%;
+    overflow: hidden;
+
+    p {
+      padding: 0px;
+      margin: 0px;
+    }
+
+    .calculate-circle-floating-window-private-info {
+      width: 100%;
+    }
+
+    // .calculate-circle-floating-window-private-settings {
+    // }
+  }
+}

@@ -32,45 +32,45 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 // -------------------------------------------------------------------- //
 // import { CESIUM_PROVIDER } from '@/common/tokens/cesium-tokens'; // вернуть, если будет бэкенд
 // -------------------------------------------------------------------- //
-import { DeviceService } from '@global/services/device-service/device.service';
+import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { AppCesiumDirective } from '@/common/directives/app-cesium-directive/app-cesium.directive';
-import { MouseCoordsService } from '@/common/services/mouse-coords-service/mouse-coords.service';
+import { RunViewerDirective } from '@/common/directives/run-viewer-directive/run-viewer.directive';
+import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
 // -------------------------------------------------------------------- //
 // -------------------------------------------------------------------- //
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
 // -------------------------------------------------------------------- //
 import { DrawingService } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
-import { AddMarkService } from '@/components/tools/drawing-tools/components/add-mark/services/add-mark-service/add-mark.service';
-import { AddLineService } from '@/components/tools/drawing-tools/components/add-line/services/add-line-service/add-line.service';
-import { AddRectangleService } from '@/components/tools/drawing-tools/components/add-rectangle/services/add-rectangle-service/add-rectangle.service';
-import { AddCircleService } from '@/components/tools/drawing-tools/components/add-circle/services/add-circle-service/add-circle.service';
-import { AddPolygonService } from '@/components/tools/drawing-tools/components/add-polygon/services/add-polygon-service/add-polygon.service';
-import { EraseEntityService } from '@/components/tools/drawing-tools/components/erase-entity/services/erase-entity.service';
+import { DrawMarkService } from '@/components/tools/drawing-tools/components/draw-mark/services/draw-mark-service/draw-mark.service';
+import { DrawLineService } from '@/components/tools/drawing-tools/components/draw-line/services/draw-line-service/draw-line.service';
+import { DrawRectangleService } from '@/components/tools/drawing-tools/components/draw-rectangle/services/draw-rectangle-service/draw-rectangle.service';
+import { DrawCircleService } from '@/components/tools/drawing-tools/components/draw-circle/services/draw-circle-service/draw-circle.service';
+import { DrawPolygonService } from '@/components/tools/drawing-tools/components/draw-polygon/services/draw-polygon-service/draw-polygon.service';
+import { EntityRubberService } from '@/components/tools/drawing-tools/components/entity-rubber/services/entity-rubber.service';
 // -------------------------------------------------------------------- //
 import { MeasureService } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
-import { LinearMeasurementsService } from '@/components/tools/measuring-tools/components/linear-measurements/services/linear-measurements-service/linear-measurements.service';
-import { RectangleAreaMeasurementsService } from '@/components/tools/measuring-tools/components/rectangle-area-measurements/services/rectangle-area-measurements-service/rectangle-area-measurements.service';
-import { CircleAreaMeasurementsService } from '@/components/tools/measuring-tools/components/circle-area-measurements/services/circle-area-measurements-service/circle-area-measurements.service';
-import { PolygonalAreaMeasurementsService } from '@/components/tools/measuring-tools/components/polygonal-area-measurements/services/polygonal-area-measurements-service/polygonal-area-measurements.service';
+import { CalculateLineService } from '@/components/tools/measuring-tools/components/calculate-line/services/calculate-line-service/calculate-line.service';
+import { CalculateRectangleService } from '@/components/tools/measuring-tools/components/calculate-rectangle/services/calculate-rectangle-service/calculate-rectangle.service';
+import { CalculateCircleService } from '@/components/tools/measuring-tools/components/calculate-circle/services/calculate-circle-service/calculate-circle.service';
+import { CalculatePolygonService } from '@/components/tools/measuring-tools/components/calculate-polygon/services/calculate-polygon-service/calculate-polygon.service';
 // -------------------------------------------------------------------- //
-import { CameraToolsService } from '@/components/tools/camera-tools/services/camera-tools-service/camera-tools.service';
-import { FlyAroundService } from '@/components/tools/camera-tools/components/fly-around/services/fly-around-service/fly-around.service';
+import { CameraViewToolsService } from '@/components/tools/camera-view-tools/services/camera-view-tools-service/camera-view-tools.service';
+import { FlyAroundService } from '@/components/tools/camera-view-tools/components/fly-around/services/fly-around-service/fly-around.service';
 // -------------------------------------------------------------------- //
 import { FloatingWindowsService } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
-import { ToolsListService } from '@/components/tools/tools-list/services/tools-list-service/tools-list.service';
+import { DrawingsListService } from '@/components/tools/drawings-list/services/drawings-list-service/drawings-list.service';
 // -------------------------------------------------------------------- //
 // -------------------------------------------------------------------- //
-// import { AccountFeatures } from '@global/components/account-features/account-features';
-import { UserMenu } from '@/components/user-menu/user-menu';
-import { MouseCoordsInfo } from '@/components/mouse-coords-info/mouse-coords-info';
+// import { UserAccountFeatures } from '@global/components/user-account-features/user-account-features';
+import { MainMenu } from '@/components/main-menu/main-menu';
+import { CursorCoordsInfo } from '@/components/cursor-coords-info/cursor-coords-info';
 import { CameraHeightTool } from './components/camera-position-tools/camera-height-tool/camera-height-tool';
 import { ZnemzNavigationMixin } from '@/components/camera-position-tools/znemz-navigation-mixin/znemz-navigation-mixin';
 // -------------------------------------------------------------------- //
 import { ToolsPanel } from '@/components/tools/tools-panel';
 import { FloatingWindowsContainer } from '@/components/floating-windows/floating-windows-container/floating-windows-container';
 import { FloatingWindowTabsPanel } from '@/components/floating-windows/floating-windows-tabs-panel/floating-windows-tabs-panel';
-import { ToolsList } from '@/components/tools/tools-list/tools-list';
+import { DrawingsList } from '@/components/tools/drawings-list/drawings-list';
 @Component({
   selector: 'planet',
   imports: [
@@ -80,13 +80,13 @@ import { ToolsList } from '@/components/tools/tools-list/tools-list';
     MatTabsModule,
     MatTooltipModule,
 
-    AppCesiumDirective,
-    UserMenu,
-    MouseCoordsInfo,
+    RunViewerDirective,
+    MainMenu,
+    CursorCoordsInfo,
     ToolsPanel,
     FloatingWindowsContainer,
     FloatingWindowTabsPanel,
-    ToolsList,
+    DrawingsList,
     ZnemzNavigationMixin,
     CameraHeightTool,
   ],
@@ -95,52 +95,52 @@ import { ToolsList } from '@/components/tools/tools-list/tools-list';
   providers: [
     // CESIUM_PROVIDER,
     ViewerService,
-    MouseCoordsService,
+    CursorCoordsService,
     // Main-сервис инструментов правой панели
     ToolsService,
     // Инструменты рисования
     // Common-сервисы для инструментов рисования
     DrawingService,
     // Индивидуальные сервисы инструментов рисования
-    AddMarkService,
-    AddLineService,
-    AddRectangleService,
-    AddCircleService,
-    AddPolygonService,
-    EraseEntityService,
+    DrawMarkService,
+    DrawLineService,
+    DrawRectangleService,
+    DrawCircleService,
+    DrawPolygonService,
+    EntityRubberService,
     // Инструменты измерения
     // Common-сервис для инструментов измерения
     MeasureService,
     // Индивидуальные сервисы инструментов измерения
-    LinearMeasurementsService,
-    RectangleAreaMeasurementsService,
-    CircleAreaMeasurementsService,
-    PolygonalAreaMeasurementsService,
+    CalculateLineService,
+    CalculateRectangleService,
+    CalculateCircleService,
+    CalculatePolygonService,
     // Инструменты работы с камерой
     // Common-сервис инструментов работы с камерой
-    CameraToolsService,
+    CameraViewToolsService,
     // Индивидуальные сервисы инструментов работы с камерой
     FlyAroundService,
     // Main-сервис плавающих окон
     FloatingWindowsService,
     // Main-сервис для вкладки "Рисование" левой панели
-    ToolsListService,
+    DrawingsListService,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Planet {
   constructor(
-    protected $deviceService: DeviceService,
+    protected $checkMobileDeviceService: CheckMobileDeviceService,
     // protected $userDataService: UserDataService,
     protected $viewerService: ViewerService,
-    protected $mouseCoordsService: MouseCoordsService,
+    protected $cursorCoordsService: CursorCoordsService,
     protected $toolsService: ToolsService,
-    private $toolsListService: ToolsListService,
+    private $drawingsListService: DrawingsListService,
   ) {
     afterNextRender(() => {
       try {
         // Определение контейнера для отслеживания перемещения курсора мыши (для координат)
-        this.$mouseCoordsService.getWatchedContainerRef(this.mainSightContainerRef.nativeElement);
+        this.$cursorCoordsService.getWatchedContainerRef(this.mainSightContainerRef.nativeElement);
       } catch (error: unknown) {
         if (error instanceof Error) {
           error.cause = 'red';
@@ -190,7 +190,7 @@ export class Planet {
       return false;
     }
   }
-  private readonly linesCounter = computed<number>(() => this.$toolsListService.linesCounter());
+  private readonly linesCounter = computed<number>(() => this.$drawingsListService.linesCounter());
   private readonly hasNewDrawings = linkedSignal<number, boolean>({
     source: this.linesCounter,
     computation(newVal, prevVal) {

@@ -4,38 +4,38 @@ import { CommonModule } from '@angular/common';
 import { FloatingWindowsService } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
 
 // Инструменты рисования
-import { AddMarkFloatingWindow } from '@/components/tools/drawing-tools/components/add-mark/components/add-mark-floating-window/add-mark-floating-window';
-import { AddMarkFloatingWindowService } from '@/components/tools/drawing-tools/components/add-mark/components/add-mark-floating-window/services/add-mark-floating-window-service/add-mark-floating-window.service';
+import { DrawMarkFloatingWindow } from '@/components/tools/drawing-tools/components/draw-mark/components/draw-mark-floating-window/draw-mark-floating-window';
+import { DrawMarkFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-mark/components/draw-mark-floating-window/services/draw-mark-floating-window-service/draw-mark-floating-window.service';
 
-import { AddLineFloatingWindow } from '@/components/tools/drawing-tools/components/add-line/components/add-line-floating-window/add-line-floating-window';
-import { AddLineFloatingWindowService } from '@/components/tools/drawing-tools/components/add-line/components/add-line-floating-window/services/add-line-floating-window-service/add-line-floating-window.service';
+import { DrawLineFloatingWindow } from '@/components/tools/drawing-tools/components/draw-line/components/draw-line-floating-window/draw-line-floating-window';
+import { DrawLineFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-line/components/draw-line-floating-window/services/draw-line-floating-window-service/draw-line-floating-window.service';
 
-import { AddRectangleFloatingWindow } from '@/components/tools/drawing-tools/components/add-rectangle/components/add-rectangle-floating-window/add-rectangle-floating-window';
-import { AddRectangleFloatingWindowService } from '@/components/tools/drawing-tools/components/add-rectangle/components/add-rectangle-floating-window/services/add-rectangle-floating-window-service/add-rectangle-floating-window.service';
+import { DrawRectangleFloatingWindow } from '@/components/tools/drawing-tools/components/draw-rectangle/components/draw-rectangle-floating-window/draw-rectangle-floating-window';
+import { DrawRectangleFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-rectangle/components/draw-rectangle-floating-window/services/draw-rectangle-floating-window-service/draw-rectangle-floating-window.service';
 
-import { AddCircleFloatingWindow } from '@/components/tools/drawing-tools/components/add-circle/components/add-circle-floating-window/add-circle-floating-window';
-import { AddCircleFloatingWindowService } from '@/components/tools/drawing-tools/components/add-circle/components/add-circle-floating-window/services/add-circle-floating-window-service/add-circle-floating-window.service';
+import { DrawCircleFloatingWindow } from '@/components/tools/drawing-tools/components/draw-circle/components/draw-circle-floating-window/draw-circle-floating-window';
+import { DrawCircleFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-circle/components/draw-circle-floating-window/services/draw-circle-floating-window-service/draw-circle-floating-window.service';
 
-import { AddPolygonFloatingWindow } from '@/components/tools/drawing-tools/components/add-polygon/components/add-polygon-floating-window/add-polygon-floating-window';
-import { AddPolygonFloatingWindowService } from '@/components/tools/drawing-tools/components/add-polygon/components/add-polygon-floating-window/services/add-polygon-floating-window-service/add-polygon-floating-window.service';
+import { DrawPolygonFloatingWindow } from '@/components/tools/drawing-tools/components/draw-polygon/components/draw-polygon-floating-window/draw-polygon-floating-window';
+import { DrawPolygonFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-polygon/components/draw-polygon-floating-window/services/draw-polygon-floating-window-service/draw-polygon-floating-window.service';
 
 // Инструменты измерения
-import { LinearMeasurementsFloatingWindow } from '@/components/tools/measuring-tools/components/linear-measurements/components/linear-measurements-floating-window/linear-measurements-floating-window';
-import { LinearMeasurementsFloatingWindowService } from '@/components/tools/measuring-tools/components/linear-measurements/components/linear-measurements-floating-window/services/linear-measurements-floating-window-service/linear-measurements-floating-window.service';
+import { CalculateLineFloatingWindow } from '@/components/tools/measuring-tools/components/calculate-line/components/calculate-line-floating-window/calculate-line-floating-window';
+import { CalculateLineFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-line/components/calculate-line-floating-window/services/calculate-line-floating-window-service/calculate-line-floating-window.service';
 
-import { RectangleAreaMeasurementsFloatingWindow } from '@/components/tools/measuring-tools/components/rectangle-area-measurements/components/rectangle-area-measurements-floating-window/rectangle-area-measurements-floating-window';
-import { RectangleAreaMeasurementsFloatingWindowService } from '@/components/tools/measuring-tools/components/rectangle-area-measurements/components/rectangle-area-measurements-floating-window/services/rectangle-area-measurements-floating-window-service/rectangle-area-measurements-floating-window.service';
+import { CalculateRectangleFloatingWindow } from '@/components/tools/measuring-tools/components/calculate-rectangle/components/calculate-rectangle-floating-window/calculate-rectangle-floating-window';
+import { CalculateRectangleFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-rectangle/components/calculate-rectangle-floating-window/services/calculate-rectangle-floating-window-service/calculate-rectangle-floating-window.service';
 
-import { CircleAreaMeasurementsFloatingWindow } from '@/components/tools/measuring-tools/components/circle-area-measurements/components/circle-area-measurements-floating-window/circle-area-measurements-floating-window';
-import { CircleAreaMeasurementsFloatingWindowService } from '@/components/tools/measuring-tools/components/circle-area-measurements/components/circle-area-measurements-floating-window/services/circle-area-measurements-floating-window-service/circle-area-measurements-floating-window.service';
+import { CalculateCircleFloatingWindow } from '@/components/tools/measuring-tools/components/calculate-circle/components/calculate-circle-floating-window/calculate-circle-floating-window';
+import { CalculateCircleFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-circle/components/calculate-circle-floating-window/services/calculate-circle-floating-window-service/calculate-circle-floating-window.service';
 
-import { PolygonalAreaMeasurementsFloatingWindow } from '@/components/tools/measuring-tools/components/polygonal-area-measurements/components/polygonal-area-measurements-floating-window/polygonal-area-measurements-floating-window';
-import { PolygonalAreaMeasurementsFloatingWindowService } from '@/components/tools/measuring-tools/components/polygonal-area-measurements/components/polygonal-area-measurements-floating-window/services/polygonal-area-measurements-floating-window-service/polygonal-area-measurements-floating-window.service';
+import { CalculatePolygonFloatingWindow } from '@/components/tools/measuring-tools/components/calculate-polygon/components/calculate-polygon-floating-window/calculate-polygon-floating-window';
+import { CalculatePolygonFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-polygon/components/calculate-polygon-floating-window/services/calculate-polygon-floating-window-service/calculate-polygon-floating-window.service';
 
 // Notice: плавающие окна пока что не используются
 // Инструменты работы с камерой
-// import { FlyAroundFloatingWindow } from '@/components/tools/camera-tools/components/fly-around/components/fly-around-floating-window/fly-around-floating-window';
-// import { FlyAroundFloatingWindowService } from '@/components/tools/camera-tools/components/fly-around/components/fly-around-floating-window/services/fly-around-floating-window-service/fly-around-floating-window.service';
+// import { FlyAroundFloatingWindow } from '@/components/tools/camera-view-tools/components/fly-around/components/fly-around-floating-window/fly-around-floating-window';
+// import { FlyAroundFloatingWindowService } from '@/components/tools/camera-view-tools/components/fly-around/components/fly-around-floating-window/services/fly-around-floating-window-service/fly-around-floating-window.service';
 
 type FloatingWindowItem = {
   type: any; // типы импортируемых компонентов плавающих окон
@@ -45,16 +45,16 @@ type FloatingWindowItem = {
   selector: 'tools-floating-windows',
   providers: [
     // Инструменты рисования
-    AddMarkFloatingWindowService,
-    AddLineFloatingWindowService,
-    AddRectangleFloatingWindowService,
-    AddCircleFloatingWindowService,
-    AddPolygonFloatingWindowService,
+    DrawMarkFloatingWindowService,
+    DrawLineFloatingWindowService,
+    DrawRectangleFloatingWindowService,
+    DrawCircleFloatingWindowService,
+    DrawPolygonFloatingWindowService,
     // Инструменты измерения
-    LinearMeasurementsFloatingWindowService,
-    RectangleAreaMeasurementsFloatingWindowService,
-    CircleAreaMeasurementsFloatingWindowService,
-    PolygonalAreaMeasurementsFloatingWindowService,
+    CalculateLineFloatingWindowService,
+    CalculateRectangleFloatingWindowService,
+    CalculateCircleFloatingWindowService,
+    CalculatePolygonFloatingWindowService,
     // Notice: плавающие окна пока что не используются
     // Инструменты работы с камерой
     // FlyAroundFloatingWindowService,
@@ -86,16 +86,16 @@ export class ToolsFloatingWindows {
   constructor(
     protected readonly $floatingWindowsService: FloatingWindowsService,
     // // Инструменты рисования
-    protected readonly $addMarkFloatingWindowService: AddMarkFloatingWindowService,
-    protected readonly $addLineFloatingWindowService: AddLineFloatingWindowService,
-    protected readonly $addRectangleFloatingWindowService: AddRectangleFloatingWindowService,
-    protected readonly $addCircleFloatingWindowService: AddCircleFloatingWindowService,
-    protected readonly $addPolygonFloatingWindowService: AddPolygonFloatingWindowService,
+    protected readonly $drawMarkFloatingWindowService: DrawMarkFloatingWindowService,
+    protected readonly $drawLineFloatingWindowService: DrawLineFloatingWindowService,
+    protected readonly $drawRectangleFloatingWindowService: DrawRectangleFloatingWindowService,
+    protected readonly $drawCircleFloatingWindowService: DrawCircleFloatingWindowService,
+    protected readonly $drawPolygonFloatingWindowService: DrawPolygonFloatingWindowService,
     // Инструменты измерения
-    protected readonly $linearMeasurementsFloatingWindowService: LinearMeasurementsFloatingWindowService,
-    protected readonly $rectangleAreaMeasurementsFloatingWindowService: RectangleAreaMeasurementsFloatingWindowService,
-    protected readonly $circleAreaMeasurementsFloatingWindowService: CircleAreaMeasurementsFloatingWindowService,
-    protected readonly $polygonalAreaMeasurementsFloatingWindowService: PolygonalAreaMeasurementsFloatingWindowService,
+    protected readonly $calculateLineFloatingWindowService: CalculateLineFloatingWindowService,
+    protected readonly $calculateRectangleFloatingWindowService: CalculateRectangleFloatingWindowService,
+    protected readonly $calculateCircleFloatingWindowService: CalculateCircleFloatingWindowService,
+    protected readonly $calculatePolygonFloatingWindowService: CalculatePolygonFloatingWindowService,
     // Notice: плавающие окна пока что не используются
     // Инструменты работы с камерой
     // protected readonly $flyAroundFloatingWindowService: FlyAroundFloatingWindowService,
@@ -103,41 +103,41 @@ export class ToolsFloatingWindows {
     this.floatingWindowsComponents = [
       // Инструменты рисования
       {
-        type: AddMarkFloatingWindow,
-        name: this.$addMarkFloatingWindowService.toolName,
+        type: DrawMarkFloatingWindow,
+        name: this.$drawMarkFloatingWindowService.toolName,
       },
       {
-        type: AddLineFloatingWindow,
-        name: this.$addLineFloatingWindowService.toolName,
+        type: DrawLineFloatingWindow,
+        name: this.$drawLineFloatingWindowService.toolName,
       },
       {
-        type: AddRectangleFloatingWindow,
-        name: this.$addRectangleFloatingWindowService.toolName,
+        type: DrawRectangleFloatingWindow,
+        name: this.$drawRectangleFloatingWindowService.toolName,
       },
       {
-        type: AddCircleFloatingWindow,
-        name: this.$addCircleFloatingWindowService.toolName,
+        type: DrawCircleFloatingWindow,
+        name: this.$drawCircleFloatingWindowService.toolName,
       },
       {
-        type: AddPolygonFloatingWindow,
-        name: this.$addPolygonFloatingWindowService.toolName,
+        type: DrawPolygonFloatingWindow,
+        name: this.$drawPolygonFloatingWindowService.toolName,
       },
       // Инструменты измерения
       {
-        type: LinearMeasurementsFloatingWindow,
-        name: this.$linearMeasurementsFloatingWindowService.toolName,
+        type: CalculateLineFloatingWindow,
+        name: this.$calculateLineFloatingWindowService.toolName,
       },
       {
-        type: RectangleAreaMeasurementsFloatingWindow,
-        name: this.$rectangleAreaMeasurementsFloatingWindowService.toolName,
+        type: CalculateRectangleFloatingWindow,
+        name: this.$calculateRectangleFloatingWindowService.toolName,
       },
       {
-        type: CircleAreaMeasurementsFloatingWindow,
-        name: this.$circleAreaMeasurementsFloatingWindowService.toolName,
+        type: CalculateCircleFloatingWindow,
+        name: this.$calculateCircleFloatingWindowService.toolName,
       },
       {
-        type: PolygonalAreaMeasurementsFloatingWindow,
-        name: this.$polygonalAreaMeasurementsFloatingWindowService.toolName,
+        type: CalculatePolygonFloatingWindow,
+        name: this.$calculatePolygonFloatingWindowService.toolName,
       },
       // Notice: плавающие окна пока что не используются
       // Инструменты работы с камерой

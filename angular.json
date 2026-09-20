@@ -118,7 +118,7 @@
             "runner": "vitest",
             "exclude": [
               "src/app/planet/components/tools/drawing-tools/components/drawing-tool-blank/**/*.spec.ts",
-              "src/app/global/interceptors/use-api-serv-proxy-interceptor/**/*.spec.ts",
+              "src/app/global/interceptors/api-url-chunk-proxy-interceptor/**/*.spec.ts",
               "src/environments/**"
             ]
           }

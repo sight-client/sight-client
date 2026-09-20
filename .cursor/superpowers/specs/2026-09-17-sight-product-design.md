@@ -46,18 +46,18 @@ Sight (пакет `sight-client` v1.4.0) — некоммерческий CV-п�
 - Bootstrap: `src/main.ts` задаёт `CESIUM_BASE_URL = '/sight-client/assets/cesium/'`.
 - `App` стартует сервисы темы и держит `RouterOutlet`.
 
-HTTP interceptors (`app.config.ts`): `badHtmlInterceptor`, `stopDoubleRequestInterceptor`, `cachingGetReqInterceptor`; класс `ShowProgressInterceptor`. API-proxy interceptor закомментирован (бэкенда нет).
+HTTP interceptors (`app.config.ts`): `badHtmlInterceptor`, `doubleReqPreventionInterceptor`, `getReqCachingInterceptor`; класс `DownloadProgressInterceptor`. API-proxy interceptor закомментирован (бэкенда нет).
 
 ## Module map
 
 | Область | Path | Дочерняя спека |
 |---|---|---|
-| Viewer, CRS, камера, координаты под курсором | `src/app/planet/common/`, camera-tools | [viewer-crs](./2026-09-17-sight-viewer-crs-design.md) |
+| Viewer, CRS, камера, координаты под курсором | `src/app/planet/common/`, camera-view-tools | [viewer-crs](./2026-09-17-sight-viewer-crs-design.md) |
 | Рисование, измерения, список, KML/ODS, плавающие окна | `src/app/planet/components/tools/`, `floating-windows/` | [map-tools](./2026-09-17-sight-map-tools-design.md) |
-| Тема, Material, устройство, меню | `src/app/global/`, `user-menu` | [ui-theme](./2026-09-17-sight-ui-theme-design.md) |
+| Тема, Material, устройство, меню | `src/app/global/`, `main-menu` | [ui-theme](./2026-09-17-sight-ui-theme-design.md) |
 | Хостинг Pages, `docs/`, env | `angular.json`, `src/main.ts`, `src/environments/` | [github-pages](./2026-09-17-sight-github-pages-design.md) |
 
-`Planet` (`src/app/planet/planet.ts`) — корень композиции: **provides** `ViewerService`, `MouseCoordsService`, `ToolsService`, сервисы drawing/measure/camera, `FloatingWindowsService`, `ToolsListService` (скоуп компонента, не `providedIn: 'root'`).
+`Planet` (`src/app/planet/planet.ts`) — корень композиции: **provides** `ViewerService`, `CursorCoordsService`, `ToolsService`, сервисы drawing/measure/camera, `FloatingWindowsService`, `DrawingsListService` (скоуп компонента, не `providedIn: 'root'`).
 
 ## Features (README → спека)
 

@@ -3,36 +3,36 @@ import { provideZonelessChangeDetection, signal } from '@angular/core';
 
 import * as Cesium from 'cesium';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { MouseCoordsService } from '@/common/services/mouse-coords-service/mouse-coords.service';
+import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
 import { DrawingService } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 import { MeasureService } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
-import { CameraToolsService } from '@/components/tools/camera-tools/services/camera-tools-service/camera-tools.service';
-import { AddMarkService } from '@/components/tools/drawing-tools/components/add-mark/services/add-mark-service/add-mark.service';
-import { AddLineService } from '@/components/tools/drawing-tools/components/add-line/services/add-line-service/add-line.service';
-import { AddRectangleService } from '@/components/tools/drawing-tools/components/add-rectangle/services/add-rectangle-service/add-rectangle.service';
-import { AddCircleService } from '@/components/tools/drawing-tools/components/add-circle/services/add-circle-service/add-circle.service';
-import { AddPolygonService } from '@/components/tools/drawing-tools/components/add-polygon/services/add-polygon-service/add-polygon.service';
-import { EraseEntityService } from '@/components/tools/drawing-tools/components/erase-entity/services/erase-entity.service';
-import { LinearMeasurementsService } from '@/components/tools/measuring-tools/components/linear-measurements/services/linear-measurements-service/linear-measurements.service';
-import { RectangleAreaMeasurementsService } from '@/components/tools/measuring-tools/components/rectangle-area-measurements/services/rectangle-area-measurements-service/rectangle-area-measurements.service';
-import { CircleAreaMeasurementsService } from '@/components/tools/measuring-tools/components/circle-area-measurements/services/circle-area-measurements-service/circle-area-measurements.service';
-import { PolygonalAreaMeasurementsService } from '@/components/tools/measuring-tools/components/polygonal-area-measurements/services/polygonal-area-measurements-service/polygonal-area-measurements.service';
-import { FlyAroundService } from '@/components/tools/camera-tools/components/fly-around/services/fly-around-service/fly-around.service';
+import { CameraViewToolsService } from '@/components/tools/camera-view-tools/services/camera-view-tools-service/camera-view-tools.service';
+import { DrawMarkService } from '@/components/tools/drawing-tools/components/draw-mark/services/draw-mark-service/draw-mark.service';
+import { DrawLineService } from '@/components/tools/drawing-tools/components/draw-line/services/draw-line-service/draw-line.service';
+import { DrawRectangleService } from '@/components/tools/drawing-tools/components/draw-rectangle/services/draw-rectangle-service/draw-rectangle.service';
+import { DrawCircleService } from '@/components/tools/drawing-tools/components/draw-circle/services/draw-circle-service/draw-circle.service';
+import { DrawPolygonService } from '@/components/tools/drawing-tools/components/draw-polygon/services/draw-polygon-service/draw-polygon.service';
+import { EntityRubberService } from '@/components/tools/drawing-tools/components/entity-rubber/services/entity-rubber.service';
+import { CalculateLineService } from '@/components/tools/measuring-tools/components/calculate-line/services/calculate-line-service/calculate-line.service';
+import { CalculateRectangleService } from '@/components/tools/measuring-tools/components/calculate-rectangle/services/calculate-rectangle-service/calculate-rectangle.service';
+import { CalculateCircleService } from '@/components/tools/measuring-tools/components/calculate-circle/services/calculate-circle-service/calculate-circle.service';
+import { CalculatePolygonService } from '@/components/tools/measuring-tools/components/calculate-polygon/services/calculate-polygon-service/calculate-polygon.service';
+import { FlyAroundService } from '@/components/tools/camera-view-tools/components/fly-around/services/fly-around-service/fly-around.service';
 import { FloatingWindowsService } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
-import { ToolsListService } from '@/components/tools/tools-list/services/tools-list-service/tools-list.service';
-import { ToolsListKmlService } from '@/components/tools/tools-list/services/tools-list-kml-service/tools-list-kml.service';
-import { ToolsListReportService } from '@/components/tools/tools-list/services/tools-list-report-service/tools-list-report.service';
-import { AddMarkFloatingWindowService } from '@/components/tools/drawing-tools/components/add-mark/components/add-mark-floating-window/services/add-mark-floating-window-service/add-mark-floating-window.service';
-import { AddLineFloatingWindowService } from '@/components/tools/drawing-tools/components/add-line/components/add-line-floating-window/services/add-line-floating-window-service/add-line-floating-window.service';
-import { AddRectangleFloatingWindowService } from '@/components/tools/drawing-tools/components/add-rectangle/components/add-rectangle-floating-window/services/add-rectangle-floating-window-service/add-rectangle-floating-window.service';
-import { AddCircleFloatingWindowService } from '@/components/tools/drawing-tools/components/add-circle/components/add-circle-floating-window/services/add-circle-floating-window-service/add-circle-floating-window.service';
-import { AddPolygonFloatingWindowService } from '@/components/tools/drawing-tools/components/add-polygon/components/add-polygon-floating-window/services/add-polygon-floating-window-service/add-polygon-floating-window.service';
-import { LinearMeasurementsFloatingWindowService } from '@/components/tools/measuring-tools/components/linear-measurements/components/linear-measurements-floating-window/services/linear-measurements-floating-window-service/linear-measurements-floating-window.service';
-import { RectangleAreaMeasurementsFloatingWindowService } from '@/components/tools/measuring-tools/components/rectangle-area-measurements/components/rectangle-area-measurements-floating-window/services/rectangle-area-measurements-floating-window-service/rectangle-area-measurements-floating-window.service';
-import { CircleAreaMeasurementsFloatingWindowService } from '@/components/tools/measuring-tools/components/circle-area-measurements/components/circle-area-measurements-floating-window/services/circle-area-measurements-floating-window-service/circle-area-measurements-floating-window.service';
-import { PolygonalAreaMeasurementsFloatingWindowService } from '@/components/tools/measuring-tools/components/polygonal-area-measurements/components/polygonal-area-measurements-floating-window/services/polygonal-area-measurements-floating-window-service/polygonal-area-measurements-floating-window.service';
-import { FlyAroundFloatingWindowService } from '@/components/tools/camera-tools/components/fly-around/components/fly-around-floating-window/services/fly-around-floating-window-service/fly-around-floating-window.service';
+import { DrawingsListService } from '@/components/tools/drawings-list/services/drawings-list-service/drawings-list.service';
+import { DrawingsListKmlService } from '@/components/tools/drawings-list/services/drawings-list-kml-service/drawings-list-kml.service';
+import { DrawingsListReportService } from '@/components/tools/drawings-list/services/drawings-list-report-service/drawings-list-report.service';
+import { DrawMarkFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-mark/components/draw-mark-floating-window/services/draw-mark-floating-window-service/draw-mark-floating-window.service';
+import { DrawLineFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-line/components/draw-line-floating-window/services/draw-line-floating-window-service/draw-line-floating-window.service';
+import { DrawRectangleFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-rectangle/components/draw-rectangle-floating-window/services/draw-rectangle-floating-window-service/draw-rectangle-floating-window.service';
+import { DrawCircleFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-circle/components/draw-circle-floating-window/services/draw-circle-floating-window-service/draw-circle-floating-window.service';
+import { DrawPolygonFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-polygon/components/draw-polygon-floating-window/services/draw-polygon-floating-window-service/draw-polygon-floating-window.service';
+import { CalculateLineFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-line/components/calculate-line-floating-window/services/calculate-line-floating-window-service/calculate-line-floating-window.service';
+import { CalculateRectangleFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-rectangle/components/calculate-rectangle-floating-window/services/calculate-rectangle-floating-window-service/calculate-rectangle-floating-window.service';
+import { CalculateCircleFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-circle/components/calculate-circle-floating-window/services/calculate-circle-floating-window-service/calculate-circle-floating-window.service';
+import { CalculatePolygonFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-polygon/components/calculate-polygon-floating-window/services/calculate-polygon-floating-window-service/calculate-polygon-floating-window.service';
+import { FlyAroundFloatingWindowService } from '@/components/tools/camera-view-tools/components/fly-around/components/fly-around-floating-window/services/fly-around-floating-window-service/fly-around-floating-window.service';
 import { Planet } from './planet';
 
 function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
@@ -84,35 +84,35 @@ describe('MainSight', () => {
         set: {
           providers: [
             { provide: ViewerService, useValue: fakeViewerService() },
-            MouseCoordsService,
+            CursorCoordsService,
         ToolsService,
         DrawingService,
         MeasureService,
-        CameraToolsService,
-        AddMarkService,
-        AddLineService,
-        AddRectangleService,
-        AddCircleService,
-        AddPolygonService,
-        EraseEntityService,
-        LinearMeasurementsService,
-        RectangleAreaMeasurementsService,
-        CircleAreaMeasurementsService,
-        PolygonalAreaMeasurementsService,
+        CameraViewToolsService,
+        DrawMarkService,
+        DrawLineService,
+        DrawRectangleService,
+        DrawCircleService,
+        DrawPolygonService,
+        EntityRubberService,
+        CalculateLineService,
+        CalculateRectangleService,
+        CalculateCircleService,
+        CalculatePolygonService,
         FlyAroundService,
         FloatingWindowsService,
-        ToolsListService,
-        ToolsListKmlService,
-        ToolsListReportService,
-        AddMarkFloatingWindowService,
-        AddLineFloatingWindowService,
-        AddRectangleFloatingWindowService,
-        AddCircleFloatingWindowService,
-        AddPolygonFloatingWindowService,
-        LinearMeasurementsFloatingWindowService,
-        RectangleAreaMeasurementsFloatingWindowService,
-        CircleAreaMeasurementsFloatingWindowService,
-        PolygonalAreaMeasurementsFloatingWindowService,
+        DrawingsListService,
+        DrawingsListKmlService,
+        DrawingsListReportService,
+        DrawMarkFloatingWindowService,
+        DrawLineFloatingWindowService,
+        DrawRectangleFloatingWindowService,
+        DrawCircleFloatingWindowService,
+        DrawPolygonFloatingWindowService,
+        CalculateLineFloatingWindowService,
+        CalculateRectangleFloatingWindowService,
+        CalculateCircleFloatingWindowService,
+        CalculatePolygonFloatingWindowService,
         FlyAroundFloatingWindowService,
           ],
         },

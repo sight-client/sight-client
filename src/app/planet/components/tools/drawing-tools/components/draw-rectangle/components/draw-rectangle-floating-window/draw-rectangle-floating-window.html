@@ -1,0 +1,58 @@
+@if ($drawRectangleFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$drawRectangleFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="draw-rectangle-floating-window-content-wrapper">
+    <div class="draw-rectangle-floating-window-private">
+      @if ($drawRectangleFloatingWindowService.validPickedEnttity()?.id?.includes('-polygon-')) {
+        <div class="draw-rectangle-floating-window-private-info">
+          <div class="draw-rectangle-floating-window-private-naming">
+            <span>Наименование:</span>
+            <input
+              maxlength="70"
+              placeholder="Введите наименование"
+              matTooltip="Наименование"
+              matTooltipShowDelay="1000"
+              [value]="$drawRectangleFloatingWindowService.validPickedEnttity()?.name"
+              (input)="
+                $toolsService.changeEntityName(
+                  $event.target.value,
+                  $drawRectangleFloatingWindowService.validPickedEnttity()!.id,
+                  this.$drawingService.drawRectangleEntitiesList,
+                  $event.target.value
+                )
+              "
+            />
+          </div>
+        </div>
+        <div class="draw-rectangle-floating-window-private-settings">
+          <div class="draw-rectangle-floating-window-private-color">
+            <span>Цвет:</span>
+            <input
+              type="color"
+              matTooltip="Цвет"
+              matTooltipShowDelay="1000"
+              [value]="
+                $drawRectangleFloatingWindowService
+                  .validPickedEnttity()
+                  ?.polyline?.material?.getValue()
+                  .color.toCssHexString()
+              "
+              (change)="
+                $toolsService.changeEntityColor(
+                  $event.target.value,
+                  $drawRectangleFloatingWindowService.validPickedEnttity()!.id,
+                  this.$drawingService.drawRectangleEntitiesList
+                )
+              "
+            />
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>

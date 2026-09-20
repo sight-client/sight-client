@@ -91,8 +91,8 @@ EOF
 ### Task 2: Device, spinner, error handler, cursor listener
 
 **Files:**
-- Modify: `src/app/global/services/device-service/device.service.spec.ts`
-- Modify: `src/app/global/services/set-cursor-progress-spinner-service/set-cursor-progress-spinner.service.spec.ts`
+- Modify: `src/app/global/services/check-mobile-device-service/check-mobile-device.service.spec.ts`
+- Modify: `src/app/global/services/set-progress-spinner-service/set-progress-spinner.service.spec.ts`
 - Modify: `src/app/global/services/global-error-handler-service/global-error-handler.service.spec.ts`
 - Modify: `src/app/global/listeners/cursor-position-listener/cursor-position-listener.spec.ts`
 - Skip `user-data.service.ts` auth helpers unless they have branches that run without a backend — then characterize those branches only.
@@ -117,11 +117,11 @@ Cursor listener: after `addListener`, dispatch `mousemove` on `document` with `c
 
 **Files:**
 - Modify: `src/app/global/interceptors/bad-html-interceptor/bad-html.interceptor.spec.ts`
-- Modify: `src/app/global/interceptors/stop-double-request-interceptor/stop-double-request.interceptor.spec.ts`
-- Modify: `src/app/global/interceptors/caching-get-req-interceptor/caching-get-req.interceptor.spec.ts`
-- Modify: `src/app/global/interceptors/show-progress-inrerceptor/show-progress.interceptor.spec.ts`
+- Modify: `src/app/global/interceptors/double-req-prevention-interceptor/double-req-prevention.interceptor.spec.ts`
+- Modify: `src/app/global/interceptors/get-req-caching-interceptor/get-req-caching.interceptor.spec.ts`
+- Modify: `src/app/global/interceptors/download-progress-interceptor/download-progress.interceptor.spec.ts`
 
-Do not open `use-api-serv-proxy`.
+Do not open `api-url-chunk-proxy`.
 
 - [ ] **Step 1: badHtml**
 
@@ -183,11 +183,11 @@ Host `<input autofocusDirective />`: after `detectChanges`, `document.activeElem
 **Files:**
 - `src/app/app.spec.ts` — App constructor calls theme start (spy services).
 - `src/app/landing-page/landing-page.spec.ts` — `should create` only; do not register the route.
-- `src/app/global/components/theme-changer/**` — `should create`; if switcher calls `setColorScheme`, click it and assert the service spy.
-- `src/app/global/components/cursor-progress-spinner/cursor-progress-spinner.spec.ts` — visible when `isShowSpinner` true if the template binds it.
+- `src/app/global/components/ui-theme/**` — `should create`; if switcher calls `setColorScheme`, click it and assert the service spy.
+- `src/app/global/components/progress-spinner/progress-spinner.spec.ts` — visible when `isShowSpinner` true if the template binds it.
 - `src/app/global/common/components/custom-switch-toggle/custom-switch-toggle.spec.ts` — checkbox change emits `checkedChange`.
-- `src/app/global/components/account-features/**` — `should create` (no real auth).
-- `src/app/planet/components/user-menu/user-menu.spec.ts` — `should create` (+ menu open if it is a method, not only Material internals).
+- `src/app/global/components/user-account-features/**` — `should create` (no real auth).
+- `src/app/planet/components/main-menu/main-menu.spec.ts` — `should create` (+ menu open if it is a method, not only Material internals).
 
 Do not snapshot templates. Do not assert Material internals.
 

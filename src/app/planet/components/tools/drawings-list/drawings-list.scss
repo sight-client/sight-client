@@ -1,0 +1,138 @@
+:host {
+  // Плюс, есть исключения в mat-exceptions-core.scss
+  .drawings-list-wrapper {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    --drawings-list-header-height: 2em;
+    --drawings-list-height-gap: 3px;
+    --drawings-list-accordons-margin-top: 0.3rem;
+
+    .drawings-list-header {
+      --drawings-list-header-auxiliary-buttons-container-width: 40px;
+      // --drawings-list-header-auxiliary-buttons-container-height: calc(
+      //   var(--drawings-list-header-height) + var(--drawings-list-height-gap) * 2 +
+      //     var(--drawings-list-accordons-margin-top)
+      // );
+      // height: var(--drawings-list-header-auxiliary-buttons-container-height);
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--drawings-list-height-gap);
+      margin: var(--drawings-list-height-gap) 0px;
+      // Для корректировки отступа .drawings-list-item-header (скрывается при .drawings-list-item-header-hidden)
+      margin-bottom: calc(var(--drawings-list-accordons-margin-top) * -1);
+      .drawings-list-header-description {
+        flex-grow: 1;
+        font-weight: bold;
+        text-align: center;
+        text-decoration: underline;
+        user-select: none;
+        padding-left: var(--drawings-list-header-auxiliary-buttons-container-width);
+      }
+      .drawings-list-header-auxiliary-buttons-container {
+        max-width: var(--drawings-list-header-auxiliary-buttons-container-width);
+      }
+    }
+
+    .drawings-list-accordion-wrapper {
+      // height: calc(
+      //   100% - var(--drawings-list-header-auxiliary-buttons-container-height) - var(
+      //       --drawings-list-height-gap
+      //     )
+      // );
+      width: 100%;
+      flex-grow: 1;
+      overflow-x: hidden;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
+      scrollbar-width: thin;
+      .drawings-list-accordion {
+        transition: opacity 300ms ease-in-out;
+        // Стили элементов аккордионов - в mat-exceptions-core.scss (уже отработаны на user-projects.scss)
+        .drawings-list-item {
+          .drawings-list-item-entities-list {
+            padding-left: 8px;
+            padding-right: 13px;
+            .drawings-list-item-entities-list-line:nth-child(even):not(
+                .drawings-list-item-entities-list-line-active
+              ) {
+              background-color: var(--theme-ui-background-color);
+              // background-color: color-mix(
+              //   in srgb,
+              //   var(--theme-ui-background-color),
+              //   transparent 60%
+              // );
+            }
+            .drawings-list-item-entities-list-line-active {
+              background-color: var(--theme-focused-container-background-color);
+            }
+            .drawings-list-item-entities-list-line {
+              --drawings-list-item-entity-button-size-modifier: 0.7;
+              margin-top: var(--drawings-list-height-gap);
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              gap: var(--drawings-list-height-gap);
+              .drawings-list-item-entity-info {
+                flex-grow: 1;
+                cursor: pointer;
+              }
+              .drawings-list-item-entity-info-overs {
+                cursor: auto;
+              }
+              button {
+                transform: scale(var(--drawings-list-item-entity-button-size-modifier));
+                width: var(--regular-btn-svg-size);
+                min-width: var(--regular-btn-svg-size);
+                height: var(--regular-btn-svg-size);
+                margin: 0px 3px;
+                padding: 0px;
+                border-radius: 12px;
+                mat-icon {
+                  padding: 0;
+                  margin: -1px;
+                  width: var(--regular-btn-svg-size);
+                  height: var(--regular-btn-svg-size);
+                  svg {
+                    opacity: 0.8;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  .drawings-list-entity-info {
+    width: 100%;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    .drawings-list-entity-info-text {
+      flex-grow: 1;
+      font: var(--mat-sys-body-medium);
+      letter-spacing: normal;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+      -webkit-box-orient: vertical;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .drawings-list-entity-info-text-most-detailed-icon {
+      margin-left: 0.3em;
+      margin-right: 5px;
+      margin-top: -8px;
+      width: 1em;
+      height: 1em;
+      font-size: 1em;
+      line-height: unset;
+      cursor: help;
+      user-select: none;
+    }
+  }
+}

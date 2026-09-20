@@ -1,0 +1,58 @@
+@if ($drawPolygonFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$drawPolygonFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="draw-polygon-floating-window-content-wrapper">
+    <div class="draw-polygon-floating-window-private">
+      @if ($drawPolygonFloatingWindowService.validPickedEnttity()?.id?.includes('-polygon-')) {
+        <div class="draw-polygon-floating-window-private-info">
+          <div class="draw-polygon-floating-window-private-naming">
+            <span>Наименование:</span>
+            <input
+              maxlength="70"
+              placeholder="Введите наименование"
+              matTooltip="Наименование"
+              matTooltipShowDelay="1000"
+              [value]="$drawPolygonFloatingWindowService.validPickedEnttity()?.name"
+              (input)="
+                $toolsService.changeEntityName(
+                  $event.target.value,
+                  $drawPolygonFloatingWindowService.validPickedEnttity()!.id,
+                  this.$drawingService.drawPolygonEntitiesList,
+                  $event.target.value
+                )
+              "
+            />
+          </div>
+        </div>
+        <div class="draw-polygon-floating-window-private-settings">
+          <div class="draw-polygon-floating-window-private-color">
+            <span>Цвет:</span>
+            <input
+              type="color"
+              matTooltip="Цвет"
+              matTooltipShowDelay="1000"
+              [value]="
+                $drawPolygonFloatingWindowService
+                  .validPickedEnttity()
+                  ?.polyline?.material?.getValue()
+                  .color.toCssHexString()
+              "
+              (change)="
+                $toolsService.changeEntityColor(
+                  $event.target.value,
+                  $drawPolygonFloatingWindowService.validPickedEnttity()!.id,
+                  this.$drawingService.drawPolygonEntitiesList
+                )
+              "
+            />
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>

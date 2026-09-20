@@ -20,26 +20,26 @@ export interface DrawingOptions extends ToolOptions {
 
 // Пополнять при добавлении новых инструментов (ТОЛЬКО ДЛЯ ИНСТРУМЕНТОВ, ДОБАВЛЯЮЩИХ СУЩНОСТИ В МЕСТНЫЕ СТОРЫ)
 export const drawingToolsNames = Object.freeze([
-  'addMark',
-  'addLine',
-  'addRectangle',
-  'addCircle',
-  'addPolygon',
+  'drawMark',
+  'drawLine',
+  'drawRectangle',
+  'drawCircle',
+  'drawPolygon',
 ] as const);
 export type DrawingToolName = (typeof drawingToolsNames)[number];
 
 // Пополнять при добавлении новых инструментов (ТОЛЬКО ДЛЯ ИНСТРУМЕНТОВ, ДОБАВЛЯЮЩИХ СУЩНОСТИ В МЕСТНЫЕ СТОРЫ)
 export function getRusDrawingToolName(toolName: DrawingToolName | string) {
   switch (toolName) {
-    case 'addMark':
+    case 'drawMark':
       return 'Метка';
-    case 'addLine':
+    case 'drawLine':
       return 'Линия';
-    case 'addRectangle':
+    case 'drawRectangle':
       return 'Прямоугольник';
-    case 'addCircle':
+    case 'drawCircle':
       return 'Окружность';
-    case 'addPolygon':
+    case 'drawPolygon':
       return 'Многоугольник';
     // case 'newTool':
     //   return 'Новый инструмент';
@@ -49,26 +49,26 @@ export function getRusDrawingToolName(toolName: DrawingToolName | string) {
 }
 
 export const drawingToolsNamesRus = Object.freeze([
-  getRusDrawingToolName('addMark'),
-  getRusDrawingToolName('addLine'),
-  getRusDrawingToolName('addRectangle'),
-  getRusDrawingToolName('addCircle'),
-  getRusDrawingToolName('addPolygon'),
+  getRusDrawingToolName('drawMark'),
+  getRusDrawingToolName('drawLine'),
+  getRusDrawingToolName('drawRectangle'),
+  getRusDrawingToolName('drawCircle'),
+  getRusDrawingToolName('drawPolygon'),
 ] as const);
 export type DrawingToolNameRus = (typeof drawingToolsNamesRus)[number];
 // Пополнять при добавлении новых инструментов (ТОЛЬКО ДЛЯ ИНСТРУМЕНТОВ, ДОБАВЛЯЮЩИХ СУЩНОСТИ В МЕСТНЫЕ СТОРЫ)
 export function getOriginDrawingToolName(toolNameRus: DrawingToolNameRus | string) {
   switch (toolNameRus) {
-    case getRusDrawingToolName('addMark'):
-      return 'addMark';
-    case getRusDrawingToolName('addLine'):
-      return 'addLine';
-    case getRusDrawingToolName('addRectangle'):
-      return 'addRectangle';
-    case getRusDrawingToolName('addCircle'):
-      return 'addCircle';
-    case getRusDrawingToolName('addPolygon'):
-      return 'addPolygon';
+    case getRusDrawingToolName('drawMark'):
+      return 'drawMark';
+    case getRusDrawingToolName('drawLine'):
+      return 'drawLine';
+    case getRusDrawingToolName('drawRectangle'):
+      return 'drawRectangle';
+    case getRusDrawingToolName('drawCircle'):
+      return 'drawCircle';
+    case getRusDrawingToolName('drawPolygon'):
+      return 'drawPolygon';
     default:
       return toolNameRus;
   }
@@ -107,29 +107,29 @@ export class DrawingService {
               ['vectorPolygons', 'addAnnotation', 'addPhoto', 'addDome', 'heatmap'],
             );
           }
-          if (this._addMarkEntitiesList()?.length)
+          if (this._drawMarkEntitiesList()?.length)
             this.$toolsService.switchClampingToGroudForOneStoreEntities(
-              this._addMarkEntitiesList,
+              this._drawMarkEntitiesList,
               onFlag,
             );
-          if (this._addLineEntitiesList()?.length)
+          if (this._drawLineEntitiesList()?.length)
             this.$toolsService.switchClampingToGroudForOneStoreEntities(
-              this._addLineEntitiesList,
+              this._drawLineEntitiesList,
               onFlag,
             );
-          if (this._addRectangleEntitiesList()?.length)
+          if (this._drawRectangleEntitiesList()?.length)
             this.$toolsService.switchClampingToGroudForOneStoreEntities(
-              this._addRectangleEntitiesList,
+              this._drawRectangleEntitiesList,
               onFlag,
             );
-          if (this._addCircleEntitiesList()?.length)
+          if (this._drawCircleEntitiesList()?.length)
             this.$toolsService.switchClampingToGroudForOneStoreEntities(
-              this._addCircleEntitiesList,
+              this._drawCircleEntitiesList,
               onFlag,
             );
-          if (this._addPolygonEntitiesList()?.length)
+          if (this._drawPolygonEntitiesList()?.length)
             this.$toolsService.switchClampingToGroudForOneStoreEntities(
-              this._addPolygonEntitiesList,
+              this._drawPolygonEntitiesList,
               onFlag,
             );
           if (this._routeEntityList()?.length)
@@ -156,35 +156,35 @@ export class DrawingService {
   // -------------------------------------------------- Блок размещения сторов инструментов --------------------------------------- //
 
   // Реактивные массивы сущностей, созданных инструментами работы с картой. Также используются в плавающих окнах таких инструментов и в списке нанесенных сущностей в ппанели.
-  private _addMarkEntitiesList = signal<Array<EntitiesGroup | undefined>>([]);
-  get addMarkEntitiesList() {
-    return this._addMarkEntitiesList;
+  private _drawMarkEntitiesList = signal<Array<EntitiesGroup | undefined>>([]);
+  get drawMarkEntitiesList() {
+    return this._drawMarkEntitiesList;
   }
-  public readonly isMarks = computed<boolean>(() => !!this._addMarkEntitiesList().length);
+  public readonly isMarks = computed<boolean>(() => !!this._drawMarkEntitiesList().length);
 
-  private _addLineEntitiesList = signal<Array<EntitiesGroup | undefined>>([]);
-  get addLineEntitiesList() {
-    return this._addLineEntitiesList;
+  private _drawLineEntitiesList = signal<Array<EntitiesGroup | undefined>>([]);
+  get drawLineEntitiesList() {
+    return this._drawLineEntitiesList;
   }
-  public readonly isLines = computed<boolean>(() => !!this._addLineEntitiesList().length);
+  public readonly isLines = computed<boolean>(() => !!this._drawLineEntitiesList().length);
 
-  private _addRectangleEntitiesList = signal<Array<EntitiesGroup | undefined>>([]);
-  get addRectangleEntitiesList() {
-    return this._addRectangleEntitiesList;
+  private _drawRectangleEntitiesList = signal<Array<EntitiesGroup | undefined>>([]);
+  get drawRectangleEntitiesList() {
+    return this._drawRectangleEntitiesList;
   }
-  public readonly isRectangles = computed<boolean>(() => !!this._addRectangleEntitiesList().length);
+  public readonly isRectangles = computed<boolean>(() => !!this._drawRectangleEntitiesList().length);
 
-  private _addCircleEntitiesList = signal<Array<EntitiesGroup | undefined>>([]);
-  get addCircleEntitiesList() {
-    return this._addCircleEntitiesList;
+  private _drawCircleEntitiesList = signal<Array<EntitiesGroup | undefined>>([]);
+  get drawCircleEntitiesList() {
+    return this._drawCircleEntitiesList;
   }
-  public readonly isCircles = computed<boolean>(() => !!this._addCircleEntitiesList().length);
+  public readonly isCircles = computed<boolean>(() => !!this._drawCircleEntitiesList().length);
 
-  private _addPolygonEntitiesList = signal<Array<EntitiesGroup | undefined>>([]);
-  get addPolygonEntitiesList() {
-    return this._addPolygonEntitiesList;
+  private _drawPolygonEntitiesList = signal<Array<EntitiesGroup | undefined>>([]);
+  get drawPolygonEntitiesList() {
+    return this._drawPolygonEntitiesList;
   }
-  public readonly isPoligons = computed<boolean>(() => !!this._addPolygonEntitiesList().length);
+  public readonly isPoligons = computed<boolean>(() => !!this._drawPolygonEntitiesList().length);
 
   private _vectorPolygonsList = signal<Array<EntitiesGroup | undefined>>([]);
   get vectorPolygonsList() {
@@ -217,7 +217,7 @@ export class DrawingService {
   public readonly isHeatmap = computed<boolean>(() => !!this._addDomeEntitiesList().length);
 
   // ...другие сторы
-  // НЕ ЗАБЫВАТЬ ДОБАВЛЯТЬ флаг типа "isEntities" в erase-entity.service.ts в Signal "storesAreEmpty" НОВЫЕ ИНСТРУМЕНТЫ с удаляемыми с холста сущностями
+  // НЕ ЗАБЫВАТЬ ДОБАВЛЯТЬ флаг типа "isEntities" в entity-rubber.service.ts в Signal "storesAreEmpty" НОВЫЕ ИНСТРУМЕНТЫ с удаляемыми с холста сущностями
 
   private _routeEntityList = signal<Array<EntitiesGroup | undefined>>([]); // хранилище для большого количества сущностей специфичного инструмента
   get routeEntityList() {
@@ -235,15 +235,15 @@ export class DrawingService {
     [P in DrawingToolName]: WritableSignal<Array<EntitiesGroup | undefined>>;
   } = {
     // prettier-ignore
-    'addMark': this._addMarkEntitiesList,
+    'drawMark': this._drawMarkEntitiesList,
     // prettier-ignore
-    'addLine': this._addLineEntitiesList,
+    'drawLine': this._drawLineEntitiesList,
     // prettier-ignore
-    'addRectangle': this._addRectangleEntitiesList,
+    'drawRectangle': this._drawRectangleEntitiesList,
     // prettier-ignore
-    'addCircle': this._addCircleEntitiesList,
+    'drawCircle': this._drawCircleEntitiesList,
     // prettier-ignore
-    'addPolygon': this._addPolygonEntitiesList,
+    'drawPolygon': this._drawPolygonEntitiesList,
 
     // ...другие сторы
   };

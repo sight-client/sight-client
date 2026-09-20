@@ -1,0 +1,47 @@
+.calculate-line-floating-window-content-wrapper {
+  min-width: 18rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  .calculate-line-floating-window-common {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+
+    span:first-child {
+      // margin-right: 15px;
+      margin-right: 5px;
+    }
+    input {
+      margin-left: 5px;
+      flex-grow: 1;
+    }
+  }
+
+  .calculate-line-floating-window-private-info-most-detailed-icon {
+    width: 1em;
+    height: 1em;
+    font-size: 1em;
+    line-height: unset;
+    margin-left: 0.2em;
+    cursor: help;
+    user-select: none;
+  }
+
+  .calculate-line-floating-window-private {
+    width: 100%;
+    overflow: hidden;
+
+    p {
+      padding: 0px;
+      margin: 0px;
+    }
+
+    .calculate-line-floating-window-private-info {
+      width: 100%;
+    }
+
+    // .calculate-line-floating-window-private-settings {
+    // }
+  }
+}

@@ -4,7 +4,7 @@ import { map, skip, startWith } from 'rxjs/operators';
 
 // Используется в:
 // - app.ts
-// - light-dark-mode-switcher.ts (переиспользование)
+// - light-dark-mode.ts (переиспользование)
 
 @Injectable({
   providedIn: 'root',

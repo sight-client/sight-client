@@ -7,8 +7,8 @@ import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import type { CustomViewer } from '@/common/services/viewer-service/viewer.service';
 import { CoordSystems } from '@/common/lib/coord-sistems.lib';
 import type { CRS } from '@/common/lib/coord-sistems.lib';
-import { MouseCoordsService } from '@/common/services/mouse-coords-service/mouse-coords.service';
-import { DeviceService } from '@global/services/device-service/device.service';
+import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
+import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 
 // ------------------------------------------------------------- Блок замечаний --------------------------------------------------- //
 
@@ -72,7 +72,7 @@ export const dataSourcesNames = Object.freeze([
   'drawLayer',
   'drawRoute',
   'measureLayer',
-  'cameraToolsLayer',
+  'cameraViewToolsLayer',
   'analysisToolsLayer',
 ] as const);
 export type DataSourceName = (typeof dataSourcesNames)[number];
@@ -80,14 +80,14 @@ export type DataSourceName = (typeof dataSourcesNames)[number];
 // ---------------------------------------------------------- Блок базовых установок ---------------------------------------------- //
 // Запровайден в planet.ts
 @Injectable()
-// Сервис стартует вместе с viewer'ом и координатами под курсором в директиве app-cesium.directive.ts
+// Сервис стартует вместе с viewer'ом и координатами под курсором в директиве run-viewer.directive.ts
 export class ToolsService {
   constructor(
     private $viewerService: ViewerService,
-    private $mouseCoordsService: MouseCoordsService,
-    private $deviceService: DeviceService,
+    private $cursorCoordsService: CursorCoordsService,
+    private $checkMobileDeviceService: CheckMobileDeviceService,
   ) {
-    this._isMobile = this.$deviceService.checkMobile();
+    this._isMobile = this.$checkMobileDeviceService.checkMobile();
   }
 
   //------------------------------------------------------------ //
@@ -113,10 +113,10 @@ export class ToolsService {
   public readonly drawingToolsLayerName: DataSourceName = 'drawLayer';
   public readonly drawRouteLayerName: DataSourceName = 'drawRoute';
   public readonly measuringToolsLayerName: DataSourceName = 'measureLayer';
-  public readonly cameraToolsLayerName: DataSourceName = 'cameraToolsLayer';
+  public readonly cameraViewToolsLayerName: DataSourceName = 'cameraViewToolsLayer';
   public readonly analysisToolsLayerName: DataSourceName = 'analysisToolsLayer';
 
-  // Используется в app-cesium.directive.ts
+  // Используется в run-viewer.directive.ts
   public async startToolsService(): Promise<void> {
     try {
       // Ссылка, позволяющая локально изменять главный объект viewer из ViewerService
@@ -126,7 +126,7 @@ export class ToolsService {
       await this._viewer?.dataSources.add(
         new Cesium.CustomDataSource(this.measuringToolsLayerName),
       );
-      await this._viewer?.dataSources.add(new Cesium.CustomDataSource(this.cameraToolsLayerName));
+      await this._viewer?.dataSources.add(new Cesium.CustomDataSource(this.cameraViewToolsLayerName));
       await this._viewer?.dataSources.add(new Cesium.CustomDataSource(this.analysisToolsLayerName));
       this._toolsServiceHasStarted.set(true);
     } catch (error: unknown) {
@@ -1341,7 +1341,7 @@ export class ToolsService {
   // ------------------------------------------------- Блок вспомогательных функций ----------------------------------------------- //
 
   public async getMouseEntity(mostDetailedHeightFlag: boolean = true): Promise<Cesium.Entity> {
-    return await this.$mouseCoordsService.getMouseEntity(mostDetailedHeightFlag);
+    return await this.$cursorCoordsService.getMouseEntity(mostDetailedHeightFlag);
   }
   public async getDetailedPosition(
     cartesian: Cesium.Cartesian3,
@@ -1377,10 +1377,10 @@ export class ToolsService {
 
   //------------------------------------------------------------ //
 
-  // Дубль из mouse-coords.service.ts - для автономности (используется инструментами данного сервиса)
+  // Дубль из cursor-coords.service.ts - для автономности (используется инструментами данного сервиса)
   public async getPositionCoordsDescription(
     cartesian: Cesium.Cartesian3 | undefined,
-    selectedCrs: CRS = this.$mouseCoordsService.selectedCrs(),
+    selectedCrs: CRS = this.$cursorCoordsService.selectedCrs(),
     heightVal?: number,
   ): Promise<
     | {
@@ -1423,7 +1423,7 @@ export class ToolsService {
         '',
       );
       // Обновляем описание координат
-      // Для компонента mouse-coords-info
+      // Для компонента cursor-coords-info
       let latitudeDescription = '';
       let longitudeDescription = '';
       let heightDescription = '';
@@ -1456,7 +1456,7 @@ export class ToolsService {
 
   public async getPositionCoordsNumbers(
     cartesian: Cesium.Cartesian3 | undefined,
-    selectedCrs: CRS = this.$mouseCoordsService.selectedCrs(),
+    selectedCrs: CRS = this.$cursorCoordsService.selectedCrs(),
     heightVal?: number,
   ): Promise<
     | {

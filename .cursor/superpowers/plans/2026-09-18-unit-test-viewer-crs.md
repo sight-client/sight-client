@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Characterize CRS conversion, humanify formatters, mouse-coords (with Viewer fake), scene-mode persistence, and camera-tool services — without creating `Cesium.Viewer`.
+**Goal:** Characterize CRS conversion, humanify formatters, cursor-coords (with Viewer fake), scene-mode persistence, and camera-tool services — without creating `Cesium.Viewer`.
 
 **Architecture:** Libs called directly. `ViewerService` methods that only set signals can run on the real class if they do not construct a Viewer; `getNewViewer` is never called. Mouse-coords uses the fake from the unit-test spec.
 
@@ -83,7 +83,7 @@ Read `distanceM` / `areaKm` / `latitude` bodies and assert the **actual** Russia
 
 - [ ] **Step 1: Do not call `getNewViewer`**
 
-Provide `SetCursorProgressSpinnerService`. `localStorage.sceneMode = '2D'` before `TestBed.inject`: `nowSceneModeDescription()` is `'2D'`. Invalid/missing storage → `'3D'`. `setClampToGround(false)` → `clampToGroundSignal() === false`. `setNowSceneMode(Cesium.SceneMode.COLUMBUS_VIEW)` → description `'Columbus'`.
+Provide `SetProgressSpinnerService`. `localStorage.sceneMode = '2D'` before `TestBed.inject`: `nowSceneModeDescription()` is `'2D'`. Invalid/missing storage → `'3D'`. `setClampToGround(false)` → `clampToGroundSignal() === false`. `setNowSceneMode(Cesium.SceneMode.COLUMBUS_VIEW)` → description `'Columbus'`.
 
 If constructor `effect` touches `this.viewer.clampToGround` on the empty `{} as CustomViewer`, characterize that it does not throw (current `viewer?.clampToGround !== undefined` guard).
 
@@ -91,18 +91,18 @@ If constructor `effect` touches `this.viewer.clampToGround` on the empty `{} as 
 
 ---
 
-### Task 4: MouseCoordsService (extend existing spec)
+### Task 4: CursorCoordsService (extend existing spec)
 
 **Files:**
-- Modify: `src/app/planet/common/services/mouse-coords-service/mouse-coords.service.spec.ts`
+- Modify: `src/app/planet/common/services/cursor-coords-service/cursor-coords.service.spec.ts`
 
 Keep the mobile `getCursorXY` / `cursorOnViewerCanvas` tests.
 
 - [ ] **Step 1: Additional characterizations**
 
-Desktop (`DeviceService` `{ checkMobile: () => false, isMobile: false }`): `getCursorXY` without event returns `undefined` (or whatever the code does — read `getCursorXY`). `setSelectedCrs('СК-42 м')` updates `selectedCrs()`.
+Desktop (`CheckMobileDeviceService` `{ checkMobile: () => false, isMobile: false }`): `getCursorXY` without event returns `undefined` (or whatever the code does — read `getCursorXY`). `setSelectedCrs('СК-42 м')` updates `selectedCrs()`.
 
-Do not call `startMouseCoordsService` unless the fake `viewer.scene.canvas` is set — that method throws `'Scene canvas is undefined!'` when missing; one test may assert that throw.
+Do not call `startCursorCoordsService` unless the fake `viewer.scene.canvas` is set — that method throws `'Scene canvas is undefined!'` when missing; one test may assert that throw.
 
 - [ ] **Step 2: Run. PASS. Commit.**
 
@@ -111,14 +111,14 @@ Do not call `startMouseCoordsService` unless the fake `viewer.scene.canvas` is s
 ### Task 5: Scene mode UI, camera tools, mouse HUD, Planet create
 
 **Files:**
-- Modify: `src/app/planet/components/tools/camera-tools/components/scene-mode-changer/scene-mode-changer.spec.ts`
-- Modify: `src/app/planet/components/tools/camera-tools/services/camera-tools-service/camera-tools-service.spec.ts` (filename stays; production is `camera-tools.service.ts`)
-- Modify: `src/app/planet/components/tools/camera-tools/components/fly-around/**/*.spec.ts` and `take-screenshot.spec.ts` — create + any method that only toggles a flag on the fake viewer
-- Modify: `src/app/planet/components/mouse-coords-info/mouse-coords-info.spec.ts` — create; CRS select calls `setSelectedCrs` if the template has a control
+- Modify: `src/app/planet/components/tools/camera-view-tools/components/scene-mode-changer/scene-mode-changer.spec.ts`
+- Modify: `src/app/planet/components/tools/camera-view-tools/services/camera-view-tools-service/camera-view-tools-service.spec.ts` (filename stays; production is `camera-view-tools.service.ts`)
+- Modify: `src/app/planet/components/tools/camera-view-tools/components/fly-around/**/*.spec.ts` and `take-screenshot.spec.ts` — create + any method that only toggles a flag on the fake viewer
+- Modify: `src/app/planet/components/cursor-coords-info/cursor-coords-info.spec.ts` — create; CRS select calls `setSelectedCrs` if the template has a control
 - Modify: `src/app/planet/components/camera-position-tools/camera-height-tool/camera-height-tool.spec.ts` — create with fake viewer
 - Modify: `src/app/planet/components/camera-position-tools/znemz-navigation-mixin/znemz-navigation-mixin.spec.ts` — create only (mixin needs viewer; do not instantiate Cesium widget)
 - Modify: `src/app/planet/planet.spec.ts` — keep create-only with fakes from hygiene
-- Modify: `src/app/planet/common/directives/app-cesium-directive/app-cesium.directive.spec.ts` — with `viewerHasLoaded` false, `setImageryProvider` is **not** called (spy)
+- Modify: `src/app/planet/common/directives/run-viewer-directive/run-viewer.directive.spec.ts` — with `viewerHasLoaded` false, `setImageryProvider` is **not** called (spy)
 
 SceneModeChanger: fake `viewerHasLoaded: signal(true)`, `viewer.scene.mode = 3`, `morphTo2D: vi.fn()`, `setNowSceneMode: vi.fn()`, `setDrawingsBlocker: vi.fn()`. Invoke `changeSceneMode` (via click or component instance). Expect `morphTo2D` called, `setNowSceneMode` with `SCENE2D`, and after fake timers 2000 ms `localStorage.sceneMode === '2D'`. Use `vi.useFakeTimers()`.
 

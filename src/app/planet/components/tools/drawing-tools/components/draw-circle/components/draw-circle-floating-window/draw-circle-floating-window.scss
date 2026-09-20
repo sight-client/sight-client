@@ -1,0 +1,41 @@
+.draw-circle-floating-window-content-wrapper {
+  min-width: 18rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  .draw-circle-floating-window-private {
+    width: 100%;
+    overflow: hidden;
+
+    p {
+      padding: 0px;
+      margin: 0px;
+    }
+
+    .draw-circle-floating-window-private-info {
+      width: 100%;
+      .draw-circle-floating-window-private-naming {
+        width: 100%;
+        display: flex;
+        align-items: center;
+
+        span:first-child {
+          margin-right: 5px;
+        }
+        input {
+          flex-grow: 1;
+        }
+      }
+    }
+
+    .draw-circle-floating-window-private-settings {
+      .draw-circle-floating-window-private-color {
+        display: flex;
+        align-items: center;
+        span:first-child {
+          margin-right: 5px;
+        }
+      }
+    }
+  }
+}

@@ -12,17 +12,17 @@ parent: 2026-09-17-sight-product-design.md
 
 ## Boot sequence
 
-Владелец: `AppCesiumDirective` (`[appCesiumDirective]`) на контейнере глобуса в `planet.html`.
+Владелец: `RunViewerDirective` (`[runViewerDirective]`) на контейнере глобуса в `planet.html`.
 
 1. `afterNextRender` → `ViewerService.getNewViewer(el.nativeElement)`.
 2. `effect` при `viewerHasLoaded()` → OSM `OpenStreetMapImageryProvider` через `setImageryProvider`.
-3. Следующий `effect` → `MouseCoordsService.startMouseCoordsService()` (`untracked`).
+3. Следующий `effect` → `CursorCoordsService.startCursorCoordsService()` (`untracked`).
 4. При `underMouseEntityHasLoaded()` → `ToolsService.startToolsService()`.
-5. При `toolsServiceHasStarted()` → `ToolsListService.startToolsListService()`.
+5. При `toolsServiceHasStarted()` → `DrawingsListService.startDrawingsListService()`.
 
 Цепочку не переставлять. Второй Viewer не создавать.
 
-`Planet.afterNextRender` также передаёт `mainSightContainerRef` в `MouseCoordsService.getWatchedContainerRef`.
+`Planet.afterNextRender` также передаёт `mainSightContainerRef` в `CursorCoordsService.getWatchedContainerRef`.
 
 ## ViewerService
 
@@ -63,7 +63,7 @@ Picking: `setNewPickedEntity` обновляет и «new», и «forced» си�
 
 Панель: `FlyAround`, `TakeScreenshot`, `SceneModeChanger` в `tools-panel.ts`.
 
-`CameraToolsService` (providers `Planet`): имена `flyAround`, `pointView`. `pointView` есть в типах/сторе «на потом»; отдельной кнопки «вид из точки» в UI нет. Плавающие окна camera tools **закомментированы** в `tools-floating-windows.ts`. Временный стор сущностей; смена clamp через `ToolsService` при смене режима сцены.
+`CameraViewToolsService` (providers `Planet`): имена `flyAround`, `pointView`. `pointView` есть в типах/сторе «на потом»; отдельной кнопки «вид из точки» в UI нет. Плавающие окна camera tools **закомментированы** в `tools-floating-windows.ts`. Временный стор сущностей; смена clamp через `ToolsService` при смене режима сцены.
 
 `SceneModeChanger` пишет `localStorage.sceneMode` и `ViewerService.setNowSceneMode`.
 
@@ -71,10 +71,10 @@ Picking: `setNewPickedEntity` обновляет и «new», и «forced» си�
 
 ## Mouse coordinates
 
-`MouseCoordsService`: скрытая сущность Cesium `id: 'mouse'` в `CustomDataSource('mousePosition')` для pick/позиции; видимый HUD — HTML `MouseCoordsInfo` (label Cesium давал фризы).
+`CursorCoordsService`: скрытая сущность Cesium `id: 'mouse'` в `CustomDataSource('mousePosition')` для pick/позиции; видимый HUD — HTML `CursorCoordsInfo` (label Cesium давал фризы).
 
 - Desktop: `mousemove` по canvas.
-- Mobile (`DeviceService`): координаты из **центра canvas**; `camera.moveEnd` + touch move. Не рассчитывать на курсор.
+- Mobile (`CheckMobileDeviceService`): координаты из **центра canvas**; `camera.moveEnd` + touch move. Не рассчитывать на курсор.
 
 Отображение СК через `CoordSystems`. Выбранная СК видна в HUD.
 

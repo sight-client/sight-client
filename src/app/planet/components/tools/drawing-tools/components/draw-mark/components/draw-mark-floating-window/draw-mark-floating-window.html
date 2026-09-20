@@ -1,0 +1,144 @@
+@if ($drawMarkFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$drawMarkFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="draw-mark-floating-window-content-wrapper">
+    <div class="task-body">
+      <p>Наименование:</p>
+      <input
+        class="wrapper-textarea"
+        placeholder="Введите наименование"
+        [(ngModel)]="labelText"
+        maxlength="100"
+        matTooltip="Наименование"
+        matTooltipShowDelay="1000"
+        (ngModelChange)="
+          $toolsService.changeEntityName(
+            $event,
+            $drawMarkFloatingWindowService.validPickedEnttity()!.id,
+            $drawingService.drawMarkEntitiesList,
+            $event
+          )
+        "
+      />
+      <p>Цвет:</p>
+      <div class="task-body-block">
+        <input
+          type="color"
+          matTooltip="Цвет"
+          matTooltipShowDelay="1000"
+          [(ngModel)]="newColor"
+          (ngModelChange)="onColorChange($event)"
+        />
+        <p>
+          Текст:
+          <input
+            [matTooltip]="checkBoxBoolean ? 'Скрыть' : 'Показать'"
+            matTooltipShowDelay="500"
+            type="checkbox"
+            [checked]="checkBoxBoolean"
+            (change)="onSelectedCheckbox($event)"
+          />
+        </p>
+      </div>
+      <!-- <p>Значок:</p>
+      <mat-form-field appearance="fill" subscriptSizing="dynamic">
+        <mat-select
+          [disabled]="!$drawMarkFloatingWindowService.getTool()"
+          id="iconAttributeSelect"
+          [(ngModel)]="selectIcon"
+          (selectionChange)="select($event.value)"
+        >
+          <mat-select-trigger>
+            <span class="attr-option">
+              @if (selectIcon) {
+                <div class="selected-item">
+                  <img
+                    [style]="`mask-image: url(/${selectIcon.url}); -webkit-mask-image:url(/${selectIcon.url});`"
+                    alt=""
+                    class="icon-small"
+                  />
+                  <span>{{ selectIcon.label }}</span>
+                </div>
+              }
+            </span>
+          </mat-select-trigger>
+
+          @for (icon of icons; track $index) {
+            <mat-option [value]="icon">
+              <span class="attr-option">
+                <div class="dropdown-option">
+                  <img
+                    [style]="`mask-image: url(${icon.url}); -webkit-mask-image:url(${icon.url});`"
+                    class="icon-small"
+                    alt=""
+                  />
+                  <span class="attr-option-text">{{ icon.label }}</span>
+                </div>
+              </span>
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field> -->
+      <p>СК</p>
+      <mat-form-field appearance="fill" subscriptSizing="dynamic">
+        <mat-select
+          id="skAttributeSelect"
+          [(ngModel)]="selectedCoordsSystem"
+          (ngModelChange)="onSelectedCoordsSystem($event)"
+        >
+          <mat-select-trigger>
+            <span class="selected-item2">{{ selectedCoordsSystem }}</span>
+          </mat-select-trigger>
+          <mat-option value="WGS-84">WGS-84 </mat-option>
+          <mat-option value="СК-42 м">СК-42 м</mat-option>
+          <mat-option value="СК-42 °">СК-42 °</mat-option>
+          <mat-option value="ПЗ-90.11">ПЗ-90.11</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <p>{{ latitudeDescriptionStart }}:</p>
+      <p>
+        <input
+          type="text"
+          maxlength="10"
+          [(ngModel)]="latitudeDescriptionValue"
+          placeholder="Введите широту Например: 48.7"
+          matTooltip="Широта"
+          matTooltipShowDelay="1000"
+          (change)="changeLatitudeDescriptionValue()"
+        />
+        {{ coordsDescriptionEnd }}
+      </p>
+      <p>{{ longitudeDescriptionStart }}:</p>
+      <p>
+        <input
+          type="text"
+          maxlength="10"
+          [(ngModel)]="longitudeDescriptionValue"
+          placeholder="Введите долготу Например: 48.7"
+          matTooltip="Долгота"
+          matTooltipShowDelay="1000"
+          (change)="changeLongitudeDescriptionValue()"
+        />
+        <!-- (ngModelChange)="changeLongitudeDescriptionValue($event)" -->
+        {{ coordsDescriptionEnd }}
+      </p>
+      <!-- <p>{{ heightDescriptionStart }}:</p> -->
+      <!-- <p>
+        <input
+          disabled="disabled"
+          type="text"
+          maxlength="6"
+          matTooltip="Высота"
+          matTooltipShowDelay="1000"
+          [ngModel]="$drawMarkService.heightEntity()"
+        />
+        {{ coordsDescriptionEnd }}
+      </p> -->
+    </div>
+  </div>
+</ng-template>

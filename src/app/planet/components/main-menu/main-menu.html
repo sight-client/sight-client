@@ -1,0 +1,136 @@
+<div class="main-menu-container">
+  <!-- <button
+    class="main-menu-button"
+    [matTooltip]="$userDataService.userName() ? $userDataService.userName() : 'Не авторизован'"
+    matTooltipShowDelay="1000"
+    matButton="tonal"
+    [matMenuTriggerFor]="mainMenu"
+    [attr.aria-label]="'User menu'"
+  >
+    @if ($userDataService.userName()) {
+      <mat-icon>person</mat-icon>
+    } @else {
+      <mat-icon>person_outline</mat-icon>
+    }
+  </button> -->
+  <!-- <mat-icon>account_box</mat-icon> -->
+
+  <!-- @if ($userDataService.userName()) {
+    <button
+      class="main-menu-extended-fab-button"
+      matFab
+      extended
+      [matMenuTriggerFor]="mainMenu"
+      [attr.aria-label]="'User menu'"
+    >
+      <mat-icon>person</mat-icon>
+      {{ $userDataService.userName() }}
+    </button>
+  } @else {
+    <button
+      class="main-menu-extended-fab-button"
+      matFab
+      extended
+      [matMenuTriggerFor]="mainMenu"
+      [attr.aria-label]="'User menu'"
+    >
+      <mat-icon>person_outline</mat-icon>
+      не авторизован
+    </button>
+  } -->
+
+  <!-- <button
+    class="main-menu-extended-fab-button"
+    matFab
+    extended
+    [matMenuTriggerFor]="mainMenu"
+    [attr.aria-label]="'User menu'"
+  >
+    <mat-icon>menu</mat-icon>
+  </button> -->
+
+  <button
+    [matMenuTriggerFor]="mainMenu"
+    [attr.aria-label]="'User menu'"
+    matTooltip="Меню"
+    matTooltipShowDelay="1000"
+    class="main-menu-mat-button"
+    matButton="tonal"
+  >
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <mat-menu
+    #mainMenu="matMenu"
+    class="main-menu"
+    xPosition="after"
+    yPosition="below"
+    [overlapTrigger]="false"
+  >
+    <!-- @if ($userDataService.userName()) {
+      <button mat-menu-item disabled class="user-name-in-main-menu">
+        {{ $userDataService.userName() }}
+      </button>
+    } -->
+
+    <!-- <button
+      mat-menu-item
+      class="main-menu-import-button-wrapper"
+      (keydown.enter)="userAccountFeaturesRef.clickFromParentMenu()"
+    >
+      <user-account-features [inMenu]="true" />
+    </button> -->
+
+    <!-- <button mat-menu-item (click)="goToLanding()">
+      <mat-icon>
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8z" />
+        </svg>
+      </mat-icon>
+      <span>О проекте</span>
+    </button> -->
+
+    <button mat-menu-item (click)="openContacts($event)">
+      <mat-icon>
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8z" />
+        </svg>
+      </mat-icon>
+      <span>О проекте</span>
+    </button>
+
+    <button mat-menu-item [matMenuTriggerFor]="subMenuForThemeSettings">
+      <mat-icon>brush</mat-icon>
+      <span>Настройки темы</span>
+    </button>
+  </mat-menu>
+
+  <mat-menu
+    #subMenuForThemeSettings="matMenu"
+    class="user-submenu-for-theme-settings"
+    xPosition="after"
+    yPosition="below"
+    [overlapTrigger]="false"
+    [attr.aria-label]="'Sub menu for theme settings'"
+  >
+    <button
+      mat-menu-item
+      class="main-menu-import-button-wrapper"
+      (click)="lightDarkModeRef.setColorScheme($event)"
+      (keydown.enter)="lightDarkModeRef.setColorScheme($event)"
+      (keydown.space)="lightDarkModeRef.setColorScheme($event)"
+    >
+      <light-dark-mode [inMenu]="true" />
+    </button>
+
+    <button
+      mat-menu-item
+      class="main-menu-import-button-wrapper"
+      (click)="themeColorPaletteRef.changeColorTheme($event)"
+      (keydown.enter)="themeColorPaletteRef.changeColorTheme($event)"
+      (keydown.space)="themeColorPaletteRef.changeColorTheme($event)"
+    >
+      <theme-color-palette [inMenu]="true" />
+    </button>
+  </mat-menu>
+</div>

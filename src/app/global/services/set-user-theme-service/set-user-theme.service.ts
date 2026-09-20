@@ -3,7 +3,7 @@ import chalk from 'chalk';
 
 // Используется в:
 // - app.ts
-// - theme-changer.ts и theme-color-changer.ts (переиспользование)
+// - ui-theme.ts и theme-color-palette.ts (переиспользование)
 
 @Injectable({
   providedIn: 'root',
@@ -37,7 +37,7 @@ export class SetUserThemeService {
     }
   }
 
-  // Запрашивается в theme-changer.ts и theme-color-changer.ts
+  // Запрашивается в ui-theme.ts и theme-color-palette.ts
   public themesPalettesListOnStart = signal<string[] | undefined[]>(this.getThemesPalettesList());
   private getThemesPalettesList(): string[] | undefined[] {
     try {
@@ -64,12 +64,12 @@ export class SetUserThemeService {
     }
   }
 
-  // Запрашивается в theme-color-changer.ts
+  // Запрашивается в theme-color-palette.ts
   public nowUserPalettes = signal<string>('azure-blue');
 
   public setUserTheme(customPalettesPrev?: string, customPalettesNext?: string): void {
     try {
-      // Условие для применения в theme-color-changer.ts (по кнопке)
+      // Условие для применения в theme-color-palette.ts (по кнопке)
       if (
         customPalettesPrev !== undefined &&
         typeof customPalettesNext === 'string' &&

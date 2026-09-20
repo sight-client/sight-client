@@ -2,7 +2,7 @@ import { effect, Injectable, signal, untracked, WritableSignal } from '@angular/
 import chalk from 'chalk';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { ToolsListService } from '@/components/tools/tools-list/services/tools-list-service/tools-list.service';
+import { DrawingsListService } from '@/components/tools/drawings-list/services/drawings-list-service/drawings-list.service';
 import { measuringToolsNames } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
 import type { MeasuringToolName } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
 
@@ -22,7 +22,7 @@ export interface FloatingWindowItem {
 export class FloatingWindowsService {
   constructor(
     private readonly $viewerService: ViewerService,
-    protected readonly $toolsListService: ToolsListService,
+    protected readonly $drawingsListService: DrawingsListService,
   ) {
     // Отслеживает выбор по ЛКМ любой сущности на холсте, ВКЛЮЧАЯ ПОВТОРЫ (для восстановления окна из инвиза)
     effect(() => {
@@ -193,8 +193,8 @@ export class FloatingWindowsService {
       if (this._floatingWindowsList()[index]?.collapsed() === true) {
         this._floatingWindowsList()[index]!.collapsed.set(false);
       }
-      if (this?.$toolsListService !== undefined) {
-        this.checkActiveInToolsList(undefined, index);
+      if (this?.$drawingsListService !== undefined) {
+        this.checkActiveInDrawingsList(undefined, index);
       }
       return true;
     } catch (error: unknown) {
@@ -217,8 +217,8 @@ export class FloatingWindowsService {
         if (this._floatingWindowsList()[index]?.collapsed() === true) {
           this._floatingWindowsList()[index]!.collapsed.set(false);
         }
-        if (this?.$toolsListService !== undefined) {
-          this.checkActiveInToolsList(windowName, undefined);
+        if (this?.$drawingsListService !== undefined) {
+          this.checkActiveInDrawingsList(windowName, undefined);
         }
         return true;
       } else {
@@ -234,21 +234,21 @@ export class FloatingWindowsService {
     }
   }
 
-  // Результат - для шаблона tools-list.ts
-  private checkActiveInToolsList(windowName?: WindowName, index?: number): boolean {
+  // Результат - для шаблона drawings-list.ts
+  private checkActiveInDrawingsList(windowName?: WindowName, index?: number): boolean {
     try {
-      if (this?.$toolsListService === undefined) {
-        console.log(chalk.red('ToolsListService is undefined in checkActiveInToolsList fn'));
+      if (this?.$drawingsListService === undefined) {
+        console.log(chalk.red('DrawingsListService is undefined in checkActiveInDrawingsList fn'));
         return false;
       }
       if (!windowName && index === undefined) {
         console.log(
-          chalk.red("WindowName and it's index are undefined in checkActiveInToolsList fn"),
+          chalk.red("WindowName and it's index are undefined in checkActiveInDrawingsList fn"),
         );
         return false;
       }
       if (windowName) {
-        for (const store of this.$toolsListService.drawingStores) {
+        for (const store of this.$drawingsListService.drawingStores) {
           if (store.storeName === windowName && store.activeObjInStore) {
             store.activeObjInStore.set(undefined);
             return true;
@@ -257,14 +257,14 @@ export class FloatingWindowsService {
       } else {
         if (typeof index === 'number') {
           const windowNameFounded = this._floatingWindowsList()[index]?.windowName;
-          for (const store of this.$toolsListService.drawingStores) {
+          for (const store of this.$drawingsListService.drawingStores) {
             if (store.storeName === windowNameFounded && store.activeObjInStore) {
               store.activeObjInStore.set(undefined);
               return true;
             }
           }
         } else {
-          console.log(chalk.red('Invalid index in checkActiveInToolsList fn'));
+          console.log(chalk.red('Invalid index in checkActiveInDrawingsList fn'));
           return false;
         }
       }

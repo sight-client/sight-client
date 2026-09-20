@@ -1,0 +1,99 @@
+@if ($calculateLineFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$calculateLineFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="calculate-line-floating-window-content-wrapper">
+    <!-- <div class="calculate-line-floating-window-common">
+      <span>
+        <mat-checkbox
+          [disabled]="$calculateLineService.waitingForCalculations() === true"
+          [(ngModel)]="$calculateLineService.mostDetailed"
+          (change)="$calculateLineService.checkboxHendler($event)"
+          matTooltip="Детальный расчет с учетом рельефа"
+          matTooltipShowDelay="1000"
+        >
+          учитывать рельеф,
+        </mat-checkbox>
+      </span>
+      <span
+        [class]="
+          !$calculateLineService.mostDetailed() ? 'disabled-text-color' : 'normal-text-color'
+        "
+        >{{ '(' }}шаг, м:
+      </span>
+      <input
+        id="calculateLineFloatingWindowCommonInput"
+        type="number"
+        min="1"
+        max="40000000"
+        matTooltip="Точность измерений (шаг), м"
+        matTooltipShowDelay="1000"
+        [disabled]="
+          !$calculateLineService.mostDetailed() ||
+          $calculateLineService.waitingForCalculations() === true
+        "
+        [(ngModel)]="$calculateLineService.distanceSegmentLengthM"
+        (change)="$calculateLineService.segmentLengthInputHendler($event)"
+      /><span
+        [style]="
+          !$calculateLineService.mostDetailed()
+            ? 'color: light-dark(rgb(84, 84, 84), rgb(170, 170, 170))'
+            : 'color: var(--mat-sys-on-background)'
+        "
+        >{{ ')' }}
+      </span>
+    </div>
+    <div class="calculate-line-floating-window-private">
+      @if ($calculateLineService.validPickedEnttity()?.id?.includes('-line-')) {
+        <div class="calculate-line-floating-window-private-info">
+          <p>
+            Длина без учета рельефа:
+            {{ $calculateLineService.distanceWithoutTerrainDescription() }}
+          </p>
+          <p>
+            Длина c учетом рельефа:
+            @if ($calculateLineService.mostDetailed()) {
+              <span>
+                {{
+                  $calculateLineService.waitingForCalculations() === true
+                    ? '...ожидание результата'
+                    : $calculateLineService.distanceWithTerrainDescription() || '[error]'
+                }}
+              </span>
+            } @else {
+              <span style="font-style: italic">
+                {{ 'не запрошено' }}
+              </span>
+            }
+          </p>
+          <p>
+            Наименование рельефа:
+            @if ($calculateLineService.mostDetailed()) {
+              <span>
+                {{ $calculateLineService.nowTerrainName() || 'не определено' }}
+              </span>
+            } @else {
+              <span style="font-style: italic">
+                {{ 'не запрошено' }}
+              </span>
+            }
+          </p>
+        </div>
+      }
+    </div> -->
+    <div class="calculate-line-floating-window-private">
+      @if ($calculateLineService.validPickedEnttity()?.id?.includes('-line-')) {
+        <div class="calculate-line-floating-window-private-info">
+          <p>
+            Длина:
+            {{ $calculateLineService.distanceWithoutTerrainDescription() }}
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>

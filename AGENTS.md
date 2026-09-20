@@ -53,10 +53,10 @@ npm run build:docs # write GitHub Pages build into docs/
 
 ## Conventions
 
-- Standalone components. File names omit `.component` (`add-mark.ts`, not `add-mark.component.ts`).
+- Standalone components. File names omit `.component` (`draw-mark.ts`, not `draw-mark.component.ts`).
 - Colocate `*.ts`, `*.html`, `*.scss`, `*.spec.ts`. Nest a feature's services under `services/<name>/`.
 - Selectors have no `app-` prefix except `app-root` (Angular `prefix` is empty).
-- Injected services are often named with a `$` prefix (`$addMarkService`).
+- Injected services are often named with a `$` prefix (`$drawMarkService`).
 - New tests must call `provideZonelessChangeDetection()`.
 - Follow existing folder patterns. Do not invent a parallel architecture.
 - Do not commit secrets, `node_modules`, or `.worktrees/`.

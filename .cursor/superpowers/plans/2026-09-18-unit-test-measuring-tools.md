@@ -97,15 +97,15 @@ import { measuringToolsNames, getRusMeasuringToolName } from './measure.service'
 
 it('maps frozen measuring literals to Russian labels', () => {
   expect([...measuringToolsNames]).toEqual([
-    'linearMeasurements',
-    'rectangleAreaMeasurements',
-    'circleAreaMeasurements',
-    'polygonalAreaMeasurements',
+    'calculateLine',
+    'calculateRectangle',
+    'calculateCircle',
+    'calculatePolygon',
   ]);
-  expect(getRusMeasuringToolName('linearMeasurements')).toBe('Дистанция');
-  expect(getRusMeasuringToolName('rectangleAreaMeasurements')).toBe('Прямоугольная площадь');
-  expect(getRusMeasuringToolName('circleAreaMeasurements')).toBe('Площадь окружности');
-  expect(getRusMeasuringToolName('polygonalAreaMeasurements')).toBe('Площадь многоугольника');
+  expect(getRusMeasuringToolName('calculateLine')).toBe('Дистанция');
+  expect(getRusMeasuringToolName('calculateRectangle')).toBe('Прямоугольная площадь');
+  expect(getRusMeasuringToolName('calculateCircle')).toBe('Площадь окружности');
+  expect(getRusMeasuringToolName('calculatePolygon')).toBe('Площадь многоугольника');
 });
 ```
 
@@ -118,7 +118,7 @@ it('maps frozen measuring literals to Russian labels', () => {
 **Files:**
 - Modify: `src/app/planet/components/tools/measuring-tools/services/measure-service/measure.service.spec.ts`
 
-Read public getters (`isLinear` etc. — use actual names). Empty → false. Push a group with `toolName: 'linearMeasurements'` if the API matches drawing; else characterize the real method names. Cleanup empties the flag.
+Read public getters (`isLinear` etc. — use actual names). Empty → false. Push a group with `toolName: 'calculateLine'` if the API matches drawing; else characterize the real method names. Cleanup empties the flag.
 
 Skip methods that only pick the globe.
 
@@ -130,10 +130,10 @@ Skip methods that only pick the globe.
 
 **Files:** service + component (+ floating-window create) for:
 
-- `linear-measurements`
-- `rectangle-area-measurements`
-- `circle-area-measurements`
-- `polygonal-area-measurements`
+- `calculate-line`
+- `calculate-rectangle`
+- `calculate-circle`
+- `calculate-polygon`
 
 Same fakes as drawing Task 4. Named tests: `isActive` false by default; activate/deactivate; `drawingsBlocker` guard if present.
 

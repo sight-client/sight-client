@@ -1,0 +1,81 @@
+// Есть исключения в mat-exceptions-core.scss
+.draw-mark-floating-window-content-wrapper {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.wrapper-textarea {
+  overflow: hidden;
+}
+
+.task-body {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 10px;
+  row-gap: 5px;
+  justify-items: start end end;
+  justify-content: stretch;
+  white-space: nowrap;
+  align-items: center;
+  align-content: start;
+  position: relative;
+  p {
+    display: inline-block;
+    margin: 0;
+    color: var(--mat-expansion-container-text-color, var(--mat-sys-on-surface));
+  }
+  input {
+    outline: none;
+  }
+  select {
+    cursor: pointer;
+    outline: none;
+  }
+  > .mat-mdc-form-field {
+    height: 30px;
+    width: 11rem;
+    #skAttributeSelect {
+      max-width: 9rem;
+    }
+  }
+}
+.task-body-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  p {
+    display: flex;
+    gap: 10px;
+    input[type='color'] {
+      width: 14px;
+    }
+  }
+}
+
+.wrapper-textarea {
+  resize: none;
+  outline: none;
+  field-sizing: fixed;
+  // height: 66px;
+}
+
+.selected-item {
+  display: flex;
+  gap: 10px;
+  padding: 4px;
+}
+.dropdown-option {
+  display: flex;
+  gap: 10px;
+  padding: 0;
+}
+
+.icon-small {
+  content: '';
+  display: inline-block;
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  background-color: var(--mat-sys-on-surface);
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}

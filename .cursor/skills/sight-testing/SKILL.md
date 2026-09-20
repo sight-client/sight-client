@@ -11,11 +11,11 @@ description: Use when writing or changing unit tests, TestBed, spec files, Vites
 
 Контракт сюиты: `.cursor/superpowers/specs/2026-09-18-sight-unit-test-suite-design.md`. Планы покрытия — `.cursor/superpowers/plans/2026-09-18-unit-test-*.md`.
 
-## Шаблон (как `add-mark.spec.ts`)
+## Шаблон (как `draw-mark.spec.ts`)
 
 ```typescript
 await TestBed.configureTestingModule({
-  imports: [AddMark],
+  imports: [DrawMark],
   providers: [provideZonelessChangeDetection()],
 }).compileComponents();
 ```
@@ -24,7 +24,7 @@ await TestBed.configureTestingModule({
 - Standalone: `imports: [ComponentUnderTest]`, не `declarations`.
 - Сервисы с Cesium: мок `ViewerService` (канон в спеке unit-test suite). Не создавать реальный `Cesium.Viewer` в unit-тесте.
 - `environment.test.ts` подключается через конфигурацию `testing` у `build` в `angular.json` (`fileReplacements`). Не собирать его как Vitest-файл: `angular.json` `test.exclude` включает `src/environments/**`.
-- `tsconfig.spec.json` / `angular.json` `test.exclude`: `drawing-tool-blank/**`, `use-api-serv-proxy/**`, плюс env. `AutofocusDirective` в сюите. Не возвращать proxy/blank, пока их не вернут в продукт.
+- `tsconfig.spec.json` / `angular.json` `test.exclude`: `drawing-tool-blank/**`, `api-url-chunk-proxy/**`, плюс env. `AutofocusDirective` в сюите. Не возвращать proxy/blank, пока их не вернут в продукт.
 
 ## Что тестировать
 
@@ -43,4 +43,4 @@ await TestBed.configureTestingModule({
 - Снапшоты шаблонов.
 - Тесты, которым нужен WebGL/Cesium Viewer (хрупко в jsdom, без спроса не заводить).
 - Отдельный `vitest.config.ts` / `runnerConfig` (CLI собирает конфиг сам).
-- Порог coverage; общий `src/testing/`; снятие exclude с `drawing-tool-blank` / `use-api-serv-proxy`.
+- Порог coverage; общий `src/testing/`; снятие exclude с `drawing-tool-blank` / `api-url-chunk-proxy`.

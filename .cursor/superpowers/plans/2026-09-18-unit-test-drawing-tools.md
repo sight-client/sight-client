@@ -16,7 +16,7 @@
 
 - Production frozen; park bugs.
 - `drawing-tool-blank/**` stays excluded.
-- `drawingToolsNames` literals: `addMark`, `addLine`, `addRectangle`, `addCircle`, `addPolygon` only.
+- `drawingToolsNames` literals: `drawMark`, `drawLine`, `drawRectangle`, `drawCircle`, `drawPolygon` only.
 - Skills: `.cursor/skills/sight-testing/SKILL.md`, `.cursor/skills/sight-map-tools/SKILL.md`
 
 ---
@@ -37,18 +37,18 @@ import {
 
 it('maps frozen English literals to Russian labels and back', () => {
   expect([...drawingToolsNames]).toEqual([
-    'addMark',
-    'addLine',
-    'addRectangle',
-    'addCircle',
-    'addPolygon',
+    'drawMark',
+    'drawLine',
+    'drawRectangle',
+    'drawCircle',
+    'drawPolygon',
   ]);
-  expect(getRusDrawingToolName('addMark')).toBe('Метка');
-  expect(getRusDrawingToolName('addLine')).toBe('Линия');
-  expect(getRusDrawingToolName('addRectangle')).toBe('Прямоугольник');
-  expect(getRusDrawingToolName('addCircle')).toBe('Окружность');
-  expect(getRusDrawingToolName('addPolygon')).toBe('Многоугольник');
-  expect(getOriginDrawingToolName('Метка')).toBe('addMark');
+  expect(getRusDrawingToolName('drawMark')).toBe('Метка');
+  expect(getRusDrawingToolName('drawLine')).toBe('Линия');
+  expect(getRusDrawingToolName('drawRectangle')).toBe('Прямоугольник');
+  expect(getRusDrawingToolName('drawCircle')).toBe('Окружность');
+  expect(getRusDrawingToolName('drawPolygon')).toBe('Многоугольник');
+  expect(getOriginDrawingToolName('Метка')).toBe('drawMark');
   expect(getRusDrawingToolName('unknownTool')).toBe('unknownTool');
 });
 ```
@@ -67,7 +67,7 @@ Provide `DrawingService` + fake `ViewerService` + fake `ToolsService`.
 - [ ] **Step 1: Named behaviors**
 
 1. Empty lists: `isMarks()`, `isLines()`, `isRectangles()`, `isCircles()`, `isPoligons()` are `false`.
-2. `pushGroupWithoutTemporal` (read signature) with a group `{ groupId, entities, defaultEntity, toolName: 'addMark' }` makes `isMarks()` true if the method does not need a DataSource; if it requires `viewer.dataSources`, fake `getByName` returning `{ entities: { add: vi.fn(), remove: vi.fn() } }`.
+2. `pushGroupWithoutTemporal` (read signature) with a group `{ groupId, entities, defaultEntity, toolName: 'drawMark' }` makes `isMarks()` true if the method does not need a DataSource; if it requires `viewer.dataSources`, fake `getByName` returning `{ entities: { add: vi.fn(), remove: vi.fn() } }`.
 3. `removeEntitiesByGroupId` removes that group; `isMarks()` false again.
 4. `cancelDrawingTool` / `clearTemporalEntitiesList` empties `temporalEntitiesList`.
 5. `allToolEntitiesCleaning` clears the named store.
@@ -78,25 +78,25 @@ Do not test heatmap/dome/route leftovers except: `isHeatmap` currently aliases d
 
 ---
 
-### Task 3: EraseEntityService emptiness
+### Task 3: EntityRubberService emptiness
 
 **Files:**
-- Modify: `src/app/planet/components/tools/drawing-tools/components/erase-entity/services/erase-entity.service.spec.ts`
-- Modify: `src/app/planet/components/tools/drawing-tools/components/erase-entity/erase-entity.spec.ts` (create + click if it calls the service)
+- Modify: `src/app/planet/components/tools/drawing-tools/components/entity-rubber/services/entity-rubber.service.spec.ts`
+- Modify: `src/app/planet/components/tools/drawing-tools/components/entity-rubber/entity-rubber.spec.ts` (create + click if it calls the service)
 
-Map-tools spec: `storesAreEmpty` must include every “has entities” flag. Read `EraseEntityService` and assert the boolean expression / method result when all drawing+measure flags are false vs when `DrawingService.isMarks()` is true (stub drawing service signals).
+Map-tools spec: `storesAreEmpty` must include every “has entities” flag. Read `EntityRubberService` and assert the boolean expression / method result when all drawing+measure flags are false vs when `DrawingService.isMarks()` is true (stub drawing service signals).
 
 - [ ] **Step 1: Write those tests with fakes, not a Viewer.**
-- [ ] **Step 2: Run. Commit** `test: characterize erase-entity empty-store flags`
+- [ ] **Step 2: Run. Commit** `test: characterize entity-rubber empty-store flags`
 
 ---
 
 ### Task 4: Per-tool services and buttons (one cluster per tool)
 
 **Files (each cluster = service spec + component spec; floating-window specs stay create-only unless they call a pure method):**
-- `add-mark`, `add-line`, `add-rectangle`, `add-circle`, `add-polygon`
+- `draw-mark`, `draw-line`, `draw-rectangle`, `draw-circle`, `draw-polygon`
 
-Shared pattern: TestBed providers: zoneless, real tool service, fake `ViewerService`, fake `MouseCoordsService` (`cursorOnViewerCanvas: signal(true)`, `getCursorXY: () => undefined`), real or fake `DrawingService`, fake `ToolsService` (`drawingsBlocker: signal(false)`, `setDrawingsBlocker`).
+Shared pattern: TestBed providers: zoneless, real tool service, fake `ViewerService`, fake `CursorCoordsService` (`cursorOnViewerCanvas: signal(true)`, `getCursorXY: () => undefined`), real or fake `DrawingService`, fake `ToolsService` (`drawingsBlocker: signal(false)`, `setDrawingsBlocker`).
 
 Named tests per tool service (read the class; skip any method that only `viewer.scene.pick`):
 
@@ -109,11 +109,11 @@ Component specs: `should create` with the same fakes; if the template has a butt
 
 Do all five tools. Do not add `drawing-tool-blank`.
 
-- [ ] **Step 1: addMark cluster, run its two specs, commit.**
-- [ ] **Step 2: addLine cluster, run, commit.**
-- [ ] **Step 3: addRectangle cluster, run, commit.**
-- [ ] **Step 4: addCircle cluster, run, commit.**
-- [ ] **Step 5: addPolygon cluster, run, commit.**
+- [ ] **Step 1: drawMark cluster, run its two specs, commit.**
+- [ ] **Step 2: drawLine cluster, run, commit.**
+- [ ] **Step 3: drawRectangle cluster, run, commit.**
+- [ ] **Step 4: drawCircle cluster, run, commit.**
+- [ ] **Step 5: drawPolygon cluster, run, commit.**
 
 Each commit message: `test: characterize <tool> activation without Cesium.Viewer`
 

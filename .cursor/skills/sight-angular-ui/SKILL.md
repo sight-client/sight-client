@@ -12,7 +12,7 @@ Angular 22, **zoneless**, standalone-компоненты, сигналы. Не 
 ## Паттерны репо
 
 - `ChangeDetectionStrategy.OnPush` у компонентов, как у соседей.
-- Имена файлов без `.component`: `theme-changer.ts`.
+- Имена файлов без `.component`: `ui-theme.ts`.
 - Селекторы без `app-`, кроме `app-root`.
 - Инжекты: `$setUserThemeService`, не переименовывать в файле, который правишь.
 - Алиасы: `@/*`, `@global/*`, `@landing/*`.
@@ -22,7 +22,7 @@ Angular 22, **zoneless**, standalone-компоненты, сигналы. Не 
 ## Сигналы
 
 - Новое UI-состояние — `signal` / `computed` / `linkedSignal`.
-- В `effect` побочные эффекты оборачивать в `untracked()`, как в `app-cesium.directive.ts`.
+- В `effect` побочные эффекты оборачивать в `untracked()`, как в `run-viewer.directive.ts`.
 - Не класть огромные объекты (Viewer) в `WritableSignal` целиком.
 
 ## SCSS / темы

@@ -1,0 +1,33 @@
+@if ($calculateRectangleFloatingWindowService.toolName) {
+  <floating-window
+    [contentTemplate]="contentTemplate"
+    [parentName]="$calculateRectangleFloatingWindowService.toolName"
+  />
+}
+
+<ng-template #contentTemplate>
+  <div class="calculate-rectangle-floating-window-content-wrapper">
+    <div class="calculate-rectangle-floating-window-private">
+      @if (
+        $calculateRectangleFloatingWindowService
+          .validPickedEnttity()
+          ?.id?.includes('-polygon-')
+      ) {
+        <div class="calculate-rectangle-floating-window-private-info">
+          <p>
+            Площадь:
+            {{ $calculateRectangleFloatingWindowService.areaDescription() }}
+          </p>
+          <p>
+            <span>
+              Периметр:
+              {{ $calculateRectangleFloatingWindowService.perimeterDescription() }}
+            </span>
+          </p>
+        </div>
+        <!-- <div class="calculate-rectangle-floating-window-private-settings">
+        </div> -->
+      }
+    </div>
+  </div>
+</ng-template>

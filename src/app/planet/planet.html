@@ -1,10 +1,10 @@
 <div #mainSightContainer id="mainSightContainer">
   <div
     id="cesiumContainer"
-    appCesiumDirective
+    runViewerDirective
     [style.cursor]="
-      !$deviceService.isMobile &&
-      $mouseCoordsService.latitudeDescription() &&
+      !$checkMobileDeviceService.isMobile &&
+      $cursorCoordsService.latitudeDescription() &&
       ($toolsService.commonHandler() !== undefined || $toolsService.drawingsBlocker() === true)
         ? $any($toolsService.commonHandler())?._initializer === 'flyAround'
           ? emptyCursorStyle
@@ -12,22 +12,22 @@
         : 'auto'
     "
   >
-    @if ($deviceService.isMobile) {
+    @if ($checkMobileDeviceService.isMobile) {
       <div id="crosshairForMobiles">+</div>
     }
   </div>
   <div id="sightUiContainer">
     <mat-sidenav-container
       class="sight-main-sidenav-global"
-      [hasBackdrop]="$deviceService.isMobile ? 'true' : 'false'"
+      [hasBackdrop]="$checkMobileDeviceService.isMobile ? 'true' : 'false'"
     >
       <mat-sidenav
         class="sight-main-sidenav"
         #sidenavRef
-        [mode]="$deviceService.isMobile ? 'over' : 'side'"
+        [mode]="$checkMobileDeviceService.isMobile ? 'over' : 'side'"
         position="start"
-        [opened]="!$deviceService.isMobile"
-        [disableClose]="$deviceService.isMobile ? 'false' : 'true'"
+        [opened]="!$checkMobileDeviceService.isMobile"
+        [disableClose]="$checkMobileDeviceService.isMobile ? 'false' : 'true'"
       >
         <div class="sight-main-sidenav-left-content">
           <!-- <div class="sight-main-sidenav-logo">
@@ -49,7 +49,7 @@
                 @for (tab of tabs(); track tab) {
                   <mat-tab [label]="tab" labelClass="non-user-select">
                     @if (tab === 'Рисование') {
-                      <tools-list />
+                      <drawings-list />
                     } @else {
                       {{ '...в разработке...' }}
                     }
@@ -76,8 +76,8 @@
           <mat-icon>{{ sidenavRef.opened ? 'chevron_left' : 'chevron_right' }}</mat-icon>
         </button>
         @defer (when $viewerService.viewerHasLoaded() === true) {
-          @defer (when $mouseCoordsService.underMouseEntityHasLoaded() === true) {
-            <mouse-coords-info />
+          @defer (when $cursorCoordsService.underMouseEntityHasLoaded() === true) {
+            <cursor-coords-info />
           }
           @defer (when $toolsService.toolsServiceHasStarted() === true) {
             <tools-panel />
@@ -91,7 +91,7 @@
         }
 
         <div class="header-buttons-container">
-          <user-menu />
+          <main-menu />
           <!-- @defer (on idle) {
             <button
               matTooltip="Test"

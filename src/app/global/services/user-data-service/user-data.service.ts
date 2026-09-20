@@ -32,7 +32,7 @@ export class UserRegistrationData {
   }
 }
 
-// Аналог this.userName() для использования в нативных ts-конструкциях, например, caching-get-req.interceptor.ts
+// Аналог this.userName() для использования в нативных ts-конструкциях, например, get-req-caching.interceptor.ts
 let userNameGlobal: string | undefined = '';
 // Геттер для него
 export function getUserNameGlobal(): string | undefined {
@@ -51,7 +51,7 @@ export class UserDataService {
   constructor() {
     // Автопроверка сессии пользователя
     this.getUserInfoConnection();
-    // Новое значение имени пользователя, которое будет использованно, например, caching-get-req.interceptor.ts
+    // Новое значение имени пользователя, которое будет использованно, например, get-req-caching.interceptor.ts
     effect(() => {
       if (typeof this.userName() === 'string') {
         untracked(() => {
@@ -205,7 +205,7 @@ export class UserDataService {
       // так и объекта (обычный сценарий запросов к БД)
       return (
         this.http
-          // чанк url '/api' отслеживает use-api-serv-proxy.interceptor.ts
+          // чанк url '/api' отслеживает api-url-chunk-proxy.interceptor.ts
           .get('/api/user/login', {
             headers: newAuthHeaders,
             responseType: 'text' as const,
@@ -587,7 +587,7 @@ export class UserDataService {
   public setRegFormValuesReserv(userRegForm: UserRegistrationData): void {
     this.regFormValuesReserv.set(userRegForm);
   }
-  // Очистка вызывается в account-features.ts при успехе авторизации
+  // Очистка вызывается в user-account-features.ts при успехе авторизации
   public clearRegFormValuesReserv(): void {
     this.regFormValuesReserv.set(new UserRegistrationData('', '', '', '', '', '', ''));
   }

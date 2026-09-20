@@ -18,7 +18,7 @@ parent: none
 | Покрытие | Поведение, не `%` statements. Нет порога Vitest coverage. |
 | Подход | Характеризация as-is. Production не менять в сессиях покрытия. |
 | Cesium | Не создавать `Cesium.Viewer` / WebGL. Мок `ViewerService`. |
-| Exclude | `drawing-tool-blank/**` и `use-api-serv-proxy/**` остаются снаружи. `AutofocusDirective` — внутри. |
+| Exclude | `drawing-tool-blank/**` и `api-url-chunk-proxy/**` остаются снаружи. `AutofocusDirective` — внутри. |
 | Нарезка | Нулевой план гигиены, затем пять доменных. GitHub Pages unit-планом не закрывается. |
 | Баги | Находка в характеристике — парковать, не чинить в той же сессии. Фикс — отдельный TDD. |
 
@@ -39,7 +39,7 @@ parent: none
 **Снаружи (exclude остаётся):**
 
 - `src/app/planet/components/tools/drawing-tools/components/drawing-tool-blank/**`
-- `src/app/global/interceptors/use-api-serv-proxy-interceptor/**`
+- `src/app/global/interceptors/api-url-chunk-proxy-interceptor/**`
 
 ## Готово (одна исполнительная сессия)
 
@@ -64,7 +64,7 @@ parent: none
 
 ### Канонический фейк ViewerService
 
-Копировать в spec, не заводить общий `src/testing/` в этой работе. `viewerHasLoaded` по умолчанию `false`, чтобы `AppCesiumDirective` не ставил OSM и не звал `startMouseCoordsService`.
+Копировать в spec, не заводить общий `src/testing/` в этой работе. `viewerHasLoaded` по умолчанию `false`, чтобы `RunViewerDirective` не ставил OSM и не звал `startCursorCoordsService`.
 
 ```typescript
 import { signal } from '@angular/core';
@@ -94,7 +94,7 @@ function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
 
 Сервисы, provided на `Planet` (не `root`): явно класть в `providers` TestBed вместе с фейками зависимостей.
 
-Компоненты с `detectChanges()`, которые тянут `AppCesiumDirective` / `Planet`: не вызывать `getNewViewer` на реальном Viewer — фейк или не дергать `detectChanges` до подмены.
+Компоненты с `detectChanges()`, которые тянут `RunViewerDirective` / `Planet`: не вызывать `getNewViewer` на реальном Viewer — фейк или не дергать `detectChanges` до подмены.
 
 ### Характеризация vs TDD
 

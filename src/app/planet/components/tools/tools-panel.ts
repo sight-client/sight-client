@@ -33,23 +33,23 @@ import {
 
 // Инструменты рисования
 import { DrawingService } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
-import { AddMark } from '@/components/tools/drawing-tools/components/add-mark/add-mark';
-import { AddLine } from '@/components/tools/drawing-tools/components/add-line/add-line';
-import { AddRectangle } from '@/components/tools/drawing-tools/components/add-rectangle/add-rectangle';
-import { AddCircle } from '@/components/tools/drawing-tools/components/add-circle/add-circle';
-import { AddPolygon } from '@/components/tools/drawing-tools/components/add-polygon/add-polygon';
-import { EraseEntity } from '@/components/tools/drawing-tools/components/erase-entity/erase-entity';
+import { DrawMark } from '@/components/tools/drawing-tools/components/draw-mark/draw-mark';
+import { DrawLine } from '@/components/tools/drawing-tools/components/draw-line/draw-line';
+import { DrawRectangle } from '@/components/tools/drawing-tools/components/draw-rectangle/draw-rectangle';
+import { DrawCircle } from '@/components/tools/drawing-tools/components/draw-circle/draw-circle';
+import { DrawPolygon } from '@/components/tools/drawing-tools/components/draw-polygon/draw-polygon';
+import { EntityRubber } from '@/components/tools/drawing-tools/components/entity-rubber/entity-rubber';
 // Инструменты измерения
 import { MeasureService } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
-import { LinearMeasurements } from '@/components/tools/measuring-tools/components/linear-measurements/linear-measurements';
-import { RectangleAreaMeasurements } from '@/components/tools/measuring-tools/components/rectangle-area-measurements/rectangle-area-measurements';
-import { CircleAreaMeasurements } from '@/components/tools/measuring-tools/components/circle-area-measurements/circle-area-measurements';
-import { PolygonalAreaMeasurements } from '@/components/tools/measuring-tools/components/polygonal-area-measurements/polygonal-area-measurements';
+import { CalculateLine } from '@/components/tools/measuring-tools/components/calculate-line/calculate-line';
+import { CalculateRectangle } from '@/components/tools/measuring-tools/components/calculate-rectangle/calculate-rectangle';
+import { CalculateCircle } from '@/components/tools/measuring-tools/components/calculate-circle/calculate-circle';
+import { CalculatePolygon } from '@/components/tools/measuring-tools/components/calculate-polygon/calculate-polygon';
 // Инструменты работы с камерой
-import { CameraToolsService } from '@/components/tools/camera-tools/services/camera-tools-service/camera-tools.service';
-import { FlyAround } from '@/components/tools/camera-tools/components/fly-around/fly-around';
-import { TakeScreenshot } from '@/components/tools/camera-tools/components/take-screenshot/take-screenshot';
-import { SceneModeChanger } from '@/components/tools/camera-tools/components/scene-mode-changer/scene-mode-changer';
+import { CameraViewToolsService } from '@/components/tools/camera-view-tools/services/camera-view-tools-service/camera-view-tools.service';
+import { FlyAround } from '@/components/tools/camera-view-tools/components/fly-around/fly-around';
+import { TakeScreenshot } from '@/components/tools/camera-view-tools/components/take-screenshot/take-screenshot';
+import { SceneModeChanger } from '@/components/tools/camera-view-tools/components/scene-mode-changer/scene-mode-changer';
 
 @Component({
   selector: 'tools-panel',
@@ -58,17 +58,17 @@ import { SceneModeChanger } from '@/components/tools/camera-tools/components/sce
     MatIconModule,
     MatTooltipModule,
     // Инструменты рисования
-    AddMark,
-    AddLine,
-    AddRectangle,
-    AddCircle,
-    AddPolygon,
-    EraseEntity,
+    DrawMark,
+    DrawLine,
+    DrawRectangle,
+    DrawCircle,
+    DrawPolygon,
+    EntityRubber,
     // Инструменты измерения
-    LinearMeasurements,
-    RectangleAreaMeasurements,
-    CircleAreaMeasurements,
-    PolygonalAreaMeasurements,
+    CalculateLine,
+    CalculateRectangle,
+    CalculateCircle,
+    CalculatePolygon,
     // Инструменты работы с камерой
     FlyAround,
     TakeScreenshot,
@@ -119,15 +119,15 @@ import { SceneModeChanger } from '@/components/tools/camera-tools/components/sce
           "
         >
           <ng-container #hiddenNGCForDrawingTools>
-            <ng-template #childNGTForDrawingTools><add-mark [attr.position]="0" /></ng-template>
-            <ng-template #childNGTForDrawingTools><add-line [attr.position]="1" /></ng-template>
+            <ng-template #childNGTForDrawingTools><draw-mark [attr.position]="0" /></ng-template>
+            <ng-template #childNGTForDrawingTools><draw-line [attr.position]="1" /></ng-template>
             <ng-template #childNGTForDrawingTools
-              ><add-rectangle [attr.position]="2"
+              ><draw-rectangle [attr.position]="2"
             /></ng-template>
-            <ng-template #childNGTForDrawingTools><add-circle [attr.position]="3" /></ng-template>
-            <ng-template #childNGTForDrawingTools><add-polygon [attr.position]="4" /></ng-template>
+            <ng-template #childNGTForDrawingTools><draw-circle [attr.position]="3" /></ng-template>
+            <ng-template #childNGTForDrawingTools><draw-polygon [attr.position]="4" /></ng-template>
             <ng-template #childNGTForDrawingTools
-              ><erase-entity [attr.position]="5" class="tools-panel-group-hidden-last-element"
+              ><entity-rubber [attr.position]="5" class="tools-panel-group-hidden-last-element"
             /></ng-template>
           </ng-container>
         </div>
@@ -176,34 +176,34 @@ import { SceneModeChanger } from '@/components/tools/camera-tools/components/sce
         >
           <ng-container #hiddenNGCForMeasuringTools>
             <ng-template #childNGTForMeasuringTools
-              ><linear-measurements [attr.position]="0"
+              ><calculate-line [attr.position]="0"
             /></ng-template>
             <ng-template #childNGTForMeasuringTools
-              ><rectangle-area-measurements [attr.position]="1"
+              ><calculate-rectangle [attr.position]="1"
             /></ng-template>
             <ng-template #childNGTForMeasuringTools
-              ><circle-area-measurements [attr.position]="2"
+              ><calculate-circle [attr.position]="2"
             /></ng-template>
             <ng-template #childNGTForMeasuringTools
-              ><polygonal-area-measurements [attr.position]="3"
+              ><calculate-polygon [attr.position]="3"
             /></ng-template>
           </ng-container>
         </div>
       </div>
-      <!-- Группа "CameraTools" -->
+      <!-- Группа "CameraViewTools" -->
       <div class="tools-panel-group">
-        <div #defaultDivForCameraTools class="tools-panel-group-default">
-          <ng-container #defaultNGCForCameraTools></ng-container>
+        <div #defaultDivForCameraViewTools class="tools-panel-group-default">
+          <ng-container #defaultNGCForCameraViewTools></ng-container>
         </div>
         @if (!$toolsService.drawingsBlocker() && !$viewerService.cameraIsFlyingAround()) {
           <button
-            [class.tool-panel-button-svg-mirrored]="hiddenDivHasShownForCameraTools() === true"
-            class="tool-chevron-button camera-tools-chevron-button"
+            [class.tool-panel-button-svg-mirrored]="hiddenDivHasShownForCameraViewTools() === true"
+            class="tool-chevron-button camera-view-tools-chevron-button"
             matButton="tonal"
             (click)="
               toggleHiddenVisibility(
-                hiddenDivERForCameraTools,
-                hiddenDivHasShownForCameraTools,
+                hiddenDivERForCameraViewTools,
+                hiddenDivHasShownForCameraViewTools,
                 $event
               )
             "
@@ -218,26 +218,26 @@ import { SceneModeChanger } from '@/components/tools/camera-tools/components/sce
         <div
           class="tools-panel-group-hidden"
           [class]="
-            hiddenDivHasShownForCameraTools() === true ? 'tools-panel-group-hidden-raised' : ''
+            hiddenDivHasShownForCameraViewTools() === true ? 'tools-panel-group-hidden-raised' : ''
           "
-          #hiddenDivForCameraTools
+          #hiddenDivForCameraViewTools
           (mousedown)="
             moveToolToDefault(
               $event,
-              defaultNGCVCRForCameraTools,
-              hiddenNGCVCRForCameraTools,
-              defaultDivERForCameraTools,
-              hiddenDivERForCameraTools,
-              hiddenDivHasShownForCameraTools
+              defaultNGCVCRForCameraViewTools,
+              hiddenNGCVCRForCameraViewTools,
+              defaultDivERForCameraViewTools,
+              hiddenDivERForCameraViewTools,
+              hiddenDivHasShownForCameraViewTools
             )
           "
         >
-          <ng-container #hiddenNGCForCameraTools>
-            <ng-template #childNGTForCameraTools><fly-around [attr.position]="0" /></ng-template>
-            <ng-template #childNGTForCameraTools
+          <ng-container #hiddenNGCForCameraViewTools>
+            <ng-template #childNGTForCameraViewTools><fly-around [attr.position]="0" /></ng-template>
+            <ng-template #childNGTForCameraViewTools
               ><take-screenshot [attr.position]="1"
             /></ng-template>
-            <ng-template #childNGTForCameraTools
+            <ng-template #childNGTForCameraViewTools
               ><scene-mode-changer [attr.position]="2"
             /></ng-template>
           </ng-container>
@@ -254,7 +254,7 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
     protected $toolsService: ToolsService,
     protected $drawingService: DrawingService,
     protected $measureService: MeasureService,
-    protected $cameraToolsService: CameraToolsService,
+    protected $cameraViewToolsService: CameraViewToolsService,
   ) {}
 
   // ---------------------------------------------------------------------------------------------------------------- //
@@ -290,19 +290,19 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
   hiddenDivERForMeasuringTools: ElementRef;
   protected hiddenDivHasShownForMeasuringTools = signal<boolean>(false);
   // -------------------------------------------------------------------------- //
-  // Группа инструментов "CameraTools"
-  @ViewChildren('childNGTForCameraTools') childrenQLTRForCameraTools: QueryList<
+  // Группа инструментов "CameraViewTools"
+  @ViewChildren('childNGTForCameraViewTools') childrenQLTRForCameraViewTools: QueryList<
     TemplateRef<unknown>
   >;
-  @ViewChild('defaultNGCForCameraTools', { read: ViewContainerRef })
-  defaultNGCVCRForCameraTools: ViewContainerRef;
-  @ViewChild('hiddenNGCForCameraTools', { read: ViewContainerRef })
-  hiddenNGCVCRForCameraTools: ViewContainerRef;
-  @ViewChild('defaultDivForCameraTools', { read: ElementRef })
-  defaultDivERForCameraTools: ElementRef;
-  @ViewChild('hiddenDivForCameraTools', { read: ElementRef })
-  hiddenDivERForCameraTools: ElementRef;
-  protected hiddenDivHasShownForCameraTools = signal<boolean>(false);
+  @ViewChild('defaultNGCForCameraViewTools', { read: ViewContainerRef })
+  defaultNGCVCRForCameraViewTools: ViewContainerRef;
+  @ViewChild('hiddenNGCForCameraViewTools', { read: ViewContainerRef })
+  hiddenNGCVCRForCameraViewTools: ViewContainerRef;
+  @ViewChild('defaultDivForCameraViewTools', { read: ElementRef })
+  defaultDivERForCameraViewTools: ElementRef;
+  @ViewChild('hiddenDivForCameraViewTools', { read: ElementRef })
+  hiddenDivERForCameraViewTools: ElementRef;
+  protected hiddenDivHasShownForCameraViewTools = signal<boolean>(false);
   // -------------------------------------------------------------------------- //
   // ...другие группы
 
@@ -327,14 +327,14 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
       this.hiddenDivHasShownForMeasuringTools,
     );
 
-    // Для группы "CameraTools"
+    // Для группы "CameraViewTools"
     this.renderToolsGroupTemplates(
-      this.childrenQLTRForCameraTools,
-      this.defaultNGCVCRForCameraTools,
-      this.hiddenNGCVCRForCameraTools,
-      this.defaultDivERForCameraTools,
-      this.hiddenDivERForCameraTools,
-      this.hiddenDivHasShownForCameraTools,
+      this.childrenQLTRForCameraViewTools,
+      this.defaultNGCVCRForCameraViewTools,
+      this.hiddenNGCVCRForCameraViewTools,
+      this.defaultDivERForCameraViewTools,
+      this.hiddenDivERForCameraViewTools,
+      this.hiddenDivHasShownForCameraViewTools,
     );
 
     // ...другие группы
@@ -585,23 +585,23 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
           '"hiddenDivER" was not defined for MeasuringTools in out-of-boundaries handler',
         );
     }
-    // Для группы "CameraTools"
-    if (this.hiddenDivHasShownForCameraTools() === true) {
-      if (this.hiddenDivERForCameraTools?.nativeElement) {
+    // Для группы "CameraViewTools"
+    if (this.hiddenDivHasShownForCameraViewTools() === true) {
+      if (this.hiddenDivERForCameraViewTools?.nativeElement) {
         if (
-          this.hiddenDivERForCameraTools.nativeElement.contains(event.target) === false &&
+          this.hiddenDivERForCameraViewTools.nativeElement.contains(event.target) === false &&
           event.target instanceof Element &&
-          !event.target?.closest?.('.camera-tools-chevron-button')
+          !event.target?.closest?.('.camera-view-tools-chevron-button')
         ) {
-          if (hideAuxillarySubgroup(this.hiddenDivERForCameraTools) === true) {
-            this.hiddenDivHasShownForCameraTools.set(false);
+          if (hideAuxillarySubgroup(this.hiddenDivERForCameraViewTools) === true) {
+            this.hiddenDivHasShownForCameraViewTools.set(false);
           } else
             console.log(
-              `Hiding ${this.hiddenDivERForCameraTools.nativeElement.tagName} button by Esc has failed in outOfBoundaries handler`,
+              `Hiding ${this.hiddenDivERForCameraViewTools.nativeElement.tagName} button by Esc has failed in outOfBoundaries handler`,
             );
         }
       } else
-        console.log('"hiddenDivER" was not defined for CameraTools in out-of-boundaries handler');
+        console.log('"hiddenDivER" was not defined for CameraViewTools in out-of-boundaries handler');
     }
     // ...другие группы
   }
@@ -664,17 +664,17 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
 
   // Получение ссылок на компоненты инструментов с целью использования их методов
   // Инструменты рисования
-  @ViewChild(AddMark) addMarkRef: AddMark;
-  @ViewChild(AddLine) addLineRef: AddLine;
-  @ViewChild(AddRectangle) addRectangleRef: AddRectangle;
-  @ViewChild(AddCircle) addCircleRef: AddCircle;
-  @ViewChild(AddPolygon) addPolygonRef: AddPolygon;
-  @ViewChild(EraseEntity) eraseEntityRef: EraseEntity;
+  @ViewChild(DrawMark) drawMarkRef: DrawMark;
+  @ViewChild(DrawLine) drawLineRef: DrawLine;
+  @ViewChild(DrawRectangle) drawRectangleRef: DrawRectangle;
+  @ViewChild(DrawCircle) drawCircleRef: DrawCircle;
+  @ViewChild(DrawPolygon) drawPolygonRef: DrawPolygon;
+  @ViewChild(EntityRubber) entityRubberRef: EntityRubber;
   // Инструменты измерения
-  @ViewChild(LinearMeasurements) linearMeasurementsRef: LinearMeasurements;
-  @ViewChild(RectangleAreaMeasurements) rectangleAreaMeasurementsRef: RectangleAreaMeasurements;
-  @ViewChild(CircleAreaMeasurements) circleAreaMeasurementsRef: CircleAreaMeasurements;
-  @ViewChild(PolygonalAreaMeasurements) polygonalAreaMeasurementsRef: PolygonalAreaMeasurements;
+  @ViewChild(CalculateLine) calculateLineRef: CalculateLine;
+  @ViewChild(CalculateRectangle) calculateRectangleRef: CalculateRectangle;
+  @ViewChild(CalculateCircle) calculateCircleRef: CalculateCircle;
+  @ViewChild(CalculatePolygon) calculatePolygonRef: CalculatePolygon;
   // Инструменты работы с картой
   @ViewChild(FlyAround) flyAroundRef: FlyAround;
   // ...другие инструменты
@@ -690,46 +690,46 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
             chalk.blue(`Canceled because tool's error has detected (from tool "${data}")`),
           );
           // Инструменты рисования
-          if (data === this.addMarkRef.toolName) {
-            this.addMarkRef.cancelByEsc();
+          if (data === this.drawMarkRef.toolName) {
+            this.drawMarkRef.cancelByEsc();
             return;
           }
-          if (data === this.addLineRef.toolName) {
-            this.addLineRef.cancelByEsc();
+          if (data === this.drawLineRef.toolName) {
+            this.drawLineRef.cancelByEsc();
             return;
           }
-          if (data === this.addRectangleRef.toolName) {
-            this.addRectangleRef.cancelByEsc();
+          if (data === this.drawRectangleRef.toolName) {
+            this.drawRectangleRef.cancelByEsc();
             return;
           }
-          if (data === this.addCircleRef.toolName) {
-            this.addCircleRef.cancelByEsc();
+          if (data === this.drawCircleRef.toolName) {
+            this.drawCircleRef.cancelByEsc();
             return;
           }
-          if (data === this.addPolygonRef.toolName) {
-            this.addPolygonRef.cancelByEsc();
+          if (data === this.drawPolygonRef.toolName) {
+            this.drawPolygonRef.cancelByEsc();
             return;
           }
-          if (data === this.eraseEntityRef.toolName) {
-            this.eraseEntityRef.cancelByEsc();
+          if (data === this.entityRubberRef.toolName) {
+            this.entityRubberRef.cancelByEsc();
             return;
           }
 
           // Инструменты измерения
-          if (data === this.linearMeasurementsRef.toolName) {
-            this.linearMeasurementsRef.cancelByEsc();
+          if (data === this.calculateLineRef.toolName) {
+            this.calculateLineRef.cancelByEsc();
             return;
           }
-          if (data === this.rectangleAreaMeasurementsRef.toolName) {
-            this.rectangleAreaMeasurementsRef.cancelByEsc();
+          if (data === this.calculateRectangleRef.toolName) {
+            this.calculateRectangleRef.cancelByEsc();
             return;
           }
-          if (data === this.circleAreaMeasurementsRef.toolName) {
-            this.circleAreaMeasurementsRef.cancelByEsc();
+          if (data === this.calculateCircleRef.toolName) {
+            this.calculateCircleRef.cancelByEsc();
             return;
           }
-          if (data === this.polygonalAreaMeasurementsRef.toolName) {
-            this.polygonalAreaMeasurementsRef.cancelByEsc();
+          if (data === this.calculatePolygonRef.toolName) {
+            this.calculatePolygonRef.cancelByEsc();
             return;
           }
 
@@ -773,10 +773,10 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
         );
       }
       // Инструменты работы с камерой
-      if (this.hiddenDivHasShownForCameraTools() === true) {
+      if (this.hiddenDivHasShownForCameraViewTools() === true) {
         this.offHiddenVisibility(
-          this.hiddenDivERForCameraTools,
-          this.hiddenDivHasShownForCameraTools,
+          this.hiddenDivERForCameraViewTools,
+          this.hiddenDivHasShownForCameraViewTools,
         );
       }
       // ...другие группы
@@ -792,61 +792,61 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
       if (!this.$toolsService?.commonHandler?.()?._initializer) return;
       // Инструменты рисования
       // @ts-ignore (конфликт - кастомное свойство _initializer)
-      if (this.$toolsService.commonHandler()._initializer === this.addMarkRef.toolName) {
-        this.addMarkRef.cancelByEsc();
+      if (this.$toolsService.commonHandler()._initializer === this.drawMarkRef.toolName) {
+        this.drawMarkRef.cancelByEsc();
         return;
       }
       // @ts-ignore (конфликт - кастомное свойство _initializer)
-      else if (this.$toolsService.commonHandler()._initializer === this.addLineRef.toolName) {
-        this.addLineRef.cancelByEsc();
+      else if (this.$toolsService.commonHandler()._initializer === this.drawLineRef.toolName) {
+        this.drawLineRef.cancelByEsc();
         return;
       }
       // @ts-ignore (конфликт - кастомное свойство _initializer)
-      else if (this.$toolsService.commonHandler()._initializer === this.addRectangleRef.toolName) {
-        this.addRectangleRef.cancelByEsc();
+      else if (this.$toolsService.commonHandler()._initializer === this.drawRectangleRef.toolName) {
+        this.drawRectangleRef.cancelByEsc();
         return;
       }
       // @ts-ignore (конфликт - кастомное свойство _initializer)
-      else if (this.$toolsService.commonHandler()._initializer === this.addCircleRef.toolName) {
-        this.addCircleRef.cancelByEsc();
+      else if (this.$toolsService.commonHandler()._initializer === this.drawCircleRef.toolName) {
+        this.drawCircleRef.cancelByEsc();
         return;
       }
       // @ts-ignore (конфликт - кастомное свойство _initializer)
-      else if (this.$toolsService.commonHandler()._initializer === this.addPolygonRef.toolName) {
-        this.addPolygonRef.cancelByEsc();
+      else if (this.$toolsService.commonHandler()._initializer === this.drawPolygonRef.toolName) {
+        this.drawPolygonRef.cancelByEsc();
         return;
         // @ts-ignore (конфликт - кастомное свойство _initializer)
-      } else if (this.$toolsService.commonHandler()._initializer === this.eraseEntityRef.toolName) {
-        this.eraseEntityRef.cancelByEsc();
+      } else if (this.$toolsService.commonHandler()._initializer === this.entityRubberRef.toolName) {
+        this.entityRubberRef.cancelByEsc();
         return;
       }
 
       // Инструменты измерения
       else if (
         // @ts-ignore (конфликт - кастомное свойство _initializer)
-        this.$toolsService.commonHandler()._initializer === this.linearMeasurementsRef.toolName
+        this.$toolsService.commonHandler()._initializer === this.calculateLineRef.toolName
       ) {
-        this.linearMeasurementsRef.cancelByEsc();
+        this.calculateLineRef.cancelByEsc();
         return;
       } else if (
         // @ts-ignore (конфликт - кастомное свойство _initializer)
         this.$toolsService.commonHandler()._initializer ===
-        this.rectangleAreaMeasurementsRef.toolName
+        this.calculateRectangleRef.toolName
       ) {
-        this.rectangleAreaMeasurementsRef.cancelByEsc();
+        this.calculateRectangleRef.cancelByEsc();
         return;
       } else if (
         // @ts-ignore (конфликт - кастомное свойство _initializer)
-        this.$toolsService.commonHandler()._initializer === this.circleAreaMeasurementsRef.toolName
+        this.$toolsService.commonHandler()._initializer === this.calculateCircleRef.toolName
       ) {
-        this.circleAreaMeasurementsRef.cancelByEsc();
+        this.calculateCircleRef.cancelByEsc();
         return;
       } else if (
         // @ts-ignore (конфликт - кастомное свойство _initializer)
         this.$toolsService.commonHandler()._initializer ===
-        this.polygonalAreaMeasurementsRef.toolName
+        this.calculatePolygonRef.toolName
       ) {
-        this.polygonalAreaMeasurementsRef.cancelByEsc();
+        this.calculatePolygonRef.cancelByEsc();
         return;
       }
 

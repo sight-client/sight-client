@@ -9,7 +9,7 @@ alwaysApply: false
 Match existing files. Do not introduce a second style.
 
 - Standalone components; zoneless change detection (`provideZonelessChangeDetection()` in tests).
-- File names omit `.component`: `add-mark.ts`, not `add-mark.component.ts`.
+- File names omit `.component`: `draw-mark.ts`, not `draw-mark.component.ts`.
 - Colocate `*.ts` / `*.html` / `*.scss` / `*.spec.ts`. Nest feature services under `services/<name>/`.
 - Path aliases: `@/*` → `src/app/planet/*`, `@global/*` → `src/app/global/*`, `@landing/*` → `src/app/landing-page/*`.
 - Selectors have no `app-` prefix except `app-root` (schematic `prefix` is empty).
