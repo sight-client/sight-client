@@ -116,4 +116,62 @@ describe('FloatingWindowsService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('adds a window keyed by toolName and can hide it', () => {
+    service.addWindowItem('drawMark');
+    const items = service.floatingWindowsList();
+    expect(items.some((w) => w?.windowName === 'drawMark')).toBe(true);
+    const item = items.find((w) => w?.windowName === 'drawMark');
+    expect(item?.hidden()).toBe(false);
+    expect(item?.collapsed()).toBe(false);
+    expect(item?.isActive()).toBe(true);
+    service.hideWindowByToolName('drawMark', new MouseEvent('click'));
+    expect(item?.hidden()).toBe(true);
+  });
+
+  it('deleteWindowItem removes the window from the list', () => {
+    service.addWindowItem('drawMark');
+    expect(service.floatingWindowsList().some((w) => w?.windowName === 'drawMark')).toBe(true);
+    service.deleteWindowItem('drawMark', new MouseEvent('click'));
+    expect(service.floatingWindowsList().some((w) => w?.windowName === 'drawMark')).toBe(false);
+  });
+
+  it('setActiveWindow marks one window active and clears others', () => {
+    service.addWindowItem('drawMark');
+    service.addWindowItem('drawLine');
+    service.unsetActiveForAllWindows();
+    service.setActiveWindow('drawLine');
+    const drawMark = service.floatingWindowsList().find((w) => w?.windowName === 'drawMark');
+    const drawLine = service.floatingWindowsList().find((w) => w?.windowName === 'drawLine');
+    expect(drawLine?.isActive()).toBe(true);
+    expect(drawMark?.isActive()).toBe(false);
+  });
+
+  it('unsetActiveForAllWindows clears active flags and returns false when empty', () => {
+    expect(service.unsetActiveForAllWindows()).toBe(false);
+    service.addWindowItem('drawMark');
+    expect(service.unsetActiveForAllWindows()).toBe(true);
+    const item = service.floatingWindowsList().find((w) => w?.windowName === 'drawMark');
+    expect(item?.isActive()).toBe(false);
+  });
+
+  it('collapseWindow and expandWindow toggle collapsed and expand unhides', () => {
+    service.addWindowItem('drawMark');
+    const click = new MouseEvent('click');
+    expect(service.collapseWindow(0, click)).toBe(true);
+    expect(service.floatingWindowsList()[0]?.collapsed()).toBe(true);
+    service.hideWindowByToolName('drawMark', new MouseEvent('click'));
+    expect(service.floatingWindowsList()[0]?.hidden()).toBe(true);
+    expect(service.expandWindow(0, new MouseEvent('click'))).toBe(true);
+    expect(service.floatingWindowsList()[0]?.collapsed()).toBe(false);
+    expect(service.floatingWindowsList()[0]?.hidden()).toBe(false);
+  });
+
+  it('getWindowHeaderHeight accepts new px values and rejects invalid or unchanged', () => {
+    expect(service.getWindowHeaderHeight('abc')).toBe(false);
+    expect(service.getWindowHeaderHeight('32px')).toBe(false);
+    expect(service.getWindowHeaderHeight('40px')).toBe(true);
+    expect(service.windowHeaderHeight).toBe(40);
+    expect(service.getWindowHeaderHeight('40px')).toBe(false);
+  });
 });
