@@ -123,3 +123,49 @@ describe('SceneModeChanger', () => {
     expect(component).toBeTruthy();
   });
 });
+
+describe('SceneModeChanger changeSceneMode', () => {
+  it('morphs 3D to 2D and writes localStorage after 2s', async () => {
+    vi.useFakeTimers();
+    const morphTo2D = vi.fn();
+    const setNowSceneMode = vi.fn();
+    const setDrawingsBlocker = vi.fn();
+    const viewerHasLoaded = signal(true);
+    await TestBed.configureTestingModule({
+      imports: [SceneModeChanger],
+      providers: [
+        provideZonelessChangeDetection(),
+        {
+          provide: ViewerService,
+          useValue: {
+            viewerHasLoaded,
+            viewer: {
+              scene: { mode: 3, morphTo2D },
+            },
+            nowSceneModeDescription: signal<'3D' | '2D' | 'Columbus'>('3D'),
+            cameraIsFlyingAround: signal(false),
+            setCameraFlyingAroundFlag: () => {},
+            setNowSceneMode,
+          },
+        },
+        {
+          provide: ToolsService,
+          useValue: {
+            setDrawingsBlocker,
+            drawingsBlocker: signal(false),
+          },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(SceneModeChanger);
+    (
+      fixture.componentInstance as unknown as { changeSceneMode: () => void }
+    ).changeSceneMode();
+    expect(morphTo2D).toHaveBeenCalled();
+    expect(setNowSceneMode).toHaveBeenCalledWith(Cesium.SceneMode.SCENE2D);
+    vi.advanceTimersByTime(2000);
+    expect(localStorage.getItem('sceneMode')).toBe('2D');
+    vi.useRealTimers();
+    localStorage.removeItem('sceneMode');
+  });
+});

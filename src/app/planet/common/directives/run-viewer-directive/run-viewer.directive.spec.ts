@@ -50,4 +50,39 @@ describe('RunViewerDirective', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance).toBeTruthy();
   });
+
+  it('does not call setImageryProvider when viewerHasLoaded is false', () => {
+    const setImageryProvider = vi.fn();
+    TestBed.configureTestingModule({
+      imports: [AppCesiumHost],
+      providers: [
+        provideZonelessChangeDetection(),
+        {
+          provide: ViewerService,
+          useValue: {
+            viewerHasLoaded: signal(false),
+            getNewViewer: () => {},
+            setImageryProvider,
+          },
+        },
+        {
+          provide: CursorCoordsService,
+          useValue: {
+            startCursorCoordsService: () => {},
+            underMouseEntityHasLoaded: signal(false),
+          },
+        },
+        {
+          provide: ToolsService,
+          useValue: {
+            startToolsService: async () => {},
+            toolsServiceHasStarted: signal(false),
+          },
+        },
+        { provide: DrawingsListService, useValue: { startDrawingsListService: () => {} } },
+      ],
+    });
+    TestBed.createComponent(AppCesiumHost).detectChanges();
+    expect(setImageryProvider).not.toHaveBeenCalled();
+  });
 });
