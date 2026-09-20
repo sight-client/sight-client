@@ -116,4 +116,13 @@ describe('ToolsService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('drawingsBlocker defaults to false', () => {
+    expect(service.drawingsBlocker()).toBe(false);
+  });
+
+  it('setDrawingsBlocker(true) sets drawingsBlocker to true', () => {
+    service.setDrawingsBlocker(true);
+    expect(service.drawingsBlocker()).toBe(true);
+  });
 });
