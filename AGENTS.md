@@ -63,8 +63,8 @@ npm run build:docs # write GitHub Pages build into docs/
 
 ## Agent permissions
 
-Shared Auto-review allowlist and classifier hints: `.cursor/permissions.json` (commit this). Personal overlay for all projects: `~/.cursor/permissions.json`. Do not allowlist the prefix `git` — it matches `git push`. Keep read-only git prefixes (`git status`, `git diff`, `git log`, `git show`). Push, deploy, `npm publish`, and destructive deletes stay on approval.
+Shared Auto-review allowlist and classifier hints: `.cursor/permissions.json` (commit this). Personal overlay for all projects: `~/.cursor/permissions.json`. Do not allowlist the prefix `git` — it matches `git push`. Keep read-only git prefixes (`git status`, `git diff`, `git log`, `git show`) plus `git add` and `git commit` for local test/docs commits. Push, deploy, `npm publish`, amend, `--no-verify`, and destructive deletes stay on approval.
 
-Matching prefixes (`npx ng test`, `npm test`, read-only git, `ls`, `head`) are already approved. Parent and Task/SDD subagents must run them without a user-facing approval card. Do not retry a blocked allowlisted command with `request_smart_mode_approval` (that prompts the human). If Auto-review still blocks `npx ng test` / `npm test`, stop and return BLOCKED to the parent; the parent runs the same command.
+Matching prefixes (`npx ng test`, `npm test`, `git add`, `git commit`, read-only git, `ls`, `head`) are already approved. Parent and Task/SDD subagents must run them without a user-facing approval card. Do not retry a blocked allowlisted command with `request_smart_mode_approval` (that prompts the human). If Auto-review still blocks `npx ng test` / `npm test`, stop and return BLOCKED to the parent; the parent runs the same command.
 
 IDE Run Mode: **Auto-review** (Settings → Agents → Approvals & Execution). Cursor CLI is separate: `approvalMode` in `~/.cursor/cli-config.json`.
