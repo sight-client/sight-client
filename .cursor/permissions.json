@@ -17,6 +17,8 @@
   "autoRun": {
     "allow_instructions": [
       "Allow read-only git inspection and running the unit test suite (ng test / npm test) in this Sight repo.",
+      "Always auto-run commands whose prefix is in terminalAllowlist for the parent agent AND Task/SDD subagents. Do not prompt the user.",
+      "Always auto-run npx ng test and npm test with any flags (--no-watch, --include=...). This is the local Vitest suite via Angular CLI, not a publish or deploy.",
       "Allow listing and reading files in the workspace."
     ],
     "block_instructions": [
