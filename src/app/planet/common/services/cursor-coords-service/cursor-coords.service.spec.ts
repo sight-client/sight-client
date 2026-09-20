@@ -58,3 +58,35 @@ describe('CursorCoordsService on a mobile device', () => {
     expect(service.cursorOnViewerCanvas()).toBe(true);
   });
 });
+
+describe('CursorCoordsService on desktop', () => {
+  let service: CursorCoordsService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideZonelessChangeDetection(),
+        CursorCoordsService,
+        { provide: ViewerService, useValue: {} },
+        {
+          provide: CheckMobileDeviceService,
+          useValue: { checkMobile: () => false, isMobile: false },
+        },
+      ],
+    });
+    service = TestBed.inject(CursorCoordsService);
+  });
+
+  it('getCursorXY without a canvas returns undefined', () => {
+    expect(service.getCursorXY()).toBeUndefined();
+  });
+
+  it('setSelectedCrs updates selectedCrs', async () => {
+    await service.setSelectedCrs('СК-42 м');
+    expect(service.selectedCrs()).toBe('СК-42 м');
+  });
+
+  it('startCursorCoordsService throws when scene canvas is missing', async () => {
+    await expect(service.startCursorCoordsService()).rejects.toThrow('Scene canvas is undefined!');
+  });
+});
