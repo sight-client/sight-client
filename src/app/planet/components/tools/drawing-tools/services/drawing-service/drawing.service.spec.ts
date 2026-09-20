@@ -5,7 +5,12 @@ import * as Cesium from 'cesium';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
-import { DrawingService } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
+import {
+  DrawingService,
+  drawingToolsNames,
+  getOriginDrawingToolName,
+  getRusDrawingToolName,
+} from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 import { MeasureService } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
 import { CameraViewToolsService } from '@/components/tools/camera-view-tools/services/camera-view-tools-service/camera-view-tools.service';
 import { DrawMarkService } from '@/components/tools/drawing-tools/components/draw-mark/services/draw-mark-service/draw-mark.service';
@@ -115,5 +120,24 @@ describe('DrawingService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+});
+
+describe('drawing tool name mapping', () => {
+  it('maps frozen English literals to Russian labels and back', () => {
+    expect([...drawingToolsNames]).toEqual([
+      'drawMark',
+      'drawLine',
+      'drawRectangle',
+      'drawCircle',
+      'drawPolygon',
+    ]);
+    expect(getRusDrawingToolName('drawMark')).toBe('Метка');
+    expect(getRusDrawingToolName('drawLine')).toBe('Линия');
+    expect(getRusDrawingToolName('drawRectangle')).toBe('Прямоугольник');
+    expect(getRusDrawingToolName('drawCircle')).toBe('Окружность');
+    expect(getRusDrawingToolName('drawPolygon')).toBe('Многоугольник');
+    expect(getOriginDrawingToolName('Метка')).toBe('drawMark');
+    expect(getRusDrawingToolName('unknownTool')).toBe('unknownTool');
   });
 });
