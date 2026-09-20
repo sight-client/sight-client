@@ -121,6 +121,60 @@ describe('DrawingService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('starts with empty drawing stores so entity presence flags are false', () => {
+    expect(service.isMarks()).toBe(false);
+    expect(service.isLines()).toBe(false);
+    expect(service.isRectangles()).toBe(false);
+    expect(service.isCircles()).toBe(false);
+    expect(service.isPoligons()).toBe(false);
+  });
+
+  it('pushGroupWithoutTemporal adds a drawMark group and isMarks becomes true', () => {
+    const defaultEntity = new Cesium.Entity({ id: 'mark-default' });
+    const entity = new Cesium.Entity({ id: 'mark-1' });
+
+    expect(
+      service.pushGroupWithoutTemporal([entity], 'mark-group-1', 'drawMark', defaultEntity),
+    ).toBe(true);
+    expect(service.isMarks()).toBe(true);
+    expect(service.drawMarkEntitiesList()[0]?.groupId).toBe('mark-group-1');
+    expect(service.drawMarkEntitiesList()[0]?.entitiesList).toEqual([entity]);
+    expect(service.drawMarkEntitiesList()[0]?.defaultEntity).toBe(defaultEntity);
+  });
+
+  it('removeEntitiesByGroupId removes the group from the store so isMarks is false', () => {
+    const entity = new Cesium.Entity({ id: 'mark-rm' });
+    service.pushGroupWithoutTemporal([entity], 'mark-rm-group', 'drawMark');
+    expect(service.isMarks()).toBe(true);
+
+    service.removeEntitiesByGroupId('mark-rm-group', service.drawMarkEntitiesList);
+
+    expect(service.isMarks()).toBe(false);
+  });
+
+  it('clearTemporalEntitiesList empties _temporalEntitiesList', () => {
+    service._temporalEntitiesList.set([new Cesium.Entity({ id: 'tmp-1' })]);
+    expect(service.temporalEntitiesList().length).toBe(1);
+
+    expect(service.clearTemporalEntitiesList()).toBe(true);
+
+    expect(service._temporalEntitiesList().length).toBe(0);
+    expect(service.temporalEntitiesList().length).toBe(0);
+  });
+
+  it('allToolEntitiesCleaning clears the drawMark store so isMarks is false', () => {
+    service.pushGroupWithoutTemporal(
+      [new Cesium.Entity({ id: 'mark-clean' })],
+      'clean-group',
+      'drawMark',
+    );
+    expect(service.isMarks()).toBe(true);
+
+    service.allToolEntitiesCleaning('drawMark');
+
+    expect(service.isMarks()).toBe(false);
+  });
 });
 
 describe('drawing tool name mapping', () => {
