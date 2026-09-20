@@ -70,50 +70,165 @@ function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
   } as unknown as ViewerService;
 }
 
-describe('DrawPolygonService', () => {
-  let service: DrawPolygonService;
+function fakeViewerServiceForActivation(overrides: Partial<{ viewer: object }> = {}) {
+  return {
+    ...fakeViewerService(overrides),
+    onEntityPickingBlock: () => {},
+    offEntityPickingBlock: () => {},
+    setNewPickedEntity: () => {},
+  } as unknown as ViewerService;
+}
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [
-        provideZonelessChangeDetection(),
-        { provide: ViewerService, useValue: fakeViewerService() },
-        CursorCoordsService,
-        ToolsService,
-        DrawingService,
-        MeasureService,
-        CameraViewToolsService,
-        DrawMarkService,
-        DrawLineService,
-        DrawRectangleService,
-        DrawCircleService,
-        DrawPolygonService,
-        EntityRubberService,
-        CalculateLineService,
-        CalculateRectangleService,
-        CalculateCircleService,
-        CalculatePolygonService,
-        FlyAroundService,
-        FloatingWindowsService,
-        DrawingsListService,
-        DrawingsListKmlService,
-        DrawingsListReportService,
-        DrawMarkFloatingWindowService,
-        DrawLineFloatingWindowService,
-        DrawRectangleFloatingWindowService,
-        DrawCircleFloatingWindowService,
-        DrawPolygonFloatingWindowService,
-        CalculateLineFloatingWindowService,
-        CalculateRectangleFloatingWindowService,
-        CalculateCircleFloatingWindowService,
-        CalculatePolygonFloatingWindowService,
-        FlyAroundFloatingWindowService,
-      ],
+function fakeCursorCoordsServiceForActivation() {
+  return {
+    cursorOnViewerCanvas: signal(true),
+    getCursorXY: () => undefined,
+    selectedCrs: signal('WGS-84'),
+  } as unknown as CursorCoordsService;
+}
+
+function fakeToolsServiceForActivation() {
+  const drawingsBlocker = signal(false);
+  return {
+    drawingsBlockerSignal: drawingsBlocker,
+    toolsService: {
+      drawingsBlocker,
+      setDrawingsBlocker: vi.fn((v: boolean) => drawingsBlocker.set(v)),
+      clearCommonHandler: vi.fn(),
+      createNewCommonHandler: vi.fn(),
+      setCommonHandler: vi.fn(),
+      isMobile: false,
+      findEntityPathInStore: vi.fn(),
+      drawingToolsLayerName: 'drawLayer',
+      drawRouteLayerName: 'drawRoute',
+    } as unknown as ToolsService,
+  };
+}
+
+const drawPolygonServiceProviders = (
+  viewer: ViewerService,
+  tools: ToolsService,
+  cursor: CursorCoordsService,
+) => [
+  provideZonelessChangeDetection(),
+  { provide: ViewerService, useValue: viewer },
+  { provide: CursorCoordsService, useValue: cursor },
+  { provide: ToolsService, useValue: tools },
+  DrawingService,
+  MeasureService,
+  CameraViewToolsService,
+  DrawMarkService,
+  DrawLineService,
+  DrawRectangleService,
+  DrawCircleService,
+  DrawPolygonService,
+  EntityRubberService,
+  CalculateLineService,
+  CalculateRectangleService,
+  CalculateCircleService,
+  CalculatePolygonService,
+  FlyAroundService,
+  FloatingWindowsService,
+  DrawingsListService,
+  DrawingsListKmlService,
+  DrawingsListReportService,
+  DrawMarkFloatingWindowService,
+  DrawLineFloatingWindowService,
+  DrawRectangleFloatingWindowService,
+  DrawCircleFloatingWindowService,
+  DrawPolygonFloatingWindowService,
+  CalculateLineFloatingWindowService,
+  CalculateRectangleFloatingWindowService,
+  CalculateCircleFloatingWindowService,
+  CalculatePolygonFloatingWindowService,
+  FlyAroundFloatingWindowService,
+];
+
+describe('DrawPolygonService', () => {
+  describe('TestBed hygiene', () => {
+    let service: DrawPolygonService;
+
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        providers: [
+          provideZonelessChangeDetection(),
+          { provide: ViewerService, useValue: fakeViewerService() },
+          CursorCoordsService,
+          ToolsService,
+          DrawingService,
+          MeasureService,
+          CameraViewToolsService,
+          DrawMarkService,
+          DrawLineService,
+          DrawRectangleService,
+          DrawCircleService,
+          DrawPolygonService,
+          EntityRubberService,
+          CalculateLineService,
+          CalculateRectangleService,
+          CalculateCircleService,
+          CalculatePolygonService,
+          FlyAroundService,
+          FloatingWindowsService,
+          DrawingsListService,
+          DrawingsListKmlService,
+          DrawingsListReportService,
+          DrawMarkFloatingWindowService,
+          DrawLineFloatingWindowService,
+          DrawRectangleFloatingWindowService,
+          DrawCircleFloatingWindowService,
+          DrawPolygonFloatingWindowService,
+          CalculateLineFloatingWindowService,
+          CalculateRectangleFloatingWindowService,
+          CalculateCircleFloatingWindowService,
+          CalculatePolygonFloatingWindowService,
+          FlyAroundFloatingWindowService,
+        ],
+      });
+      service = TestBed.inject(DrawPolygonService);
     });
-    service = TestBed.inject(DrawPolygonService);
+
+    it('should be created', () => {
+      expect(service).toBeTruthy();
+    });
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
+  describe('tool activation', () => {
+    let service: DrawPolygonService;
+    let toolsFake: ReturnType<typeof fakeToolsServiceForActivation>;
+
+    beforeEach(() => {
+      toolsFake = fakeToolsServiceForActivation();
+      TestBed.configureTestingModule({
+        providers: drawPolygonServiceProviders(
+          fakeViewerServiceForActivation(),
+          toolsFake.toolsService,
+          fakeCursorCoordsServiceForActivation(),
+        ),
+      });
+      service = TestBed.inject(DrawPolygonService);
+    });
+
+    it('default isActive() is false', () => {
+      expect(service.isActive()).toBe(false);
+    });
+
+    it('left click buttonHandler sets isActive() true without throwing', () => {
+      service.buttonHandler(new MouseEvent('mousedown', { button: 0 }));
+      expect(service.isActive()).toBe(true);
+    });
+
+    it('cancelThisTool() sets isActive() false after activation', () => {
+      service.buttonHandler(new MouseEvent('mousedown', { button: 0 }));
+      expect(service.isActive()).toBe(true);
+      service.cancelThisTool();
+      expect(service.isActive()).toBe(false);
+    });
+
+    it('when drawingsBlocker is true, left click does not activate', () => {
+      toolsFake.drawingsBlockerSignal.set(true);
+      service.buttonHandler(new MouseEvent('mousedown', { button: 0 }));
+      expect(service.isActive()).toBe(false);
+    });
   });
 });
