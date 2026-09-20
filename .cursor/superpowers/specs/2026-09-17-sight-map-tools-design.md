@@ -61,7 +61,7 @@ parent: 2026-09-17-sight-product-design.md
 
 `DrawingsListService` — старт после tools service. Список, подлёт, дефолтные свойства entity из KML.
 
-`DrawingsListKmlService` — экспорт/импорт `.kml` / `.kmz`. `CustomPropsFromKml` — JSON-безопасные кастомные поля (`toolName`, id, снимки графики). `billboard.image` и HTML-подобные строки недоверенные; санитайзить (`DOMPurify`, не `javascript:` URL). Скил `sight-client-security`.
+`DrawingsListKmlService` — экспорт/импорт `.kml` / `.kmz`. `CustomPropsFromKml` — JSON-безопасные кастомные поля (`toolName`, id, снимки графики). `entity.name` и `billboard.image` из импорта проходят `DOMPurify` (без HTML-тегов); строки с `javascript:` / `data:text/html` отбрасываются. Скил `sight-client-security`.
 
 `DrawingsListReportService` (`providedIn` компонента drawings-list): ODS через `odf-kit`. Колонки: имя инструмента, широта, долгота, высота, СК, радиус. В пайплайне отчёта позиции — WGS-84 cartesian, затем `CoordSystems` / `Humanify`. Импорт ODS должен попадать в сторы drawing, а не в параллельную модель.
 

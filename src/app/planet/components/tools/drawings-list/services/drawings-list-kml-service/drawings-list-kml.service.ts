@@ -15,6 +15,7 @@ import { getMomentName, downloadBlob, uploadBlob } from '@global/lib/common-glob
 import { DrawingsListService } from '@/components/tools/drawings-list/services/drawings-list-service/drawings-list.service';
 
 import { undefinedToJsonNull, jsonNullToUndefined } from '@global/lib/common-global.lib';
+import DOMPurify from 'dompurify';
 
 export class CustomPropsFromKml {
   // использовать только валидные для JSON-преобразований типы данных
@@ -731,6 +732,14 @@ export class DrawingsListKmlService {
   }
 
   private readonly htmlParser = new DOMParser();
+
+  private sanitizeImportedKmlString(value: unknown): string | undefined {
+    if (typeof value !== 'string') return undefined;
+    const clean = DOMPurify.sanitize(value, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    if (/javascript:/i.test(clean) || /^\s*data:text\/html/i.test(clean)) return '';
+    return clean;
+  }
+
   private prepareKmlEntities(entities: Array<Cesium.Entity>): Array<Cesium.Entity> | undefined {
     try {
       if (!entities?.length) {
@@ -776,7 +785,7 @@ export class DrawingsListKmlService {
           // @ts-ignore (конфликт - кастомное свойство toolName)
           entity.toolName = customProps?.toolName; // резервное восстановление toolName
           if (!entity.id) entity.id = customProps.id;
-          entity.name = customProps.name;
+          entity.name = this.sanitizeImportedKmlString(customProps.name);
           if (customProps.position)
             entity.position = new Cesium.ConstantPositionProperty(
               new Cesium.Cartesian3(
@@ -871,8 +880,11 @@ export class DrawingsListKmlService {
             if (!entity.billboard) entity.billboard = new Cesium.BillboardGraphics();
             if (customProps.billboard.show !== undefined)
               entity.billboard!.show = new Cesium.ConstantProperty(customProps.billboard.show);
-            if (customProps.billboard.image !== undefined)
-              entity.billboard!.image = new Cesium.ConstantProperty(customProps.billboard.image);
+            if (customProps.billboard.image !== undefined) {
+              const image = this.sanitizeImportedKmlString(customProps.billboard.image);
+              if (image)
+                entity.billboard!.image = new Cesium.ConstantProperty(image);
+            }
             if (customProps.billboard.height !== undefined)
               entity.billboard!.height = new Cesium.ConstantProperty(customProps.billboard.height);
             if (customProps.billboard.width !== undefined)

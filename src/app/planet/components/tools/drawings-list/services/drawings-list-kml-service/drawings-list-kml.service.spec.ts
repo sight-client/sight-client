@@ -168,7 +168,7 @@ describe('DrawingsListKmlService', () => {
     clickSpy.mockRestore();
   });
 
-  it('prepareKmlEntities does not reject javascript: in parsed entity.name (parked: no DOMPurify)', () => {
+  it('prepareKmlEntities strips javascript: from parsed entity.name', () => {
     const $toolsService = TestBed.inject(ToolsService);
     vi.spyOn($toolsService, 'setClampingToGroudForEntity').mockImplementation(() => true);
     const maliciousName = 'javascript:alert(1)';
@@ -186,6 +186,46 @@ describe('DrawingsListKmlService', () => {
     const parsed = (service as any).prepareKmlEntities([entity]);
 
     expect(parsed).toBeTruthy();
-    expect(entity.name).toBe(maliciousName);
+    expect(String(entity.name ?? '')).not.toMatch(/javascript:/i);
+  });
+
+  it('prepareKmlEntities keeps a plain entity.name', () => {
+    const $toolsService = TestBed.inject(ToolsService);
+    vi.spyOn($toolsService, 'setClampingToGroudForEntity').mockImplementation(() => true);
+    const payload = JSON.stringify({
+      toolName: 'drawMark',
+      id: 'g1-drawMark-point-2',
+      name: 'TestMark',
+      show: true,
+    });
+    const entity = new Cesium.Entity({
+      id: 'g1-drawMark-point-2',
+      description: `<div class="cesium-infoBox-description-lighter">${payload}</div>`,
+    });
+
+    (service as any).prepareKmlEntities([entity]);
+
+    expect(entity.name).toBe('TestMark');
+  });
+
+  it('prepareKmlEntities does not apply javascript: as billboard.image', () => {
+    const $toolsService = TestBed.inject(ToolsService);
+    vi.spyOn($toolsService, 'setClampingToGroudForEntity').mockImplementation(() => true);
+    const payload = JSON.stringify({
+      toolName: 'drawMark',
+      id: 'g1-drawMark-point-3',
+      name: 'Mark',
+      show: true,
+      billboard: { image: 'javascript:alert(1)' },
+    });
+    const entity = new Cesium.Entity({
+      id: 'g1-drawMark-point-3',
+      description: `<div class="cesium-infoBox-description-lighter">${payload}</div>`,
+    });
+
+    (service as any).prepareKmlEntities([entity]);
+
+    const image = entity.billboard?.image?.getValue?.() ?? entity.billboard?.image;
+    expect(String(image ?? '')).not.toMatch(/javascript:/i);
   });
 });
