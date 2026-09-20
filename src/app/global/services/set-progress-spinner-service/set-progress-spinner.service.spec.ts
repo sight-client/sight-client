@@ -14,4 +14,11 @@ describe('SetProgressSpinnerService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('setSpinnerOn then setSpinnerOff toggles isShowSpinner', () => {
+    service.setSpinnerOn();
+    expect(service.isShowSpinner()).toBe(true);
+    service.setSpinnerOff();
+    expect(service.isShowSpinner()).toBe(false);
+  });
 });

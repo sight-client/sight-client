@@ -16,4 +16,19 @@ describe('GlobalErrorHandlerService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('handleError with cause red logs and returns', () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    service.handleError({ cause: 'red', stack: 's' });
+    expect(log).toHaveBeenCalled();
+    log.mockRestore();
+  });
+
+  it('handleError without cause still logs the error', () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const err = { message: 'plain' };
+    service.handleError(err);
+    expect(log).toHaveBeenCalledWith(err);
+    log.mockRestore();
+  });
 });
