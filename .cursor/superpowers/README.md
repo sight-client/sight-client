@@ -26,4 +26,4 @@
 ## Process (не product)
 
 - [Unit-test suite (Vitest)](./specs/2026-09-18-sight-unit-test-suite-design.md) — покрытие поведением. Не строка в таблице фич продукта.
-  Планы по порядку: [0 hygiene](./plans/2026-09-18-unit-test-hygiene.md) → [1 ui-theme](./plans/2026-09-18-unit-test-ui-theme.md) → [2 viewer-crs](./plans/2026-09-18-unit-test-viewer-crs.md) → [3 drawing](./plans/2026-09-18-unit-test-drawing-tools.md) → [4 measuring](./plans/2026-09-18-unit-test-measuring-tools.md) → [5 list/KML/ODS/windows](./plans/2026-09-18-unit-test-list-export-windows.md).
+  Планы 0–5 **executed** (не гонять заново): [0 hygiene](./plans/2026-09-18-unit-test-hygiene.md) → [1 ui-theme](./plans/2026-09-18-unit-test-ui-theme.md) → [2 viewer-crs](./plans/2026-09-18-unit-test-viewer-crs.md) → [3 drawing](./plans/2026-09-18-unit-test-drawing-tools.md) → [4 measuring](./plans/2026-09-18-unit-test-measuring-tools.md) → [5 list/KML/ODS/windows](./plans/2026-09-18-unit-test-list-export-windows.md). CI: [2026-09-20-ci-and-kml-sanitize](./plans/2026-09-20-ci-and-kml-sanitize.md).

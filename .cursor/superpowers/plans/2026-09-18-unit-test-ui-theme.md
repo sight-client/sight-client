@@ -1,5 +1,7 @@
 # Unit-test UI / theme Implementation Plan
 
+> **Status:** executed 2026-09-20. History only — do not re-run.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Characterize public behavior of global UI, theme, device, interceptors, listeners, Autofocus, landing, and app shell — without changing production and without enabling the landing route.

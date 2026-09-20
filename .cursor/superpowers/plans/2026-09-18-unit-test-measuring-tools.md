@@ -1,5 +1,7 @@
 # Unit-test measuring tools Implementation Plan
 
+> **Status:** executed 2026-09-20. History only — do not re-run.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Characterize geodesic length/area helpers and measuring-tool names/activation the same way as drawing — Turf/EllipsoidGeodesic in jsdom, fake Viewer, no canvas picks.

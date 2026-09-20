@@ -1,5 +1,7 @@
 # CI unit tests and KML name sanitization Implementation Plan
 
+> **Status:** executed 2026-09-20. History only — do not re-run.
+
 > **For agentic workers:** Parent executes (no Task). `npx ng test` is allowlisted. Do not `request_smart_mode_approval`. Do not `git push`.
 
 **Goal:** Run `npx ng test --no-watch` on GitHub Actions; strip `javascript:` from KML-imported entity names via DOMPurify (TDD).

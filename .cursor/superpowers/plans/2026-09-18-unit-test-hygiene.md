@@ -1,5 +1,7 @@
 # Unit-test hygiene Implementation Plan
 
+> **Status:** executed 2026-09-18. History only — do not re-run.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make `npx ng test --no-watch` exit 0 on the current stub specs, with zoneless TestBed, a compiling Autofocus spec, and broken filenames fixed — without deepening behavior and without changing production.

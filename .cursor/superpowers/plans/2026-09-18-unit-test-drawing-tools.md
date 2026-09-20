@@ -1,5 +1,7 @@
 # Unit-test drawing tools Implementation Plan
 
+> **Status:** executed 2026-09-20. History only — do not re-run.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Characterize drawing store APIs, Russian tool names, erase emptiness flags, and drawing tool activation — with a fake Viewer, without `drawing-tool-blank` and without WebGL picks.

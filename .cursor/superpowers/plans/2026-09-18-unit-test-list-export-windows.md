@@ -1,5 +1,7 @@
 # Unit-test list, export, floating windows Implementation Plan
 
+> **Status:** executed 2026-09-20. History only — do not re-run.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Characterize drawings-list, KML/ODS export-import boundaries, and floating-window stack — sanitizing untrusted KML strings, no real file picker UI, no Cesium.Viewer.

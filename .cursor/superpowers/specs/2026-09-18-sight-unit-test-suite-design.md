@@ -1,5 +1,5 @@
 ---
-status: draft
+status: characterization-complete
 created: 2026-09-18
 kind: process
 parent: none
@@ -100,20 +100,22 @@ function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
 
 Существующее поведение: написать assertion по коду as-is; прогон **должен пройти**. Если падает — либо неверно прочитан код (править тест), либо баг (парковать). Не ломать production, чтобы увидеть красный.
 
-Красный цикл обязателен: гигиена (сейчас сюита красная); новый production / фикс бага (отдельная сессия).
+Красный цикл обязателен для **нового** production и фикса бага. Стартовая характеризация as-is (планы 0–5) **выполнена** 2026-09-18…2026-09-20 — не гонять эти планы заново.
 
-## Планы (порядок сессий)
+## Планы (порядок сессий) — executed
 
-| # | План | Product-срез | Скилы (1–3) |
-|---|---|---|---|
-| 0 | [2026-09-18-unit-test-hygiene](../plans/2026-09-18-unit-test-hygiene.md) | — | `sight-testing`, `sight-change-control` |
-| 1 | [2026-09-18-unit-test-ui-theme](../plans/2026-09-18-unit-test-ui-theme.md) | [ui-theme](./2026-09-17-sight-ui-theme-design.md) | `sight-testing`, `sight-angular-ui` |
-| 2 | [2026-09-18-unit-test-viewer-crs](../plans/2026-09-18-unit-test-viewer-crs.md) | [viewer-crs](./2026-09-17-sight-viewer-crs-design.md) | `sight-testing`, `sight-geodesy`, `sight-cesium-map` |
-| 3 | [2026-09-18-unit-test-drawing-tools](../plans/2026-09-18-unit-test-drawing-tools.md) | [map-tools](./2026-09-17-sight-map-tools-design.md) | `sight-testing`, `sight-map-tools` |
-| 4 | [2026-09-18-unit-test-measuring-tools](../plans/2026-09-18-unit-test-measuring-tools.md) | [map-tools](./2026-09-17-sight-map-tools-design.md) | `sight-testing`, `sight-map-tools`, `sight-geodesy` |
-| 5 | [2026-09-18-unit-test-list-export-windows](../plans/2026-09-18-unit-test-list-export-windows.md) | [map-tools](./2026-09-17-sight-map-tools-design.md) | `sight-testing`, `sight-map-tools`, `sight-client-security` |
+Не очередь задач. Файлы — история нарезки. Новое покрытие — отдельный план или TDD по багу.
 
-План 0 должен оставить `npx ng test --no-watch` зелёным на stub `should create`. Планы 1–5 только углубляют поведение и снова оставляют всю сюиту зелёной.
+| # | План | Product-срез | Скилы (1–3) | Статус |
+|---|---|---|---|---|
+| 0 | [2026-09-18-unit-test-hygiene](../plans/2026-09-18-unit-test-hygiene.md) | — | `sight-testing`, `sight-change-control` | executed 2026-09-18 |
+| 1 | [2026-09-18-unit-test-ui-theme](../plans/2026-09-18-unit-test-ui-theme.md) | [ui-theme](./2026-09-17-sight-ui-theme-design.md) | `sight-testing`, `sight-angular-ui` | executed 2026-09-20 |
+| 2 | [2026-09-18-unit-test-viewer-crs](../plans/2026-09-18-unit-test-viewer-crs.md) | [viewer-crs](./2026-09-17-sight-viewer-crs-design.md) | `sight-testing`, `sight-geodesy`, `sight-cesium-map` | executed 2026-09-20 |
+| 3 | [2026-09-18-unit-test-drawing-tools](../plans/2026-09-18-unit-test-drawing-tools.md) | [map-tools](./2026-09-17-sight-map-tools-design.md) | `sight-testing`, `sight-map-tools` | executed 2026-09-20 |
+| 4 | [2026-09-18-unit-test-measuring-tools](../plans/2026-09-18-unit-test-measuring-tools.md) | [map-tools](./2026-09-17-sight-map-tools-design.md) | `sight-testing`, `sight-map-tools`, `sight-geodesy` | executed 2026-09-20 |
+| 5 | [2026-09-18-unit-test-list-export-windows](../plans/2026-09-18-unit-test-list-export-windows.md) | [map-tools](./2026-09-17-sight-map-tools-design.md) | `sight-testing`, `sight-map-tools`, `sight-client-security` | executed 2026-09-20 |
+
+CI: [2026-09-20-ci-and-kml-sanitize](../plans/2026-09-20-ci-and-kml-sanitize.md) — executed 2026-09-20 (`ng test` на Actions + санитайз KML).
 
 ## Спроси до
 
