@@ -2,8 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
 
 import * as Cesium from 'cesium';
+import type { OdsDocumentModel } from 'odf-kit/ods-reader';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
+import { SetProgressSpinnerService } from '@global/services/set-progress-spinner-service/set-progress-spinner.service';
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
 import { DrawingService } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 import { MeasureService } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
@@ -67,6 +69,8 @@ function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
     setCameraFlyingAroundFlag: () => {},
     getNewViewer: () => {},
     setImageryProvider: () => {},
+    flyTo: vi.fn().mockResolvedValue(undefined),
+    setNewPickedEntity: vi.fn(),
   } as unknown as ViewerService;
 }
 
@@ -115,5 +119,105 @@ describe('DrawingsListReportService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('provideReport alerts Developer error when drawingStores was never started', async () => {
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const spinner = TestBed.inject(SetProgressSpinnerService);
+    const onSpy = vi.spyOn(spinner, 'setSpinnerOn');
+    const offSpy = vi.spyOn(spinner, 'setSpinnerOff');
+
+    await service.provideReport();
+
+    expect(onSpy).toHaveBeenCalled();
+    expect(offSpy).toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalledWith('Developer error');
+    alertSpy.mockRestore();
+  });
+
+  it('provideReport triggers ODS download for one drawMark group', async () => {
+    const drawingsListService = TestBed.inject(DrawingsListService);
+    const drawingService = TestBed.inject(DrawingService);
+    const cursorCoords = TestBed.inject(CursorCoordsService);
+    cursorCoords.selectedCrs.set('WGS-84');
+
+    drawingsListService.startDrawingsListService();
+
+    const position = Cesium.Cartesian3.fromDegrees(37.6173, 55.7558, 0);
+    const entity = new Cesium.Entity({
+      id: 'g1-drawMark-point-1',
+      name: 'TestMark',
+      position,
+    });
+    drawingService.pushGroupWithoutTemporal([entity], 'g1', 'drawMark', entity);
+
+    const blobs: Blob[] = [];
+    const createUrlSpy = vi.spyOn(URL, 'createObjectURL').mockImplementation((obj) => {
+      blobs.push(obj as Blob);
+      return 'blob:test-ods';
+    });
+    const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+    await service.provideReport();
+
+    expect(alertSpy).not.toHaveBeenCalled();
+    expect(clickSpy).toHaveBeenCalled();
+    expect(blobs.length).toBeGreaterThan(0);
+    expect(blobs[0].type).toContain('opendocument');
+
+    alertSpy.mockRestore();
+    createUrlSpy.mockRestore();
+    revokeSpy.mockRestore();
+    clickSpy.mockRestore();
+  });
+
+  it('getPseudoEntitiesFromReport maps SK-42 m GK meters to finite WGS-84 Cartesian3', () => {
+    const model = {
+      sheets: [
+        {
+          name: 'Метка',
+          rows: [
+            {
+              index: 0,
+              cells: [
+                { colIndex: 0, type: 'string', value: 'Наименование инструмента' },
+                { colIndex: 1, type: 'string', value: 'Широта' },
+                { colIndex: 2, type: 'string', value: 'Долгота' },
+                { colIndex: 3, type: 'string', value: 'Высота, м' },
+                { colIndex: 4, type: 'string', value: 'СК' },
+              ],
+            },
+            {
+              index: 1,
+              cells: [
+                { colIndex: 0, type: 'string', value: 'Mark1' },
+                { colIndex: 1, type: 'float', value: 6180000 },
+                { colIndex: 2, type: 'float', value: 7376173 },
+                { colIndex: 3, type: 'float', value: 0 },
+                { colIndex: 4, type: 'string', value: 'СК-42 м' },
+              ],
+            },
+          ],
+        },
+      ],
+    } as unknown as OdsDocumentModel;
+
+    const result = (
+      service as unknown as {
+        getPseudoEntitiesFromReport: (
+          m: OdsDocumentModel,
+        ) => Array<{ toolName: string; entitiesList: Array<{ position?: Cesium.Cartesian3 }> }>;
+      }
+    ).getPseudoEntitiesFromReport(model);
+
+    expect(result?.length).toBe(1);
+    expect(result?.[0].toolName).toBe('drawMark');
+    const position = result?.[0].entitiesList[0]?.position;
+    expect(position).toBeInstanceOf(Cesium.Cartesian3);
+    expect(Number.isFinite(position!.x)).toBe(true);
+    expect(Number.isFinite(position!.y)).toBe(true);
+    expect(Number.isFinite(position!.z)).toBe(true);
   });
 });
