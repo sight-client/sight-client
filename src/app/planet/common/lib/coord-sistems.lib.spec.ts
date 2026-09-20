@@ -51,4 +51,39 @@ describe('CoordSystems SK-42 m zone', () => {
     expect(wgs.longitude).toBeCloseTo(MOSCOW_WGS84.longitude, 4);
     expect(wgs.latitude).toBeCloseTo(MOSCOW_WGS84.latitude, 4);
   });
+
+  it('round-trips WGS-84 cartographic through from and to', () => {
+    const from = CoordSystems.fromWGS84Cartographic('WGS-84', MOSCOW_WGS84);
+    const back = CoordSystems.toWGS84Cartographic('WGS-84', from);
+    expect(back.longitude).toBeCloseTo(MOSCOW_WGS84.longitude, 6);
+    expect(back.latitude).toBeCloseTo(MOSCOW_WGS84.latitude, 6);
+  });
+
+  it('СК-42 ° forward and back stays in degrees not GK meters', () => {
+    const sk42deg = CoordSystems.fromWGS84Cartographic('СК-42 °', MOSCOW_WGS84);
+    expect(sk42deg.longitude).toBeLessThan(180);
+    expect(Math.abs(sk42deg.longitude)).toBeGreaterThan(1);
+    const back = CoordSystems.toWGS84Cartographic('СК-42 °', sk42deg);
+    expect(back.longitude).toBeCloseTo(MOSCOW_WGS84.longitude, 4);
+    expect(back.latitude).toBeCloseTo(MOSCOW_WGS84.latitude, 4);
+  });
+
+  it('ПЗ-90.11 forward and back is close to Moscow', () => {
+    const pz = CoordSystems.fromWGS84Cartographic('ПЗ-90.11', MOSCOW_WGS84);
+    const back = CoordSystems.toWGS84Cartographic('ПЗ-90.11', pz);
+    expect(back.longitude).toBeCloseTo(MOSCOW_WGS84.longitude, 4);
+    expect(back.latitude).toBeCloseTo(MOSCOW_WGS84.latitude, 4);
+  });
+
+  it('toWGS84Cartographic SK-42 m meters with empty zone yields finite WGS degrees', () => {
+    const wgs = CoordSystems.toWGS84Cartographic(
+      'СК-42 м',
+      { longitude: 7376173, latitude: 6180000, height: 0 },
+      '',
+    );
+    expect(Number.isFinite(wgs.longitude)).toBe(true);
+    expect(Number.isFinite(wgs.latitude)).toBe(true);
+    expect(Math.abs(wgs.longitude)).toBeLessThan(180);
+    expect(Math.abs(wgs.latitude)).toBeLessThan(90);
+  });
 });
