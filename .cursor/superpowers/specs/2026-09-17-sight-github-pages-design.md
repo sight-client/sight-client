@@ -16,6 +16,7 @@ parent: 2026-09-17-sight-product-design.md
 |---|---|
 | `npm start` | `ng serve`, host `0.0.0.0`, порт **9002**, конфигурация по умолчанию `development` |
 | `npm test` | Vitest 4.1 (`@angular/build:unit-test`); `buildTarget` `testing` → `environment.test.ts` |
+| CI | GitHub Actions `.github/workflows/unit-tests.yml`: Node 22, `npm ci`, `npx ng test --no-watch` on push and pull_request |
 | `npm run build:docs` | `ng build --configuration docs` |
 | `npm run watch` | watch-сборка development |
 
@@ -49,7 +50,7 @@ parent: 2026-09-17-sight-product-design.md
 
 ## Ignore / worktrees
 
-`.gitignore`: `node_modules`, `.angular`, `.worktrees/` и т.д. **Не** `docs/` (публикуется). **Не** `.cursor/superpowers/` (в git).
+`.gitignore`: `node_modules`, `.angular`, `.worktrees/` и т.д. **Не** `docs/` (публикуется). **Не** `.cursor/superpowers/` (в git). **Не** `package-lock.json` (нужен для `npm ci` в Actions).
 
 `.cursorignore` дополнительно закрывает агенту `docs/`, вендор, секреты.
 

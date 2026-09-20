@@ -34,7 +34,7 @@ Sight (пакет `sight-client` v1.4.0) — некоммерческий CV-п�
 | Geodesy | `proj4`, `@turf/turf`. `egm96-universal` есть в `package.json`, но **в `src/` не импортируется** |
 | UI | Angular Material / CDK, SCSS |
 | Files | `odf-kit` (ODS), Cesium KML, `dompurify` |
-| Tests | Vitest 4.1 (`ng test`, `@angular/build:unit-test`, jsdom). `environment.test.ts` через build-конфиг `testing` |
+| Tests | Vitest 4.1 (`ng test`); CI: `.github/workflows/unit-tests.yml` (`npx ng test --no-watch`) |
 | Unused dep | `ol` (OpenLayers) — не подключать без одобрения |
 
 Алиасы путей: `@/*` → `src/app/planet/*`, `@global/*` → `src/app/global/*`, `@landing/*` → `src/app/landing-page/*`.
