@@ -9,12 +9,15 @@
   height: var(--regular-btn-size);
   border-radius: 6px;
   outline: 1px solid var(--theme-outline-color);
-  mat-icon {
+    mat-icon {
     padding: 0;
     margin: 0;
+    font-size: var(--regular-btn-svg-size);
     width: var(--regular-btn-svg-size);
     height: var(--regular-btn-svg-size);
     svg {
+      width: 100%;
+      height: 100%;
       opacity: 0.8;
     }
   }

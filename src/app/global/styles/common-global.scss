@@ -41,6 +41,8 @@
 
   --regular-btn-size: 32px;
   --regular-btn-svg-size: calc(var(--regular-btn-size) * 0.75);
+  // Visual thickness of rotated tools chevrons (CSS width) and phone coords chevron (height).
+  --tool-chevron-thickness: calc(var(--regular-btn-size) / 3);
 
   --theme-badge-color: var(--mat-sys-primary);
 
@@ -316,3 +318,15 @@ body:has(.cdk-drop-list-dragging) .cdk-drop-list-receiving {
 //     outline: 3px solid red;
 //     height: custom-sum(undefined, $custom-height-one, $custom-height-two);
 // }
+
+@include media-breakpoints-global.tablet {
+  :root {
+    --regular-btn-size: 44px;
+  }
+}
+
+@include media-breakpoints-global.mobile {
+  :root {
+    --tool-chevron-thickness: calc(var(--regular-btn-size) / 2);
+  }
+}

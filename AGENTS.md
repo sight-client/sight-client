@@ -15,6 +15,7 @@ This file overrides Superpowers default artifact paths. **`docs/` is the GitHub 
 | AI session log | `.cursor/superpowers/log/YYYY-MM-DD.md` (append-only, end of a work unit) |
 | Slash command `/save-chat-text` | `.cursor/commands/save-chat-text.md` — полный диалог чата в `.chats/` (gitignored) |
 | Isolated worktrees | `.worktrees/<branch-name>/` (gitignored) |
+| Brainstorm companion (HTML mockups) | `.superpowers/` (gitignored). Not product. When the visual brainstorm unit ends, stop the companion server and delete `.superpowers/` unless I asked to keep the mockups. Never delete `.cursor/superpowers/`. |
 
 Ask before creating a worktree unless this file already records a standing preference.
 
@@ -25,6 +26,8 @@ Project skills in `.cursor/skills/` (auto-invoke in this chat, do not copy Super
 **Standing decisions:** when I approve a new convention, stack rule, trap, or checklist, update the existing owner file (`AGENTS.md`, a `.cursor/rules` rule, a `sight-*` skill, or a spec under `.cursor/superpowers/specs/`). If the product contract changes (new/removed feature, tool name, CRS, route, export format), update the owning child spec (and the product index table if the feature is listed there). Do not changelog bugfixes or refactors here. If the owner is unclear, ask.
 
 At the end of a completed work unit, append a short block to `.cursor/superpowers/log/YYYY-MM-DD.md` (goal, spec/plan, skills, consequential files, decisions, status). Not after every approval.
+
+When I close a plan in chat — intent like «закрывай план», «считаю, что все планы выполнены», «заканчиваем работу и обновляем документацию», «считай работу выполненной» — ask me first, naming the plan files, and stamp `executed` only after I confirm. «Ок» on one diff is not that confirmation. Checklist: `.cursor/rules/superpowers.mdc`.
 
 ## Stack
 
@@ -59,12 +62,16 @@ npm run build:docs # write GitHub Pages build into docs/
 - Injected services are often named with a `$` prefix (`$drawMarkService`).
 - New tests must call `provideZonelessChangeDetection()`.
 - Follow existing folder patterns. Do not invent a parallel architecture.
-- Do not commit secrets, `node_modules`, or `.worktrees/`.
+- Do not commit secrets, `node_modules`, `.worktrees/`, or `.superpowers/`.
 
 ## Agent permissions
 
 Shared Auto-review allowlist and classifier hints: `.cursor/permissions.json` (commit this). Personal overlay for all projects: `~/.cursor/permissions.json`. Do not allowlist the prefix `git` — it matches `git push`. Keep read-only git prefixes (`git status`, `git diff`, `git log`, `git show`) plus `git add` and `git commit` for local test/docs commits. Push, deploy, `npm publish`, amend, `--no-verify`, and destructive deletes stay on approval.
 
-Matching prefixes (`npx ng test`, `npm test`, `git add`, `git commit`, read-only git, `ls`, `head`) are already approved. Parent and Task/SDD subagents must run them without a user-facing approval card. Do not retry a blocked allowlisted command with `request_smart_mode_approval` (that prompts the human). If Auto-review still blocks `npx ng test` / `npm test`, stop and return BLOCKED to the parent; the parent runs the same command.
+Matching prefixes (`npx ng test`, `npx.cmd ng test`, `ng test`, `npm test`, `git add`, `git commit`, read-only git, `ls`, `head`, `dir`, `Get-ChildItem`, `gci`) are already approved. Parent **and every Task/SDD/reviewer subagent** must run them without a user-facing approval card and without asking in chat.
+
+The card appears if an agent retries a classifier block with `request_smart_mode_approval` / `requestSmartModeApproval`, **or** if the command is not actually prefix-matched. **Never set that flag** for an allowlisted prefix. Never `git diff --no-index` / `/dev/null` (classifier cards it). Never `;`-chain a non-allowlisted first token after `git diff`. If Auto-review still blocks `npx ng test` / `npm test` / `git diff` / `dir`, the worker returns BLOCKED; the parent reruns the same command.
+
+Always-on rule: `.cursor/rules/auto-review-allowlist.mdc`.
 
 IDE Run Mode: **Auto-review** (Settings → Agents → Approvals & Execution). Cursor CLI is separate: `approvalMode` in `~/.cursor/cli-config.json`.

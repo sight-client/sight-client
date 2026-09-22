@@ -131,7 +131,7 @@ export class ViewerService {
         /* Стандартный виджет для выбора слоев. Используется, как основа, в нашем customBaselLayerPicker. */
         baseLayerPicker: false,
         /* Кнопка разворота на весь экран */
-        fullscreenButton: true /* позже подключаем непосредственно в сооответствющем vue-модуле */,
+        fullscreenButton: false,
         /* Кнопка для переключения в VR-режим */
         geocoder: false,
         /* Кнопка возврата к виду по умолчанию (у нас - взята из навигационного миксина) */
@@ -234,28 +234,6 @@ export class ViewerService {
           roll: 0,
         } as Cesium.HeadingPitchRollValues,
       });
-
-      /* Перевод с английского title-атрибута стандартной кнопки Cesium */
-      const fullScreenBtn: HTMLElement | null = document.querySelector('.cesium-fullscreenButton');
-      if (fullScreenBtn) {
-        // Отключено, т.к. выбивается из общего использования matTooltip заместо title-атрибута
-        // fullScreenBtn.title = 'Развернуть на весь экран';
-        // fullScreenBtn.addEventListener('click', () => {
-        //   setTimeout(() => {
-        //     if (fullScreenBtn.title === 'Exit full screen')
-        //       fullScreenBtn.title = 'Выйти из полноэкранного режима';
-        //     else {
-        //       fullScreenBtn.title = 'Развернуть на весь экран';
-        //     }
-        //   }, 100);
-        // });
-        fullScreenBtn.title = '';
-        fullScreenBtn.addEventListener('click', () => {
-          setTimeout(() => {
-            fullScreenBtn.title = '';
-          }, 100);
-        });
-      }
 
       /* Уменьшает количество усеченных полигонов. Включение позволит увеличить производительность. */
       this.viewer.scene.logarithmicDepthBuffer = false;

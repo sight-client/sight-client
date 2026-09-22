@@ -35,7 +35,7 @@ parent: 2026-09-17-sight-product-design.md
 ### Constructor options (норматив as-is)
 
 - Виджеты выкл.: `animation`, `baseLayerPicker`, `geocoder`, `homeButton`, `infoBox`, `sceneModePicker`, `selectionIndicator`, `timeline`, `navigationHelpButton`, `projectionPicker`.
-- `fullscreenButton: true` (штатный контрол Cesium).
+- `fullscreenButton: false` (штатный контрол Cesium выкл.; fullscreen — `ToggleFullscreen` в CameraViewTools: `requestFullscreen(document.body)` / `exitFullscreen`, не `viewer.container`; иконка и тултип enter/exit по `fullscreenchange`).
 - `sceneMode` из `_nowSceneMode` (persist `localStorage.sceneMode`: `'3D' | '2D' | 'Columbus'`).
 - `terrainProvider`: `EllipsoidTerrainProvider`.
 - `mapProjection`: `GeographicProjection` (не Web Mercator).
@@ -56,12 +56,12 @@ Picking: `setNewPickedEntity` обновляет и «new», и «forced» си�
 ## Imagery and navigation
 
 - URL OSM ставится только после `viewerHasLoaded`. URL тайлов не менять без одобрения.
-- Компас/зум: `ZnemzNavigationMixin` (`@znemz/cesium-navigation`), не Cesium `homeButton`.
+- Компас/зум: `ZnemzNavigationMixin` (`@znemz/cesium-navigation`), не Cesium `homeButton`. На десктопе блок компас+зум в правом нижнем углу (бывшая позиция Cesium fullscreen); на UA mobile не монтируется.
 - Высота камеры в UI: `CameraHeightTool`.
 
 ## Camera tools (остаются в этой спеке)
 
-Панель: `FlyAround`, `TakeScreenshot`, `SceneModeChanger` в `tools-panel.ts`.
+Панель: `FlyAround`, `TakeScreenshot`, `SceneModeChanger`, `ToggleFullscreen` в `tools-panel.ts`.
 
 `CameraViewToolsService` (providers `Planet`): имена `flyAround`, `pointView`. `pointView` есть в типах/сторе «на потом»; отдельной кнопки «вид из точки» в UI нет. Плавающие окна camera tools **закомментированы** в `tools-floating-windows.ts`. Временный стор сущностей; смена clamp через `ToolsService` при смене режима сцены.
 
@@ -74,7 +74,9 @@ Picking: `setNewPickedEntity` обновляет и «new», и «forced» си�
 `CursorCoordsService`: скрытая сущность Cesium `id: 'mouse'` в `CustomDataSource('mousePosition')` для pick/позиции; видимый HUD — HTML `CursorCoordsInfo` (label Cesium давал фризы).
 
 - Desktop: `mousemove` по canvas.
-- Mobile (`CheckMobileDeviceService`): координаты из **центра canvas**; `camera.moveEnd` + touch move. Не рассчитывать на курсор.
+- Mobile (`CheckMobileDeviceService`): координаты из **центра canvas**; `camera.moveEnd` + touch move. Не рассчитывать на курсор. Чекбокс «координаты под курсором» не переименовывать: на телефоне «курсор» — центр холста.
+
+Хром HUD на узком экране (столбик, шеврон, две колонки, ширина стека) — [ui-theme](./2026-09-17-sight-ui-theme-design.md) / [mobile UI chrome](./2026-09-21-mobile-ui-chrome-design.md).
 
 Отображение СК через `CoordSystems`. Выбранная СК видна в HUD.
 

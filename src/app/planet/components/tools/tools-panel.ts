@@ -50,6 +50,7 @@ import { CameraViewToolsService } from '@/components/tools/camera-view-tools/ser
 import { FlyAround } from '@/components/tools/camera-view-tools/components/fly-around/fly-around';
 import { TakeScreenshot } from '@/components/tools/camera-view-tools/components/take-screenshot/take-screenshot';
 import { SceneModeChanger } from '@/components/tools/camera-view-tools/components/scene-mode-changer/scene-mode-changer';
+import { ToggleFullscreen } from '@/components/tools/camera-view-tools/components/toggle-fullscreen/toggle-fullscreen';
 
 @Component({
   selector: 'tools-panel',
@@ -73,6 +74,7 @@ import { SceneModeChanger } from '@/components/tools/camera-view-tools/component
     FlyAround,
     TakeScreenshot,
     SceneModeChanger,
+    ToggleFullscreen,
   ],
   template: `
     <div id="toolsPanelContainer" class="tools-panel-container">
@@ -239,6 +241,9 @@ import { SceneModeChanger } from '@/components/tools/camera-view-tools/component
             /></ng-template>
             <ng-template #childNGTForCameraViewTools
               ><scene-mode-changer [attr.position]="2"
+            /></ng-template>
+            <ng-template #childNGTForCameraViewTools
+              ><toggle-fullscreen [attr.position]="3"
             /></ng-template>
           </ng-container>
         </div>

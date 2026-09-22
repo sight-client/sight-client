@@ -1,8 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
-import { By } from '@angular/platform-browser';
-import { MatSidenav } from '@angular/material/sidenav';
-import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 
 import * as Cesium from 'cesium';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
@@ -36,11 +33,12 @@ import { CalculateRectangleFloatingWindowService } from '@/components/tools/meas
 import { CalculateCircleFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-circle/components/calculate-circle-floating-window/services/calculate-circle-floating-window-service/calculate-circle-floating-window.service';
 import { CalculatePolygonFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-polygon/components/calculate-polygon-floating-window/services/calculate-polygon-floating-window-service/calculate-polygon-floating-window.service';
 import { FlyAroundFloatingWindowService } from '@/components/tools/camera-view-tools/components/fly-around/components/fly-around-floating-window/services/fly-around-floating-window-service/fly-around-floating-window.service';
-import { Planet } from './planet';
+import { ToggleFullscreen } from './toggle-fullscreen';
 
 function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
   return {
     viewer: {
+      container: document.createElement('div'),
       scene: {
         canvas: document.createElement('canvas'),
         mode: Cesium.SceneMode.SCENE3D,
@@ -74,20 +72,17 @@ function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
   } as unknown as ViewerService;
 }
 
-describe('MainSight', () => {
-  let component: Planet;
-  let fixture: ComponentFixture<Planet>;
+describe('ToggleFullscreen', () => {
+  let component: ToggleFullscreen;
+  let fixture: ComponentFixture<ToggleFullscreen>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Planet],
-      providers: [provideZonelessChangeDetection()],
-    })
-      .overrideComponent(Planet, {
-        set: {
-          providers: [
-            { provide: ViewerService, useValue: fakeViewerService() },
-            CursorCoordsService,
+      imports: [ToggleFullscreen],
+      providers: [
+        provideZonelessChangeDetection(),
+        { provide: ViewerService, useValue: fakeViewerService() },
+        CursorCoordsService,
         ToolsService,
         DrawingService,
         MeasureService,
@@ -117,101 +112,74 @@ describe('MainSight', () => {
         CalculateCircleFloatingWindowService,
         CalculatePolygonFloatingWindowService,
         FlyAroundFloatingWindowService,
-          ],
-        },
-      })
-      .compileComponents();
+      ],
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(Planet);
+    fixture = TestBed.createComponent(ToggleFullscreen);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    Object.defineProperty(document, 'fullscreenElement', {
+      configurable: true,
+      get: () => null,
+    });
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('mat-sidenav tabletLayout', () => {
-    const planetProviders = [
-      { provide: ViewerService, useValue: fakeViewerService() },
-      CursorCoordsService,
-      ToolsService,
-      DrawingService,
-      MeasureService,
-      CameraViewToolsService,
-      DrawMarkService,
-      DrawLineService,
-      DrawRectangleService,
-      DrawCircleService,
-      DrawPolygonService,
-      EntityRubberService,
-      CalculateLineService,
-      CalculateRectangleService,
-      CalculateCircleService,
-      CalculatePolygonService,
-      FlyAroundService,
-      FloatingWindowsService,
-      DrawingsListService,
-      DrawingsListKmlService,
-      DrawingsListReportService,
-      DrawMarkFloatingWindowService,
-      DrawLineFloatingWindowService,
-      DrawRectangleFloatingWindowService,
-      DrawCircleFloatingWindowService,
-      DrawPolygonFloatingWindowService,
-      CalculateLineFloatingWindowService,
-      CalculateRectangleFloatingWindowService,
-      CalculateCircleFloatingWindowService,
-      CalculatePolygonFloatingWindowService,
-      FlyAroundFloatingWindowService,
-    ];
+  it('exposes toggleFullscreen toolName and does not stop mousedown propagation', () => {
+    expect((component as unknown as { toolName: string }).toolName).toBe('toggleFullscreen');
+    const event = {
+      button: 0,
+      stopPropagation: vi.fn(),
+    } as unknown as MouseEvent;
+    (component as unknown as { buttonHandler: (e: MouseEvent) => void }).buttonHandler(event);
+    expect(event.stopPropagation).not.toHaveBeenCalled();
+  });
 
-    async function setupSidenavTest(
-      isMobile: boolean,
-      tabletLayout: ReturnType<typeof signal<boolean>>,
-    ) {
-      await TestBed.resetTestingModule();
-      await TestBed.configureTestingModule({
-        imports: [Planet],
-        providers: [
-          provideZonelessChangeDetection(),
-          {
-            provide: CheckMobileDeviceService,
-            useValue: {
-              isMobile,
-              checkMobile: () => isMobile,
-              phoneLayout: signal(false),
-              tabletLayout,
-              laptopLayout: signal(false),
-              narrowChromeLayout: signal(false),
-            },
-          },
-        ],
-      })
-        .overrideComponent(Planet, { set: { providers: planetProviders } })
-        .compileComponents();
-      fixture = TestBed.createComponent(Planet);
-      component = fixture.componentInstance;
-      fixture.detectChanges();
-    }
+  it('requests fullscreen on document.body so map chrome stays visible', () => {
+    const request = vi
+      .spyOn(Cesium.Fullscreen, 'requestFullscreen')
+      .mockImplementation(() => undefined);
+    const container = TestBed.inject(ViewerService).viewer.container;
+    (component as unknown as { buttonHandler: (e: MouseEvent) => void }).buttonHandler({
+      button: 0,
+      stopPropagation: vi.fn(),
+    } as unknown as MouseEvent);
+    expect(request).toHaveBeenCalledWith(document.body);
+    expect(request).not.toHaveBeenCalledWith(container);
+  });
 
-    function sidenavInstance(): MatSidenav {
-      const de = fixture.debugElement.query(By.directive(MatSidenav));
-      return de.componentInstance as MatSidenav;
-    }
+  it('shows enter tooltip and icon when not fullscreen', () => {
+    const tooltip = (
+      component as unknown as { buttonTooltip: () => string }
+    ).buttonTooltip();
+    expect(tooltip).toBe('На весь экран');
+    const path = (fixture.nativeElement as HTMLElement)
+      .querySelector('path[fill="currentColor"]')
+      ?.getAttribute('d');
+    expect(path).toContain('M7 14H5v5');
+  });
 
-    it('uses overlay when tabletLayout is true (not UA)', async () => {
-      await setupSidenavTest(false, signal(true));
-      const sidenav = sidenavInstance();
-      expect(sidenav.mode).toBe('over');
-      expect(sidenav.opened).toBe(false);
+  it('swaps tooltip and icon after fullscreenchange', () => {
+    Object.defineProperty(document, 'fullscreenElement', {
+      configurable: true,
+      get: () => document.body,
     });
-
-    it('uses side when tabletLayout is false even if isMobile is true', async () => {
-      await setupSidenavTest(true, signal(false));
-      const sidenav = sidenavInstance();
-      expect(sidenav.mode).toBe('side');
-      expect(sidenav.opened).toBe(true);
-    });
+    const eventName = Cesium.Fullscreen.changeEventName || 'fullscreenchange';
+    document.dispatchEvent(new Event(eventName));
+    fixture.detectChanges();
+    const tooltip = (
+      component as unknown as { buttonTooltip: () => string }
+    ).buttonTooltip();
+    expect(tooltip).toBe('Выйти из полноэкранного режима');
+    const path = (fixture.nativeElement as HTMLElement)
+      .querySelector('path[fill="currentColor"]')
+      ?.getAttribute('d');
+    expect(path).toContain('M5 16h3v3');
   });
 });

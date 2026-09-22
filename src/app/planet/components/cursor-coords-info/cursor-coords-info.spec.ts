@@ -33,7 +33,10 @@ import { CalculateRectangleFloatingWindowService } from '@/components/tools/meas
 import { CalculateCircleFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-circle/components/calculate-circle-floating-window/services/calculate-circle-floating-window-service/calculate-circle-floating-window.service';
 import { CalculatePolygonFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-polygon/components/calculate-polygon-floating-window/services/calculate-polygon-floating-window-service/calculate-polygon-floating-window.service';
 import { FlyAroundFloatingWindowService } from '@/components/tools/camera-view-tools/components/fly-around/components/fly-around-floating-window/services/fly-around-floating-window-service/fly-around-floating-window.service';
+import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 import { CursorCoordsInfo } from './cursor-coords-info';
+
+const phoneLayout = signal(true);
 
 function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
   return {
@@ -111,15 +114,78 @@ describe('CursorCoordsInfo', () => {
         CalculateCircleFloatingWindowService,
         CalculatePolygonFloatingWindowService,
         FlyAroundFloatingWindowService,
+        {
+          provide: CheckMobileDeviceService,
+          useValue: {
+            isMobile: false,
+            checkMobile: () => false,
+            phoneLayout,
+            laptopLayout: signal(true),
+            narrowChromeLayout: signal(true),
+          },
+        },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CursorCoordsInfo);
     component = fixture.componentInstance;
+    const $cursorCoordsService = TestBed.inject(CursorCoordsService);
+    $cursorCoordsService.latitudeDescription.set('B: 55.0000000 ˚');
+    $cursorCoordsService.longitudeDescription.set('L: 37.0000000 ˚');
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('starts collapsed on phoneLayout: chevron visible, lat/lon and CRS in DOM but hidden', () => {
+    phoneLayout.set(true);
+    fixture.detectChanges();
+    const host: HTMLElement = fixture.nativeElement;
+    expect(host.querySelector('.coords-phone-chevron')).toBeTruthy();
+    expect(host.querySelector('.coords-container-main')?.classList.contains('coords-phone-collapsed')).toBe(
+      true,
+    );
+    expect(host.querySelector('.coords-description-main')).toBeTruthy();
+    expect(host.querySelector('.coords-container-form-field')).toBeTruthy();
+    expect(host.querySelector('.coords-phone-body')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('expands and collapses only via the chevron, not document click', () => {
+    phoneLayout.set(true);
+    fixture.detectChanges();
+    const chevron = fixture.nativeElement.querySelector('.coords-phone-chevron') as HTMLButtonElement;
+    const main = () => fixture.nativeElement.querySelector('.coords-container-main') as HTMLElement;
+    chevron.click();
+    fixture.detectChanges();
+    expect(main().classList.contains('coords-phone-collapsed')).toBe(false);
+    expect(fixture.nativeElement.querySelector('.coords-phone-body')?.getAttribute('aria-hidden')).toBe(
+      'false',
+    );
+    document.body.click();
+    fixture.detectChanges();
+    expect(main().classList.contains('coords-phone-collapsed')).toBe(false);
+    chevron.click();
+    fixture.detectChanges();
+    expect(main().classList.contains('coords-phone-collapsed')).toBe(true);
+    expect(fixture.nativeElement.querySelector('.coords-description-main')).toBeTruthy();
+  });
+
+  it('does not render the chevron when phoneLayout is false', () => {
+    phoneLayout.set(false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.coords-phone-chevron')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.coords-container-form-field')).toBeTruthy();
+  });
+
+  it('keeps the coords card in DOM on phone when latitude is empty', () => {
+    phoneLayout.set(true);
+    const $cursorCoordsService = TestBed.inject(CursorCoordsService);
+    $cursorCoordsService.latitudeDescription.set('');
+    $cursorCoordsService.longitudeDescription.set('');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.coords-description-main')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.coords-latlon')?.textContent).toContain('B:');
   });
 });

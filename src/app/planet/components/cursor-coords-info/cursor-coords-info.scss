@@ -1,3 +1,5 @@
+@use 'media-breakpoints-global';
+
 .cursor-coords-cursor-field {
   --cursor-field-max-width: 110px;
   position: fixed;
@@ -52,6 +54,7 @@
   .coords-container-form-field {
     // Имеет исключения в mat-exceptions-core.scss
     width: 100%;
+    min-width: 0;
   }
   .coords-container-form-field:not(.mat-focused) {
     outline: 1px solid var(--theme-outline-color);
@@ -102,5 +105,78 @@
         opacity: 0;
       }
     }
+  }
+}
+.coords-phone-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 102;
+  width: 100%;
+  height: var(--tool-chevron-thickness);
+  // Overlap onto the height panel; independent of bar thickness.
+  margin-top: calc(var(--regular-btn-size) * -7 / 96);
+  padding: 0;
+  border: none;
+  // Glued to the height panel above (tools chevron: square on the button side after rotate).
+  border-radius: 0 0 6px 6px;
+  border-top: 1px solid var(--theme-border-color);
+  background-color: var(--theme-ui-background-color);
+  outline: 1px solid var(--theme-outline-color);
+  cursor: pointer;
+  svg {
+    width: var(--regular-btn-svg-size);
+    height: var(--regular-btn-svg-size);
+    transform: rotate(-90deg);
+    opacity: 0.8;
+  }
+}
+.coords-phone-chevron + * {
+  margin-top: calc(var(--regular-btn-size) / 9);
+}
+.coords-container-main.coords-phone-collapsed .coords-phone-body {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  margin-top: 0;
+}
+.coords-phone-chevron-expanded svg {
+  transform: rotate(90deg);
+}
+
+@include media-breakpoints-global.mobile {
+  .coords-container-main .coords-description-main {
+    display: grid;
+    grid-template-columns: max-content auto;
+    justify-content: start;
+    align-items: center;
+    column-gap: 4px;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    min-width: 0;
+    overflow: visible;
+    margin-bottom: -10px;
+    .coords-latlon {
+      min-width: 0;
+      p {
+        white-space: nowrap;
+      }
+    }
+    .cursor-coords-cursor-field-display-option {
+      justify-content: flex-end;
+      flex-shrink: 0;
+      svg:last-child {
+        margin-bottom: 0;
+        width: 30px;
+        height: 30px;
+        flex-shrink: 0;
+      }
+    }
+  }
+  .coords-phone-chevron {
+    width: 100%;
+    box-sizing: border-box;
   }
 }

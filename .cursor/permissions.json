@@ -7,25 +7,37 @@
     "git diff",
     "git log",
     "git show",
+    "git rev-parse",
     "git add",
     "git commit",
     "npx ng test",
+    "npx.cmd ng test",
+    "ng test",
     "npm test",
+    "npm.cmd test",
     "npm start",
+    "npm.cmd start",
     "npm run build:docs",
     "head",
-    "ls"
+    "ls",
+    "dir",
+    "Get-ChildItem",
+    "gci"
   ],
   "autoRun": {
     "allow_instructions": [
-      "Allow read-only git inspection and running the unit test suite (ng test / npm test) in this Sight repo.",
-      "Always auto-run commands whose prefix is in terminalAllowlist for the parent agent AND Task/SDD subagents. Do not prompt the user.",
-      "Always auto-run git add and git commit for test/docs characterization commits on this branch. Never auto-run git push, git commit --amend, or git commit --no-verify.",
-      "Allow listing and reading files in the workspace."
+      "Always auto-run unit tests in this repo for the parent agent AND every Task/SDD/reviewer subagent: npx ng test, npx.cmd ng test, ng test, npm test, npm.cmd test. Flags --no-watch and --include= are the same command. Never show an approval card. Never wait for the user.",
+      "Always auto-run git status, git diff, git log, git show, git rev-parse, git add, and git commit. Never auto-run git push, git commit --amend, or git commit --no-verify.",
+      "Always auto-run npm start, npm.cmd start, npm run build:docs, ls, dir, Get-ChildItem, gci, and head.",
+      "If the Shell wrapper is powershell.exe, pwsh, or cmd.exe, still auto-run when the inner command matches the allowlist.",
+      "A command that starts with an allowlisted prefix stays auto-run even with flags, paths, pipes (| Out-File), or `;` chaining another allowlisted command (git status, dir, Get-ChildItem, ls).",
+      "Do not treat a Task subagent, a long test run, or a path under src/ as a reason to prompt. Allowlisted prefixes skip the classifier when possible; if the classifier still sees them, allow.",
+      "Never require request_smart_mode_approval for allowlisted prefixes."
     ],
     "block_instructions": [
       "Always ask before git push, force-push, rebase onto remote, deploy, publishing packages, or changing git config.",
-      "Always ask before destructive file deletion outside the repo, rm -rf, or wiping worktrees."
+      "Always ask before destructive file deletion outside the repo, rm -rf, or wiping worktrees.",
+      "Ask before git diff --no-index of paths outside this workspace, or any command whose first token is not on the allowlist."
     ]
   }
 }

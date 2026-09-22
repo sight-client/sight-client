@@ -14,12 +14,14 @@
 
 Индекс продукта: [specs/2026-09-17-sight-product-design.md](./specs/2026-09-17-sight-product-design.md)
 
-Дочерние (один Superpowers-план = одна из них):
+Дочерние as-is (один Superpowers-план = одна из них, пока нет to-be среза):
 
 - [Viewer, scene, camera, CRS](./specs/2026-09-17-sight-viewer-crs-design.md)
 - [map tools](./specs/2026-09-17-sight-map-tools-design.md)
 - [UI, theme, device](./specs/2026-09-17-sight-ui-theme-design.md)
 - [GitHub Pages](./specs/2026-09-17-sight-github-pages-design.md)
+
+[mobile UI chrome](./specs/2026-09-21-mobile-ui-chrome-design.md) — implemented, merged into as-is (ui-theme / viewer-crs / map-tools). План [2026-09-21-mobile-ui-chrome](./plans/2026-09-21-mobile-ui-chrome.md) **executed** 2026-09-22 (не гонять заново).
 
 Новая **продуктовая** архитектурная спека — файл `specs/YYYY-MM-DD-<topic>-design.md` и строка в этом списке плюс таблица в корневой product-спеке. Не класть сюда процессные спеки (тесты, раннер).
 

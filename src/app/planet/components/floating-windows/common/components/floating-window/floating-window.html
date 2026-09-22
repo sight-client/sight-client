@@ -15,16 +15,21 @@
   [style.top]="
     customTop
       ? customTop + 'px'
-      : $floatingWindowsService.floatingWindowsList()[windowIndex()]?.top
-        ? $floatingWindowsService.floatingWindowsList()[windowIndex()]?.top + 'px'
-        : '33px'
+      : ($floatingWindowsService.floatingWindowsList()[windowIndex()]?.top ?? 33) + 'px'
+  "
+  [style.left]="
+    customLeft
+      ? customLeft + 'px'
+      : $floatingWindowsService.floatingWindowsList()[windowIndex()]?.left !== undefined
+        ? $floatingWindowsService.floatingWindowsList()[windowIndex()]!.left + 'px'
+        : null
   "
   [style.right]="
     customRight
       ? customRight + 'px'
-      : $floatingWindowsService.floatingWindowsList()[windowIndex()]?.right
-        ? $floatingWindowsService.floatingWindowsList()[windowIndex()]?.right + 'px'
-        : '33px'
+      : $floatingWindowsService.floatingWindowsList()[windowIndex()]?.right !== undefined
+        ? $floatingWindowsService.floatingWindowsList()[windowIndex()]!.right + 'px'
+        : null
   "
   (mousedown)="$floatingWindowsService.setActiveWindow(parentName, $event)"
 >

@@ -33,11 +33,19 @@ parent: 2026-09-17-sight-product-design.md
 
 Светлая/тёмная: `SetLightDarkModeService`, ключ `localStorage.colorScheme`. Первый визит — `prefers-color-scheme`, дальше storage. В коде есть пометки, что часть смены схемы требует **перезагрузки** — не считать, что все токены переключаются на лету.
 
-Не подключать Tailwind / CSS-in-JS. Миксины: `src/app/global/styles/media-breakpoints-global.scss` — `desktop-large` 2560+, `desktop-small` ≤1200, `laptop` ≤1080, `tablet` ≤767, `mobile` ≤520, `tiny` ≤320.
+Не подключать Tailwind / CSS-in-JS. Миксины: `src/app/global/styles/media-breakpoints-global.scss` — `desktop-large` 2560+, `desktop-small` ≤1200, `laptop` ≤1080, `tablet` ≤767, `mobile` ≤582, `tiny` ≤320.
 
 ## Device and a11y
 
-`CheckMobileDeviceService` (`providedIn: 'root'`): `isMobile` по UA-regex **или** `maxTouchPoints` / `ontouchstart`. Один детектор — не плодить второй.
+`CheckMobileDeviceService` (`providedIn: 'root'`): `isMobile` / `checkMobile()` — UA-regex телефона/планшета **без** `maxTouchPoints` / `ontouchstart` (виртуальный курсор, mixin off). Раскладка — CSS mixins + сигналы `phoneLayout` (≤582), `tabletLayout` (≤767), `laptopLayout` (≤1080), `narrowChromeLayout` (≤1660). Не плодить второй сервис. `DeviceService` не использовать для нового хрома.
+
+На ≤767 `--regular-btn-size: 44px`. Шевроны tools: высота кнопки, толщина `--tool-chevron-thickness` (⅓ кнопки; на `mobile` ≤582 — ½); `margin-left` / `margin-bottom` из толщины. Sidenav toggle: высота 2× кнопки, ширина `/ 2.25` на `tablet`. Sidenav `mode=over`, старт закрыт, при `tabletLayout` (≤767). `viewport-fit=cover` + `env(safe-area-inset-*)`. Альбом = тот же хром, второй сетки нет.
+
+**Compact 583–767:** coords слева снизу развёрнуты (без шеврона свёртки); высота сверху у меню; `tools-panel` laptop (`left: 194px`). Столбик высоты+coords нет.
+
+**Phone ≤582:** те же виджеты, без общего wrapper. Меню `position: absolute`, ~15px + safe-area. Высота и coords — два хоста, столбик по центру (`left: 50%; transform: translateX(-50%)`). Подпись высоты **«Обзор с:»** (десктоп — «Высота наблюдения»). Одна ширина `--phone-height-stack-width` на высоту, шеврон и coords = `max` из натуральной высоты и карточки шир/долг (не min-width селекта, не растянутая `1fr`). `--phone-coords-content-width` только растёт (смена СК, в т.ч. «СК-42 м», стек не сужает). Карточка coords в DOM и свёрнутой (пробы WGS-84 до живых координат); показ после `phone-stack-ready`; шеврон coords только при `:has(.camera-height-container)` (высота `@defer (on idle)`). Шеврон приклеен к низу высоты (квадратный верх + `border-top`, низ 6px). Раскрытие только по шеврону; клик по карте не закрывает. Раскрытый шир/долг+чекбокс — две колонки (`max-content` / `auto`); select СК на всю ширину. `tools-panel` по центру снизу, `column-reverse`.
+
+Полы окна: `body` `min-width: var(--right-part-min-width)` (350px) и `min-height: var(--min-height-global)` (440px). После телефонного хрома **не сужать** без спроса — mobile ещё может потребовать ширину.
 
 У кнопок-иконок нужны `aria-label` и/или `matTooltip` (задержка 1000 ms — паттерн репо). Пустой `matTooltip="Test"` не оставлять. `preventDefault` на document `touchmove` без одобрения нельзя (ломает скролл UI; жесты глобуса — Cesium + znemz mixin).
 

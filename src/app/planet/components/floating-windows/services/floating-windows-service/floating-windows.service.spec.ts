@@ -33,6 +33,11 @@ import { CalculateRectangleFloatingWindowService } from '@/components/tools/meas
 import { CalculateCircleFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-circle/components/calculate-circle-floating-window/services/calculate-circle-floating-window-service/calculate-circle-floating-window.service';
 import { CalculatePolygonFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-polygon/components/calculate-polygon-floating-window/services/calculate-polygon-floating-window-service/calculate-polygon-floating-window.service';
 import { FlyAroundFloatingWindowService } from '@/components/tools/camera-view-tools/components/fly-around/components/fly-around-floating-window/services/fly-around-floating-window-service/fly-around-floating-window.service';
+import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
+
+const phoneLayout = signal(false);
+const laptopLayout = signal(false);
+const narrowChromeLayout = signal(false);
 
 function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
   return {
@@ -74,9 +79,22 @@ describe('FloatingWindowsService', () => {
   let service: FloatingWindowsService;
 
   beforeEach(() => {
+    phoneLayout.set(false);
+    laptopLayout.set(false);
+    narrowChromeLayout.set(false);
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
+        {
+          provide: CheckMobileDeviceService,
+          useValue: {
+            isMobile: false,
+            checkMobile: () => false,
+            phoneLayout,
+            laptopLayout,
+            narrowChromeLayout,
+          },
+        },
         { provide: ViewerService, useValue: fakeViewerService() },
         CursorCoordsService,
         ToolsService,
@@ -115,6 +133,39 @@ describe('FloatingWindowsService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('creates expanded on the right when chrome is wide', () => {
+    phoneLayout.set(false);
+    narrowChromeLayout.set(false);
+    service.addWindowItem('drawMark');
+    const item = service.floatingWindowsList()[0];
+    expect(item?.collapsed()).toBe(false);
+    expect(item?.right).toBe(33);
+    expect(item?.left).toBeUndefined();
+  });
+
+  it('creates expanded on the left when tabs are top-right', () => {
+    phoneLayout.set(false);
+    laptopLayout.set(true);
+    narrowChromeLayout.set(true);
+    service.addWindowItem('drawMark');
+    const item = service.floatingWindowsList()[0];
+    expect(item?.collapsed()).toBe(false);
+    expect(item?.left).toBe(15);
+    expect(item?.right).toBeUndefined();
+    expect(item?.top).toBe(50);
+  });
+
+  it('creates collapsed on phoneLayout', () => {
+    phoneLayout.set(true);
+    laptopLayout.set(true);
+    narrowChromeLayout.set(true);
+    service.addWindowItem('drawMark');
+    const item = service.floatingWindowsList()[0];
+    expect(item?.collapsed()).toBe(true);
+    expect(item?.left).toBe(15);
+    expect(item?.top).toBe(86);
   });
 
   it('adds a window keyed by toolName and can hide it', () => {

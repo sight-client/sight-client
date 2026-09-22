@@ -1,3 +1,5 @@
+@use 'media-breakpoints-global';
+
 #mainSightContainer {
   width: 100%;
   height: 100%;
@@ -147,10 +149,17 @@
       }
     }
 
+    @include media-breakpoints-global.tablet {
+      .sight-main-sidenav-toggle-button {
+        min-width: calc(var(--regular-btn-size) / 2.25);
+        width: calc(var(--regular-btn-size) / 2.25);
+      }
+    }
+
     .header-buttons-container {
       position: absolute;
-      left: 15px;
-      top: 15px;
+      left: calc(15px + env(safe-area-inset-left, 0px));
+      top: calc(15px + env(safe-area-inset-top, 0px));
       // top: 18px;
       z-index: 101;
 

@@ -49,6 +49,7 @@ export class FloatingWindow implements OnInit {
   @Input() contentTemplate: TemplateRef<any>;
   @Input() parentName: WindowName;
   @Input() customTop?: number; // пропс для плавающих окон, не относящихся к инструментам правой панели
+  @Input() customLeft?: number;
   @Input() customRight?: number; // -//-//-//-
 
   // @ViewChild('floatingWindow') private floatingWindowRef!: ElementRef<Element>;

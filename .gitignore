@@ -41,6 +41,9 @@ testem.log
 # Superpowers isolated worktrees (not .cursor/superpowers/, which is tracked)
 .worktrees/
 
+# Superpowers visual-companion mockups (not .cursor/superpowers/, which is tracked)
+.superpowers/
+
 # Local full-chat exports from /save-chat-text (do not commit)
 .chats/
 

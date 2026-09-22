@@ -19,15 +19,15 @@
   <div id="sightUiContainer">
     <mat-sidenav-container
       class="sight-main-sidenav-global"
-      [hasBackdrop]="$checkMobileDeviceService.isMobile ? 'true' : 'false'"
+      [hasBackdrop]="$checkMobileDeviceService.tabletLayout() ? 'true' : 'false'"
     >
       <mat-sidenav
         class="sight-main-sidenav"
         #sidenavRef
-        [mode]="$checkMobileDeviceService.isMobile ? 'over' : 'side'"
+        [mode]="$checkMobileDeviceService.tabletLayout() ? 'over' : 'side'"
         position="start"
-        [opened]="!$checkMobileDeviceService.isMobile"
-        [disableClose]="$checkMobileDeviceService.isMobile ? 'false' : 'true'"
+        [opened]="!$checkMobileDeviceService.tabletLayout()"
+        [disableClose]="$checkMobileDeviceService.tabletLayout() ? 'false' : 'true'"
       >
         <div class="sight-main-sidenav-left-content">
           <!-- <div class="sight-main-sidenav-logo">

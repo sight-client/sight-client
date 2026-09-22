@@ -1,14 +1,25 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  signal,
+} from '@angular/core';
 import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
+import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 
 @Component({
   selector: 'camera-height-tool',
   imports: [],
   template: `
     <div class="camera-height-container">
-      <span class="camera-height-text">Высота наблюдения:&nbsp;</span>
+      <span class="camera-height-text camera-height-text-full">Высота наблюдения:&nbsp;</span>
+      <span class="camera-height-text camera-height-text-short" title="Высота камеры"
+        >Обзор с:&nbsp;</span
+      >
       <input
         type="number"
         name="camera-height-input"
@@ -43,6 +54,7 @@ import { ViewerService } from '@/common/services/viewer-service/viewer.service';
         user-select: none;
       }
       input {
+        flex-grow: 1;
         display: inline-block;
         font-size: 1em;
         width: 5em;
@@ -54,7 +66,45 @@ import { ViewerService } from '@/common/services/viewer-service/viewer.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CameraHeightTool implements OnDestroy {
-  constructor(private $viewerService: ViewerService) {
+  private phoneStackWidthObserver?: ResizeObserver;
+
+  constructor(
+    private $viewerService: ViewerService,
+    private $checkMobileDeviceService: CheckMobileDeviceService,
+    private el: ElementRef<HTMLElement>,
+  ) {
+    afterNextRender(() => {
+      const box = this.el.nativeElement.querySelector('.camera-height-container');
+      if (!(box instanceof HTMLElement)) return;
+      const apply = () => {
+        const root = document.getElementById('sightUiContainer');
+        const html = document.documentElement;
+        if (!root) return;
+        if (!this.$checkMobileDeviceService.phoneLayout()) {
+          root.style.removeProperty('--phone-height-stack-width');
+          html.style.removeProperty('--phone-height-stack-width');
+          return;
+        }
+        const coordsMin =
+          parseFloat(root.style.getPropertyValue('--phone-coords-content-width')) ||
+          parseFloat(html.style.getPropertyValue('--phone-coords-content-width')) ||
+          0;
+        if (!coordsMin) return;
+        const cs = getComputedStyle(box);
+        const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+        const childrenW = [...box.children]
+          .filter((el) => getComputedStyle(el).display !== 'none')
+          .reduce((sum, el) => sum + el.getBoundingClientRect().width, 0);
+        const stackW = Math.ceil(Math.max(childrenW + padX, coordsMin));
+        if (!stackW) return;
+        const px = `${stackW}px`;
+        root.style.setProperty('--phone-height-stack-width', px);
+        html.style.setProperty('--phone-height-stack-width', px);
+      };
+      apply();
+      this.phoneStackWidthObserver = new ResizeObserver(apply);
+      this.phoneStackWidthObserver.observe(box);
+    });
     if (this.$viewerService.viewerHasLoaded()) {
       this.camHeightKm.set(
         Number(
@@ -73,6 +123,7 @@ export class CameraHeightTool implements OnDestroy {
   }
 
   ngOnDestroy() {
+    this.phoneStackWidthObserver?.disconnect();
     this.$viewerService.viewer.scene.camera.changed.removeEventListener(this.setCamHeightKm);
   }
 

@@ -16,6 +16,10 @@ User instructions in `AGENTS.md` take precedence over skills.
 - AI session log: `.cursor/superpowers/log/YYYY-MM-DD.md` (append-only)
 - Worktrees: `.worktrees/<branch>/`
 
+`.superpowers/` is the Superpowers **visual companion** (HTML mockups, pid/token). Gitignored, not product. Do not confuse with `.cursor/superpowers/` (specs/plans/log — tracked).
+
+When a visual brainstorm unit of work ends (spec approved, parked, or the human closes that topic) and the companion is no longer needed: stop the brainstorm server and delete `.superpowers/`, unless the human asked to keep the mockups. Do not delete mid-session or after every “yes”. Never delete `.cursor/superpowers/`.
+
 Never write specs, plans, or source into `docs/`. That directory is GitHub Pages build output (`ng build --configuration docs`) and will be overwritten.
 
 ## Superpowers subagents (SDD)
@@ -51,3 +55,35 @@ The parent agent appends to `.cursor/superpowers/log/YYYY-MM-DD.md` at the **end
 Each block: goal; spec/plan paths; 1–3 skills from the brief; consequential files; standing decisions and which owner file was updated; status (`done` / `parked` / `needs spec`).
 
 Do not log: bugfixes with unchanged product contract, prompts, secrets, raw test output, every edited path. Superpowers SDD ledgers stay plan-scoped; they do not replace this file.
+
+A log line `done` is not a stamp. Before any executed-stamp, ask Evgeniy (section below) and wait for his yes.
+
+## Closing an executed plan
+
+Evgeniy closes a plan in chat. Match the **intent**, not a fixed phrase. Examples:
+
+- «ок, заканчиваем работу и обновляем документацию»
+- «считаю, что все планы выполнены»
+- «закрывай план»
+- «считай работу выполненной»
+
+Same intent: this work is finished, the plan or plans are done, update the docs. That message is the moment to **ask**, not to edit.
+
+**Ask before writing.** Name the plan file or files and ask whether to mark them executed and update the docs. Do not touch the plan, README, spec, skill, or the close block in the log until he answers yes to that question. «Да» / «ок» on a diff, a spec, or a commit is not that answer. «Да» to the close question is. Do not ask a second time after he already confirmed.
+
+Do **not** ask or stamp when:
+
+- the agent wrote `done` in the session log, or tests went green
+- he approved a spec, a plan file, or one diff («ок», «да», «продолжай», «коммить»)
+- he is still reviewing the result
+- the log only records that a spec or plan was written
+
+«Все планы» means every plan **this unit of work** actually finished, not every file under `plans/`. The confirmation question lists those paths.
+
+After he confirms, in that same change the parent agent:
+
+1. Banner under the plan title: `> **Status:** executed YYYY-MM-DD. History only — do not re-run.` Leave step checkboxes as `- [ ]`.
+2. One line in `.cursor/superpowers/README.md`: the plan is **executed**, do not re-run.
+3. If that plan’s spec still reads as to-be, set `status: implemented` and point at the plan.
+4. One line in the owning `sight-*` skill only when an agent would otherwise re-run that plan (as `sight-testing` does for the unit-test plans). Do not append a changelog bullet for every plan.
+5. A session-log block for the close.

@@ -14,6 +14,10 @@
   --main-tabs-content-width: 300px;
 }
 
+.camera-height-text-short {
+  display: none;
+}
+
 /* Отработка медиа запросов, зависящик от размера экрана: */
 @include media-breakpoints-global.desktop-large {
   // body {
@@ -70,60 +74,79 @@
 }
 
 @include media-breakpoints-global.mobile {
-  // body {
-  //     outline: 1rem solid pink;
-  // }
-  // .camera-height-container {
-  //   display: none !important;
-  // }
-  // .coords-container-main {
-  //   display: none !important;
-  // }
-  // .cursor-coords-cursor-field {
-  //   opacity: 1 !important;
-  //   transition: opacity 300ms ease-in-out;
-  // }
+  .header-buttons-container {
+    left: calc(15px + env(safe-area-inset-left, 0px)) !important;
+    top: calc(15px + env(safe-area-inset-top, 0px)) !important;
+    transform: none !important;
+  }
+
+  .camera-height-container,
+  .coords-container-main {
+    left: 50% !important;
+    transform: translateX(-50%);
+    right: auto !important;
+  }
+
+  .coords-container-main {
+    width: var(--phone-height-stack-width, 0px) !important;
+    visibility: hidden;
+  }
+
+  .camera-height-container {
+    top: calc(15px + env(safe-area-inset-top, 0px)) !important;
+    bottom: auto !important;
+    white-space: nowrap;
+    // justify-content: flex-start !important;
+    text-align: left;
+    width: var(--phone-height-stack-width, 0px) !important;
+    box-sizing: border-box;
+    visibility: hidden;
+  }
+
+  // Height is `@defer (on idle)`; coords can paint first. Chevron only after the bar exists.
+  :root.phone-stack-ready .camera-height-container,
+  #sightUiContainer.phone-stack-ready .camera-height-container {
+    visibility: visible;
+  }
+
+  :root.phone-stack-ready:has(.camera-height-container) .coords-container-main,
+  #sightUiContainer.phone-stack-ready:has(.camera-height-container) .coords-container-main {
+    visibility: visible;
+  }
+
+  .camera-height-text-full {
+    display: none;
+  }
+
+  .camera-height-text-short {
+    display: inline;
+  }
+
+  // "- 3px" - чтобы шеврон немного наслаивался на панель высоты
+  .coords-container-main {
+    top: calc(15px + env(safe-area-inset-top, 0px) + var(--regular-btn-size) - 3px) !important;
+    bottom: auto !important;
+    z-index: 102 !important;
+    overflow: visible;
+  }
+
+  .tools-panel-container {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    bottom: calc(15px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .floating-windows-tabs-panel {
+    top: calc(
+      15px + env(safe-area-inset-top, 0px) + var(--regular-btn-size) - var(--regular-btn-size) * 7 /
+        96 + var(--tool-chevron-thickness) + 8px
+    ) !important;
+  }
 }
 
 @include media-breakpoints-global.tiny {
   // body {
   //     outline: 1rem solid red;
   // }
-}
-// ----------------------------------------------------------------------- //
-// Размещено здесь, т.к. это стандартный элемент UI Cesium
-.cesium-viewer-fullscreenContainer {
-  position: absolute;
-  right: 40px;
-  bottom: 15px;
-  width: var(--regular-btn-size);
-  height: var(--regular-btn-size);
-  border-radius: 8px;
-  outline: 1px solid var(--theme-outline-color);
-  z-index: 100;
-}
-
-@media (max-width: 380px) {
-  .cesium-viewer-fullscreenContainer {
-    top: 15px;
-    left: calc(var(--regular-btn-size) + 15px + 3px);
-  }
-}
-
-.cesium-button.cesium-fullscreenButton {
-  background-color: var(--theme-ui-background-color);
-  border: none;
-  border-radius: 8px;
-  pointer-events: auto;
-  svg {
-    fill: var(--theme-color);
-    // opacity: 0.8;
-  }
-}
-
-.cesium-button.cesium-fullscreenButton:hover,
-.cesium-button.cesium-fullscreenButton:focus {
-  background-color: var(--theme-focus-background-color);
-  box-shadow: none;
-  border: none;
 }

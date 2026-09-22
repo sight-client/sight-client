@@ -68,9 +68,9 @@ HTTP interceptors (`app.config.ts`): `badHtmlInterceptor`, `doubleReqPreventionI
 | Метки и фигуры; экспорт/импорт ODS | map-tools |
 | Экспорт/импорт KML / KMZ | map-tools |
 | Линейные и площадные измерения | map-tools (+ геодезия в viewer-crs) |
-| Камера, скриншот, fullscreen | viewer-crs (виджет Cesium + camera tools) |
+| Камера, скриншот, fullscreen | viewer-crs (CameraViewTools, не виджет Cesium) |
 | Светлая/тёмная + четыре палитры | ui-theme |
-| Тач / mobile | ui-theme + viewer-crs (мышь vs центр canvas) |
+| Тач / mobile | ui-theme + viewer-crs (мышь vs центр canvas; хром по ширине). Implemented, merged into as-is: [mobile UI chrome](./2026-09-21-mobile-ui-chrome-design.md) |
 
 ## Planning rule
 

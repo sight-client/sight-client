@@ -1,6 +1,7 @@
 import { effect, Injectable, signal, untracked, WritableSignal } from '@angular/core';
 import chalk from 'chalk';
 
+import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { DrawingsListService } from '@/components/tools/drawings-list/services/drawings-list-service/drawings-list.service';
 import { measuringToolsNames } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
@@ -14,6 +15,7 @@ export interface FloatingWindowItem {
   hidden: WritableSignal<boolean>;
   isActive: WritableSignal<boolean>;
   top: number;
+  left?: number;
   right?: number;
 }
 
@@ -23,6 +25,7 @@ export class FloatingWindowsService {
   constructor(
     private readonly $viewerService: ViewerService,
     protected readonly $drawingsListService: DrawingsListService,
+    private readonly $checkMobileDeviceService: CheckMobileDeviceService,
   ) {
     // Отслеживает выбор по ЛКМ любой сущности на холсте, ВКЛЮЧАЯ ПОВТОРЫ (для восстановления окна из инвиза)
     effect(() => {
@@ -67,7 +70,25 @@ export class FloatingWindowsService {
       untracked(() => {
         this.clearOthersIsActiveFlags(windowName);
         const mainArrLength = this._floatingWindowsList().length;
-        let newTop: number = 33 + this._windowHeaderHeight;
+        const phone = this.$checkMobileDeviceService.phoneLayout();
+        const laptop = this.$checkMobileDeviceService.laptopLayout();
+        const narrow = this.$checkMobileDeviceService.narrowChromeLayout();
+        let newTop: number;
+        if (phone) {
+          // 15 + height − overlap (btn×7/96) + --tool-chevron-thickness + 8px
+          const rootStyle = getComputedStyle(document.documentElement);
+          const btn =
+            parseFloat(rootStyle.getPropertyValue('--regular-btn-size')) || 44;
+          const thickness =
+            parseFloat(rootStyle.getPropertyValue('--tool-chevron-thickness')) || btn / 2;
+          newTop = Math.round(15 + btn - (btn * 7) / 96 + thickness + 8);
+        } else if (narrow && laptop) {
+          newTop = 50;
+        } else if (narrow) {
+          newTop = 15;
+        } else {
+          newTop = 33 + this._windowHeaderHeight;
+        }
         if (mainArrLength !== 0) {
           if (this._floatingWindowsList()[mainArrLength - 1]?.top !== undefined) {
             if (this._floatingWindowsList()?.[mainArrLength - 1]?.top) {
@@ -86,11 +107,11 @@ export class FloatingWindowsService {
           ...arr,
           {
             windowName: windowName,
-            collapsed: signal(false),
+            collapsed: signal(phone),
             hidden: signal(false),
             isActive: signal(true), // окно активно при создании
             top: newTop,
-            right: 33,
+            ...(narrow ? { left: 15 } : { right: 33 }),
           },
         ]);
         // // Для тестов

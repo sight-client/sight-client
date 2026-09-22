@@ -1,3 +1,5 @@
+@use 'media-breakpoints-global';
+
 #distanceLegendDiv {
   display: block;
   position: absolute;
@@ -81,11 +83,20 @@
   transform: scale(0.8);
   position: absolute;
   right: -22px;
-  bottom: 152px;
+  bottom: 97px;
   width: 150px;
   height: 150px;
   pointer-events: auto;
   z-index: 101;
+}
+
+@include media-breakpoints-global.tablet {
+  .compass {
+    // 0.8 × 44/32 so the ring scales with 44px zoom buttons
+    transform: scale(1.1);
+    right: -13px;
+    bottom: 156px;
+  }
 }
 
 .compass-outer-ring {
@@ -230,7 +241,7 @@
 
 .navigation-controls {
   position: absolute;
-  bottom: 70px;
+  bottom: 15px;
   right: 40px;
   width: var(--regular-btn-size);
   height: max-content;
@@ -243,6 +254,13 @@
   user-select: none;
   outline: 1px solid var(--theme-outline-color);
   z-index: 101;
+}
+
+@include media-breakpoints-global.tablet {
+  .navigation-controls {
+    // compass ring center is ~5px left of the scaled box; keep zoom stack on that axis
+    right: 45px;
+  }
 }
 
 .navigation-control {

@@ -1,0 +1,22 @@
+---
+description: Auto-review allowlist — never prompt for approved console prefixes
+alwaysApply: true
+---
+
+# Auto-review allowlist
+
+Allowlisted prefixes in `.cursor/permissions.json` (and `~/.cursor/permissions.json`) are already approved. **Parent, Task, SDD implementer, and reviewer agents** run them immediately.
+
+**Do:** call Shell with **one** allowlisted command (`npx ng test --no-watch --include=…`, `npm test`, `git status`, `git diff -- path`, `dir path`, `Get-ChildItem path`). Prefix match is enough.
+
+**Do not:**
+
+- Set `request_smart_mode_approval` / `requestSmartModeApproval` for an allowlisted prefix (that is the approval card).
+- Ask Evgeniy in chat to confirm `npx ng test`, `npm test`, `npm start`, `git status`/`diff`/`log`/`show`/`add`/`commit`, `ls`, `head`, `dir`, `Get-ChildItem`.
+- Retry a blocked allowlisted command with the approval flag.
+- Use `git diff --no-index` or `/dev/null` (classifier treats this as arbitrary-file read and shows a card even though the prefix is `git diff`). Untracked files: Read/Glob.
+- Chain `;` with a command whose first token is not on the allowlist.
+
+If Auto-review still blocks an allowlisted command: return **BLOCKED** to the parent. The parent reruns the same command. Do not involve the human.
+
+Still ask before: `git push`, amend, `--no-verify`, deploy, `npm publish`, `rm -rf`, wiping worktrees.
