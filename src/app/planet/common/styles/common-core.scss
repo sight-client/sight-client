@@ -68,6 +68,9 @@
 }
 
 @include media-breakpoints-global.tablet {
+  .sight-main-sidenav {
+    max-width: 75% !important;
+  }
   // body {
   //     outline: 1rem solid gray;
   // }

@@ -144,10 +144,10 @@
       position: absolute;
       z-index: 2;
       left: 0px;
-      top: calc(50% - var(--regular-btn-size) / 2);
+      top: calc(50% - var(--regular-btn-size) * 6 / 2);
+      height: calc(var(--regular-btn-size) * 6);
       min-width: calc(var(--regular-btn-size) / 2);
       width: calc(var(--regular-btn-size) / 2);
-      height: calc(var(--regular-btn-size) * 2);
       padding-inline: 0;
       border-radius: 0px 6px 6px 0px;
       mat-icon {
@@ -160,10 +160,19 @@
       }
     }
 
+    @include media-breakpoints-global.laptop {
+      .sight-main-sidenav-toggle-button {
+        min-width: calc(var(--regular-btn-size) / 1.5);
+        width: calc(var(--regular-btn-size) / 1.5);
+      }
+    }
+
     @include media-breakpoints-global.tablet {
       .sight-main-sidenav-toggle-button {
-        min-width: calc(var(--regular-btn-size) / 2.25);
-        width: calc(var(--regular-btn-size) / 2.25);
+        min-width: calc(var(--regular-btn-size) / 2);
+        width: calc(var(--regular-btn-size) / 2);
+        top: calc(50% - var(--regular-btn-size) * 4 / 2);
+        height: calc(var(--regular-btn-size) * 4);
       }
     }
 
