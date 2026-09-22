@@ -87,6 +87,8 @@
   width: 150px;
   height: 150px;
   pointer-events: auto;
+  touch-action: none;
+  -webkit-touch-callout: none;
   z-index: 101;
 }
 
@@ -251,6 +253,7 @@
   border-radius: 10px;
   overflow: hidden;
   pointer-events: auto;
+  touch-action: none;
   user-select: none;
   outline: 1px solid var(--theme-outline-color);
   z-index: 101;

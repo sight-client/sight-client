@@ -21,7 +21,7 @@ description: Use when changing keyboard access, aria attributes, focus, tooltips
 
 - Детектор: `CheckMobileDeviceService`. `isMobile` = UA-regex, **не** `maxTouchPoints`. Раскладка = CSS / `phoneLayout` (≤582) и `tabletLayout` (≤767), не UA.
 - План `.cursor/superpowers/plans/2026-09-21-mobile-ui-chrome.md` — **executed** 2026-09-22. Не реализовывать заново; хром уже в as-is ui-theme / viewer-crs / map-tools.
-- Жесты карты — Cesium + `@znemz/cesium-navigation`. Не вешать `preventDefault` на `touchmove` документа без спроса (сломает скролл UI).
+- Жесты карты — Cesium. Компас и кнопки зума `@znemz/cesium-navigation` монтируются и на UA mobile: `attachNavigationTouchBridge` в `znemz-navigation-mixin.ts` переводит touch в mouse/click миксина. Подписи этих элементов — `MatTooltip` (задержка 1000, слева), не атрибут `title`. Файлы пакета не менять и не снимать виджет с мобильного UA. `preventDefault` у этого моста только на жесте, который начался на `.compass` или `.navigation-controls`. Не вешать `preventDefault` на `touchmove` всего `document` без спроса (сломает скролл UI).
 - Открытие sidenav с левого края (≤767, панель закрыта) — полоска `.sight-main-sidenav-edge-swipe` в `planet`, не слушатель на `document`.
 - Брейкпоинты только из `media-breakpoints-global.scss`: `tablet()` ≤767px, `mobile()` ≤582px, `tiny()` ≤320px.
 - Hit-area: на `tablet` ≤767 `--regular-btn-size: 44px`; шевроны tools — высота кнопки, толщина `--tool-chevron-thickness` (⅓ кнопки, на `mobile` ≤582 — ½); `margin-left`/`margin-bottom` считаются из толщины. Sidenav toggle — высота 2× кнопки, ширина `/ 2.25`.

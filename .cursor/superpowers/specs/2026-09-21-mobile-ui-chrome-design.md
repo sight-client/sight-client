@@ -79,11 +79,11 @@ also-touches:
 
 UX раскрытия группы камеры не менять.
 
-## Navigation mixin (десктоп)
+## Navigation mixin
 
-На UA телефона/планшета mixin по-прежнему не монтировать.
+На UA телефона/планшета миксин монтируется. Тач переводится в mouse-события пакета в `ZnemzNavigationMixin` (`attachNavigationTouchBridge`); файлы `@znemz/cesium-navigation` не менять. Подписи кольца, гироскопа и кнопок — `MatTooltip` (1000 мс, слева), не `title`.
 
-На десктопе (когда mixin есть): опустить **весь** блок компас+гироскоп и `+/⌂/−` как единое целое в угол, где был Cesium-fullscreen. Взаимные `right` и зазор компас↔зум не менять.
+Блок компас+гироскоп и `+/⌂/−` стоит в углу, где был Cesium-fullscreen. Взаимные `right` и зазор компас↔зум не менять. На ширине `tablet` позиция задана в `znemz-navigation-mixin.scss`.
 
 ## Testing
 

@@ -56,7 +56,8 @@ Picking: `setNewPickedEntity` обновляет и «new», и «forced» си�
 ## Imagery and navigation
 
 - URL OSM ставится только после `viewerHasLoaded`. URL тайлов не менять без одобрения.
-- Компас/зум: `ZnemzNavigationMixin` (`@znemz/cesium-navigation`), не Cesium `homeButton`. На десктопе блок компас+зум в правом нижнем углу (бывшая позиция Cesium fullscreen); на UA mobile не монтируется.
+- Компас/зум: `ZnemzNavigationMixin` (`@znemz/cesium-navigation`), не Cesium `homeButton`. Блок компас+зум в правом нижнем углу (бывшая позиция Cesium fullscreen), в том числе на UA mobile. Файлы пакета не меняются: на мобильном UA `attachNavigationTouchBridge` переводит touch виджета в `mousedown` / `mousemove` / `mouseup` / `dblclick` / `click`, которые миксин уже слушает. `preventDefault` только у жеста, начатого на `.compass` или `.navigation-controls`.
+- Подписи кольца, гироскопа и кнопок `+/дом/−` — `MatTooltip` (задержка 1000, позиция слева), не атрибут `title`. На компасе долгое удержание подпись не открывает, чтобы не спорить с перетаскиванием. Долгое удержание кнопки зума показывает подпись и камеру не зумит.
 - Высота камеры в UI: `CameraHeightTool`.
 
 ## Camera tools (остаются в этой спеке)

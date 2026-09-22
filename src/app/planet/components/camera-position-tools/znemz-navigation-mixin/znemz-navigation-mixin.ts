@@ -2,9 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
+  ElementRef,
+  Injector,
+  runInInjectionContext,
   untracked,
   ViewEncapsulation,
 } from '@angular/core';
+import { MatTooltip } from '@angular/material/tooltip';
 import * as Cesium from 'cesium';
 import ViewerCesiumNavigationMixin from '@znemz/cesium-navigation';
 
@@ -23,6 +27,7 @@ export class ZnemzNavigationMixin {
   constructor(
     private $viewerService: ViewerService,
     private $checkMobileDeviceService: CheckMobileDeviceService,
+    private injector: Injector,
   ) {
     effect(() => {
       if (this.$viewerService.cameraIsFlyingAround() === true) {
@@ -48,16 +53,26 @@ export class ZnemzNavigationMixin {
       }
     });
 
-    effect(() => {
-      if (this.$viewerService.viewerHasLoaded() && !this.$checkMobileDeviceService.isMobile) {
-        // не работает на точпадах, даже с эмуляцией событий мыши
-        untracked(() => {
+    effect((onCleanup) => {
+      if (this.$viewerService.viewerHasLoaded()) {
+        const detach = untracked(() => {
           this.setNavMixin();
           this.replaceNavMixin();
           this.translateNavMixin();
           this.getUsability();
           this.getCursorListeners();
+          const detachTooltips = this.bindNavMixinTooltips();
+          const wrapper = document.getElementById('navigationMixinWrapper');
+          const detachTouch =
+            this.$checkMobileDeviceService.isMobile && wrapper
+              ? attachNavigationTouchBridge(wrapper)
+              : undefined;
+          return () => {
+            detachTouch?.();
+            detachTooltips();
+          };
         });
+        onCleanup(detach);
       } else {
         const navigationMixinDiv = document?.getElementsByClassName(
           'cesium-widget-cesiumNavigationContainer',
@@ -129,27 +144,6 @@ export class ZnemzNavigationMixin {
 
   private translateNavMixin(): void {
     try {
-      // Отключено, т.к. выбивается из общего использования matTooltip заместо title-атрибута
-      // document
-      //   .getElementsByClassName('compass-outer-ring')[0]
-      //   .setAttribute('title', 'Нажмите и тащите чтобы вращать камеру.');
-      // document
-      //   .getElementsByClassName('compass')[0]
-      //   .setAttribute(
-      //     'title',
-      //     'Внешнее кольцо: вращение камеры. Внутренний гироскоп: свободный обзор.',
-      //   );
-      // document
-      //   .getElementsByClassName('navigation-controls')[0]
-      //   .children[0].setAttribute('title', 'Приблизить');
-      // document
-      //   .getElementsByClassName('navigation-controls')[0]
-      //   .children[1].setAttribute('title', 'Вернуть начальный вид');
-      // document
-      //   .getElementsByClassName('navigation-controls')[0]
-      //   .children[2].setAttribute('title', 'Отдалить');
-      // document.getElementById('distanceLegendDiv')!.title = 'Длина отрезка на текущей высоте камеры';
-
       document.getElementsByClassName('compass-outer-ring')[0].removeAttribute('title');
       document.getElementsByClassName('compass')[0].removeAttribute('title');
       document
@@ -165,6 +159,59 @@ export class ZnemzNavigationMixin {
       error.cause = 'red';
       throw error;
     }
+  }
+
+  private bindNavMixinTooltips(): () => void {
+    const root = document.getElementById('navigationMixinWrapper');
+    if (!root) {
+      return () => {};
+    }
+    const tooltips: MatTooltip[] = [];
+    const bind = (
+      element: Element | null,
+      message: string,
+      touchGestures: 'auto' | 'off',
+    ): void => {
+      if (!(element instanceof HTMLElement)) {
+        return;
+      }
+      const tooltip = runInInjectionContext(
+        Injector.create({
+          parent: this.injector,
+          providers: [{ provide: ElementRef, useValue: new ElementRef(element) }],
+        }),
+        () => new MatTooltip(),
+      );
+      tooltip.position = 'left';
+      tooltip.showDelay = 1000;
+      tooltip.touchGestures = touchGestures;
+      tooltip.message = message;
+      tooltip.ngAfterViewInit();
+      tooltips.push(tooltip);
+    };
+    bind(
+      root.querySelector('.compass-outer-ring-background'),
+      'Нажмите и тащите чтобы вращать камеру.',
+      'off',
+    );
+    bind(
+      root.querySelector('.compass-gyro-background'),
+      'Внешнее кольцо: вращение камеры. Внутренний гироскоп: свободный обзор.',
+      'off',
+    );
+    const controlTexts = ['Приблизить', 'Вернуть начальный вид', 'Отдалить'];
+    const controls = root.querySelectorAll('.navigation-control, .navigation-control-last');
+    controls.forEach((control, index) => {
+      const message = controlTexts[index];
+      if (message) {
+        bind(control, message, 'auto');
+      }
+    });
+    return () => {
+      for (const tooltip of tooltips) {
+        tooltip.ngOnDestroy();
+      }
+    };
   }
 
   private getUsability(): void {
@@ -213,4 +260,211 @@ export class ZnemzNavigationMixin {
       });
     }
   }
+}
+
+const TAP_SLOP_PX = 10;
+const DOUBLE_TAP_MS = 300;
+const LONG_PRESS_MS = 500;
+
+type TouchPoint = {
+  identifier: number;
+  clientX: number;
+  clientY: number;
+  screenX?: number;
+  screenY?: number;
+};
+
+type TouchLike = Event & {
+  touches: ArrayLike<TouchPoint>;
+  changedTouches: ArrayLike<TouchPoint>;
+};
+
+function isTouchLike(event: Event): event is TouchLike {
+  return 'touches' in event && 'changedTouches' in event;
+}
+
+function pointFrom(list: ArrayLike<TouchPoint>, identifier: number): TouchPoint | undefined {
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].identifier === identifier) {
+      return list[i];
+    }
+  }
+  return undefined;
+}
+
+function dispatchMouse(
+  type: 'mousedown' | 'mousemove' | 'mouseup' | 'click' | 'dblclick',
+  target: EventTarget,
+  point: TouchPoint,
+): void {
+  const released = type === 'mouseup' || type === 'click' || type === 'dblclick';
+  target.dispatchEvent(
+    new MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      clientX: point.clientX,
+      clientY: point.clientY,
+      screenX: point.screenX ?? point.clientX,
+      screenY: point.screenY ?? point.clientY,
+      button: 0,
+      buttons: released ? 0 : 1,
+    }),
+  );
+}
+
+function listenUntilLift(
+  onMove: (event: Event) => void,
+  onEnd: (event: Event) => void,
+): () => void {
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend', onEnd, { passive: false });
+  document.addEventListener('touchcancel', onEnd, { passive: false });
+  return () => {
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onEnd);
+    document.removeEventListener('touchcancel', onEnd);
+  };
+}
+
+function movedPastSlop(start: TouchPoint, current: TouchPoint): boolean {
+  return Math.hypot(current.clientX - start.clientX, current.clientY - start.clientY) > TAP_SLOP_PX;
+}
+
+/**
+ * Пакет слушает только mouse/click. На мобильном UA тач компаса и кнопок
+ * переводится в эти события. preventDefault только у жеста, начатого на виджете.
+ */
+export function attachNavigationTouchBridge(root: ParentNode): () => void {
+  const compass = root.querySelector('.compass');
+  const controls = root.querySelector('.navigation-controls');
+  let detachGesture: (() => void) | undefined;
+  let compassHeld = false;
+  let lastCompassTapAt = 0;
+  let disposed = false;
+
+  const releaseGesture = (): void => {
+    detachGesture?.();
+    detachGesture = undefined;
+  };
+
+  const onCompassStart = (event: Event): void => {
+    if (disposed || detachGesture || !(compass instanceof HTMLElement)) {
+      return;
+    }
+    if (compass.classList.contains('compass-blocked') || !isTouchLike(event)) {
+      return;
+    }
+    if (event.touches.length !== 1) {
+      return;
+    }
+    const start = event.changedTouches[0];
+    if (!start) {
+      return;
+    }
+    event.preventDefault();
+    compassHeld = true;
+    let moved = false;
+    const onMove = (moveEvent: Event): void => {
+      if (!isTouchLike(moveEvent)) {
+        return;
+      }
+      const current = pointFrom(moveEvent.touches, start.identifier);
+      if (!current) {
+        return;
+      }
+      moved = moved || movedPastSlop(start, current);
+      moveEvent.preventDefault();
+      dispatchMouse('mousemove', document, current);
+    };
+    const onEnd = (endEvent: Event): void => {
+      if (!isTouchLike(endEvent)) {
+        return;
+      }
+      const current = pointFrom(endEvent.changedTouches, start.identifier);
+      if (!current) {
+        return;
+      }
+      endEvent.preventDefault();
+      compassHeld = false;
+      dispatchMouse('mouseup', document, current);
+      const now = Date.now();
+      const tap = !moved && endEvent.type !== 'touchcancel';
+      if (tap && lastCompassTapAt !== 0 && now - lastCompassTapAt <= DOUBLE_TAP_MS) {
+        dispatchMouse('dblclick', compass, current);
+        lastCompassTapAt = 0;
+      } else {
+        lastCompassTapAt = tap ? now : 0;
+      }
+      releaseGesture();
+    };
+    detachGesture = listenUntilLift(onMove, onEnd);
+    dispatchMouse('mousedown', compass, start);
+  };
+
+  const onControlStart = (event: Event): void => {
+    if (disposed || detachGesture || !(controls instanceof HTMLElement)) {
+      return;
+    }
+    if (controls.classList.contains('navigation-controls-blocked') || !isTouchLike(event)) {
+      return;
+    }
+    if (event.touches.length !== 1 || !(event.target instanceof Element)) {
+      return;
+    }
+    const control = event.target.closest('.navigation-control, .navigation-control-last');
+    if (!(control instanceof HTMLElement)) {
+      return;
+    }
+    const start = event.changedTouches[0];
+    if (!start) {
+      return;
+    }
+    event.preventDefault();
+    const pressedAt = Date.now();
+    let moved = false;
+    const onMove = (moveEvent: Event): void => {
+      if (!isTouchLike(moveEvent)) {
+        return;
+      }
+      const current = pointFrom(moveEvent.touches, start.identifier);
+      if (!current) {
+        return;
+      }
+      moved = moved || movedPastSlop(start, current);
+      moveEvent.preventDefault();
+    };
+    const onEnd = (endEvent: Event): void => {
+      if (!isTouchLike(endEvent)) {
+        return;
+      }
+      const current = pointFrom(endEvent.changedTouches, start.identifier);
+      if (!current) {
+        return;
+      }
+      endEvent.preventDefault();
+      const longPress = Date.now() - pressedAt >= LONG_PRESS_MS;
+      if (!moved && !longPress && endEvent.type !== 'touchcancel') {
+        dispatchMouse('click', control, current);
+      }
+      releaseGesture();
+    };
+    detachGesture = listenUntilLift(onMove, onEnd);
+  };
+
+  compass?.addEventListener('touchstart', onCompassStart, { passive: false });
+  controls?.addEventListener('touchstart', onControlStart, { passive: false });
+
+  return () => {
+    if (disposed) {
+      return;
+    }
+    disposed = true;
+    compass?.removeEventListener('touchstart', onCompassStart);
+    controls?.removeEventListener('touchstart', onControlStart);
+    if (compassHeld) {
+      compassHeld = false;
+      dispatchMouse('mouseup', document, { identifier: -1, clientX: 0, clientY: 0 });
+    }
+    releaseGesture();
+  };
 }
