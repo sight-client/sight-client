@@ -39,7 +39,7 @@ parent: 2026-09-17-sight-product-design.md
 
 `CheckMobileDeviceService` (`providedIn: 'root'`): `isMobile` / `checkMobile()` — UA-regex телефона/планшета **без** `maxTouchPoints` / `ontouchstart` (виртуальный курсор, mixin off). Раскладка — CSS mixins + сигналы `phoneLayout` (≤582), `tabletLayout` (≤767), `laptopLayout` (≤1080), `narrowChromeLayout` (≤1660). Не плодить второй сервис. `DeviceService` не использовать для нового хрома.
 
-На ≤767 `--regular-btn-size: 44px`. Шевроны tools: высота кнопки, толщина `--tool-chevron-thickness` (⅓ кнопки; на `mobile` ≤582 — ½); `margin-left` / `margin-bottom` из толщины. Sidenav toggle: высота 2× кнопки, ширина `/ 2.25` на `tablet`. Sidenav `mode=over`, старт закрыт, при `tabletLayout` (≤767). `viewport-fit=cover` + `env(safe-area-inset-*)`. Альбом = тот же хром, второй сетки нет.
+На ≤767 `--regular-btn-size: 44px`. Шевроны tools: высота кнопки, толщина `--tool-chevron-thickness` (⅓ кнопки; на `mobile` ≤582 — ½); `margin-left` / `margin-bottom` из толщины. Sidenav toggle: высота 2× кнопки, ширина `/ 2.25` на `tablet`. Sidenav `mode=over`, старт закрыт, при `tabletLayout` (≤767). Закрытую панель открывает свайп одним пальцем слева направо от левого края экрана (полоска 24px + `safe-area-inset-left`, порог 48px и сильнее по горизонтали, чем по вертикали); шеврон и шапка остаются поверх полоски. Слушатель не на `document`. `viewport-fit=cover` + `env(safe-area-inset-*)`. Альбом = тот же хром, второй сетки нет.
 
 **Compact 583–767:** coords слева снизу развёрнуты (без шеврона свёртки); высота сверху у меню; `tools-panel` laptop (`left: 194px`). Столбик высоты+coords нет.
 

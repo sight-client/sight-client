@@ -27,6 +27,7 @@
         [mode]="$checkMobileDeviceService.tabletLayout() ? 'over' : 'side'"
         position="start"
         [opened]="!$checkMobileDeviceService.tabletLayout()"
+        (openedChange)="sidenavOpened.set($event)"
         [disableClose]="$checkMobileDeviceService.tabletLayout() ? 'false' : 'true'"
       >
         <div class="sight-main-sidenav-left-content">
@@ -65,6 +66,16 @@
         </div>
       </mat-sidenav>
       <mat-sidenav-content class="sight-main-ui-container">
+        @if ($checkMobileDeviceService.tabletLayout() && !sidenavOpened()) {
+          <div
+            class="sight-main-sidenav-edge-swipe"
+            aria-hidden="true"
+            (touchstart)="onSidenavEdgeTouchStart($event)"
+            (touchmove)="onSidenavEdgeTouchMove($event, sidenavRef)"
+            (touchend)="onSidenavEdgeTouchEnd()"
+            (touchcancel)="onSidenavEdgeTouchEnd()"
+          ></div>
+        }
         <button
           class="sight-main-sidenav-toggle-button"
           type="button"

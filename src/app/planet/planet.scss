@@ -130,8 +130,19 @@
       pointer-events: auto;
     }
 
+    .sight-main-sidenav-edge-swipe {
+      position: absolute;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: calc(24px + env(safe-area-inset-left, 0px));
+      height: 100%;
+      touch-action: none;
+    }
+
     .sight-main-sidenav-toggle-button {
       position: absolute;
+      z-index: 2;
       left: 0px;
       top: calc(50% - var(--regular-btn-size) / 2);
       min-width: calc(var(--regular-btn-size) / 2);

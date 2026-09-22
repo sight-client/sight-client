@@ -22,6 +22,7 @@ description: Use when changing keyboard access, aria attributes, focus, tooltips
 - Детектор: `CheckMobileDeviceService`. `isMobile` = UA-regex, **не** `maxTouchPoints`. Раскладка = CSS / `phoneLayout` (≤582) и `tabletLayout` (≤767), не UA.
 - План `.cursor/superpowers/plans/2026-09-21-mobile-ui-chrome.md` — **executed** 2026-09-22. Не реализовывать заново; хром уже в as-is ui-theme / viewer-crs / map-tools.
 - Жесты карты — Cesium + `@znemz/cesium-navigation`. Не вешать `preventDefault` на `touchmove` документа без спроса (сломает скролл UI).
+- Открытие sidenav с левого края (≤767, панель закрыта) — полоска `.sight-main-sidenav-edge-swipe` в `planet`, не слушатель на `document`.
 - Брейкпоинты только из `media-breakpoints-global.scss`: `tablet()` ≤767px, `mobile()` ≤582px, `tiny()` ≤320px.
 - Hit-area: на `tablet` ≤767 `--regular-btn-size: 44px`; шевроны tools — высота кнопки, толщина `--tool-chevron-thickness` (⅓ кнопки, на `mobile` ≤582 — ½); `margin-left`/`margin-bottom` считаются из толщины. Sidenav toggle — высота 2× кнопки, ширина `/ 2.25`.
 - Hover-only действия дублировать кликом/тапом.

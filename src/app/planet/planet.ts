@@ -17,7 +17,7 @@ import * as Cesium from 'cesium';
 // -------------------------------------------------------------------- //
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 // -------------------------------------------------------------------- //
@@ -137,6 +137,7 @@ export class Planet {
     protected $toolsService: ToolsService,
     private $drawingsListService: DrawingsListService,
   ) {
+    this.sidenavOpened.set(!this.$checkMobileDeviceService.tabletLayout());
     afterNextRender(() => {
       try {
         // Определение контейнера для отслеживания перемещения курсора мыши (для координат)
@@ -167,6 +168,37 @@ export class Planet {
     // });
   }
   @ViewChild('mainSightContainer') public mainSightContainerRef!: ElementRef<Element>;
+
+  protected readonly sidenavOpened = signal(false);
+  private sidenavEdgeSwipeStart: { x: number; y: number } | null = null;
+
+  protected onSidenavEdgeTouchStart(event: TouchEvent): void {
+    if (event.touches.length !== 1) {
+      this.sidenavEdgeSwipeStart = null;
+      return;
+    }
+    const touch = event.touches[0];
+    this.sidenavEdgeSwipeStart = { x: touch.clientX, y: touch.clientY };
+  }
+
+  protected onSidenavEdgeTouchMove(event: TouchEvent, sidenav: MatSidenav): void {
+    const start = this.sidenavEdgeSwipeStart;
+    if (!start || event.touches.length !== 1 || sidenav.opened) {
+      return;
+    }
+    const touch = event.touches[0];
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (dx >= 48 && dx > Math.abs(dy)) {
+      this.sidenavEdgeSwipeStart = null;
+      this.sidenavOpened.set(true);
+      void sidenav.open();
+    }
+  }
+
+  protected onSidenavEdgeTouchEnd(): void {
+    this.sidenavEdgeSwipeStart = null;
+  }
 
   // "Пустой" курсор 1x1 px
   protected emptyCursorStyle: string = 'url(assets/1x1_transparent.png) 0 1, auto';

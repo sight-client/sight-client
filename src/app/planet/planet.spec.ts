@@ -213,5 +213,54 @@ describe('MainSight', () => {
       expect(sidenav.mode).toBe('side');
       expect(sidenav.opened).toBe(true);
     });
+
+    function edgeSwipeHost() {
+      return component as unknown as {
+        onSidenavEdgeTouchStart(event: TouchEvent): void;
+        onSidenavEdgeTouchMove(event: TouchEvent, sidenav: MatSidenav): void;
+        onSidenavEdgeTouchEnd(): void;
+      };
+    }
+
+    function touchEvent(x: number, y: number, count = 1): TouchEvent {
+      const touches = Array.from({ length: count }, (_, index) => ({
+        clientX: x + index,
+        clientY: y,
+      }));
+      return { touches } as unknown as TouchEvent;
+    }
+
+    it('shows an edge catcher only while the overlay sidenav is closed', async () => {
+      await setupSidenavTest(false, signal(true));
+      expect(fixture.debugElement.query(By.css('.sight-main-sidenav-edge-swipe'))).toBeTruthy();
+
+      await setupSidenavTest(true, signal(false));
+      expect(fixture.debugElement.query(By.css('.sight-main-sidenav-edge-swipe'))).toBeNull();
+    });
+
+    it('opens the overlay sidenav on a one-finger swipe right from the left edge', async () => {
+      await setupSidenavTest(false, signal(true));
+      const sidenav = sidenavInstance();
+      const host = edgeSwipeHost();
+      host.onSidenavEdgeTouchStart(touchEvent(4, 200));
+      host.onSidenavEdgeTouchMove(touchEvent(64, 208), sidenav);
+      expect(sidenav.opened).toBe(true);
+      fixture.detectChanges();
+      expect(fixture.debugElement.query(By.css('.sight-main-sidenav-edge-swipe'))).toBeNull();
+    });
+
+    it('does not open the sidenav on a vertical move or a second finger', async () => {
+      await setupSidenavTest(false, signal(true));
+      const sidenav = sidenavInstance();
+      const host = edgeSwipeHost();
+      host.onSidenavEdgeTouchStart(touchEvent(4, 200));
+      host.onSidenavEdgeTouchMove(touchEvent(20, 280), sidenav);
+      expect(sidenav.opened).toBe(false);
+
+      host.onSidenavEdgeTouchEnd();
+      host.onSidenavEdgeTouchStart(touchEvent(4, 200, 2));
+      host.onSidenavEdgeTouchMove(touchEvent(80, 200, 2), sidenav);
+      expect(sidenav.opened).toBe(false);
+    });
   });
 });
