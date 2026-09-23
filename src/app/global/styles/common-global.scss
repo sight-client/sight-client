@@ -319,9 +319,17 @@ body:has(.cdk-drop-list-dragging) .cdk-drop-list-receiving {
 //     height: custom-sum(undefined, $custom-height-one, $custom-height-two);
 // }
 
+@include media-breakpoints-global.laptop {
+  :root {
+    --regular-btn-size: 44px;
+    --tool-chevron-thickness: calc(var(--regular-btn-size) / 2);
+  }
+}
+
 @include media-breakpoints-global.tablet {
   :root {
     --regular-btn-size: 44px;
+    --tool-chevron-thickness: calc(var(--regular-btn-size) / 2);
   }
 }
 

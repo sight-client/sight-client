@@ -132,7 +132,7 @@
 
     .sight-main-sidenav-edge-swipe {
       position: absolute;
-      z-index: 1;
+      z-index: 10;
       left: 0;
       top: 0;
       width: calc(24px + env(safe-area-inset-left, 0px));
@@ -150,20 +150,29 @@
       width: calc(var(--regular-btn-size) / 2);
       padding-inline: 0;
       border-radius: 0px 6px 6px 0px;
-      mat-icon {
-        vertical-align: middle;
-        font-size: var(--regular-btn-svg-size);
-        width: var(--regular-btn-svg-size);
-        height: var(--regular-btn-svg-size);
-        margin: 0;
-        opacity: 0.8;
-      }
+      // mat-icon {
+      //   vertical-align: middle;
+      //   font-size: var(--regular-btn-svg-size);
+      //   width: var(--regular-btn-svg-size);
+      //   height: var(--regular-btn-svg-size);
+      //   margin: 0;
+      //   opacity: 0.8;
+      // }
+    }
+    .sight-main-sidenav-toggle-button-chevron {
+      vertical-align: middle;
+      font-size: var(--regular-btn-svg-size);
+      width: var(--regular-btn-svg-size);
+      height: var(--regular-btn-svg-size);
+      margin: 0;
+      // margin-left: -4px;
+      opacity: 0.8;
     }
 
     @include media-breakpoints-global.laptop {
       .sight-main-sidenav-toggle-button {
-        min-width: calc(var(--regular-btn-size) / 1.5);
-        width: calc(var(--regular-btn-size) / 1.5);
+        min-width: --tool-chevron-thickness;
+        width: --tool-chevron-thickness;
       }
     }
 

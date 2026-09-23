@@ -161,8 +161,10 @@ export class Planet {
       }
     });
 
+    // Для тестов
     // document.addEventListener('click', (event) => {
     //   console.log(event.target);
+    //   // console.log(event.composedPath());
     //   // console.log(this.$viewerService.viewer.scene.camera.position);
     //   // console.log(this.$viewerService.viewer.scene.camera.positionCartographic.height);
     // });
@@ -173,6 +175,8 @@ export class Planet {
   private sidenavEdgeSwipeStart: { x: number; y: number } | null = null;
 
   protected onSidenavEdgeTouchStart(event: TouchEvent): void {
+    if (event) event.stopPropagation();
+    // console.log(event.cancelBubble); // если true - событие перехвачено
     if (event.touches.length !== 1) {
       this.sidenavEdgeSwipeStart = null;
       return;
@@ -182,17 +186,35 @@ export class Planet {
   }
 
   protected onSidenavEdgeTouchMove(event: TouchEvent, sidenav: MatSidenav): void {
+    if (event) event.stopPropagation();
     const start = this.sidenavEdgeSwipeStart;
-    if (!start || event.touches.length !== 1 || sidenav.opened) {
+    if (!start || event.touches.length !== 1) {
       return;
     }
     const touch = event.touches[0];
-    const dx = touch.clientX - start.x;
-    const dy = touch.clientY - start.y;
-    if (dx >= 48 && dx > Math.abs(dy)) {
-      this.sidenavEdgeSwipeStart = null;
-      this.sidenavOpened.set(true);
-      void sidenav.open();
+    let fromLeftToRight = false;
+    let fromRightToLeft = false;
+    if (touch.clientX > start.x) {
+      fromLeftToRight = true;
+    } else {
+      fromRightToLeft = true;
+    }
+    if (fromLeftToRight) {
+      const dx = touch.clientX - start.x;
+      const dy = touch.clientY - start.y;
+      if (dx >= 48 && dx > Math.abs(dy)) {
+        this.sidenavEdgeSwipeStart = null;
+        this.sidenavOpened.set(true);
+        void sidenav.open();
+      }
+    } else if (fromRightToLeft) {
+      const dx = start.x - touch.clientX;
+      const dy = start.y - touch.clientY;
+      if (dx >= 48 && dx > Math.abs(dy)) {
+        this.sidenavEdgeSwipeStart = null;
+        this.sidenavOpened.set(false);
+        void sidenav.close();
+      }
     }
   }
 

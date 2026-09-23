@@ -92,6 +92,15 @@
   z-index: 101;
 }
 
+@include media-breakpoints-global.laptop {
+  .compass {
+    // 0.8 × 44/32 so the ring scales with 44px zoom buttons
+    transform: scale(1.1);
+    right: -13px;
+    bottom: 156px;
+  }
+}
+
 @include media-breakpoints-global.tablet {
   .compass {
     // 0.8 × 44/32 so the ring scales with 44px zoom buttons
@@ -257,6 +266,13 @@
   user-select: none;
   outline: 1px solid var(--theme-outline-color);
   z-index: 101;
+}
+
+@include media-breakpoints-global.laptop {
+  .navigation-controls {
+    // compass ring center is ~5px left of the scaled box; keep zoom stack on that axis
+    right: 45px;
+  }
 }
 
 @include media-breakpoints-global.tablet {

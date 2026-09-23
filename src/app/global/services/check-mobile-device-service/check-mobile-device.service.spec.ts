@@ -51,19 +51,19 @@ describe('CheckMobileDeviceService', () => {
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
       maxTouchPoints: 0,
     });
-    stubMatchMedia({ '(max-width: 767px)': true, '(max-width: 582px)': false });
+    stubMatchMedia({ '(max-width: 767px)': true, '(max-width: 460px)': false });
     const service = createService();
     expect(service.isMobile).toBe(false);
     expect(service.tabletLayout()).toBe(true);
     expect(service.phoneLayout()).toBe(false);
   });
 
-  it('phoneLayout follows max-width 582px matchMedia, not UA', () => {
+  it('phoneLayout follows max-width 460px matchMedia, not UA', () => {
     vi.stubGlobal('navigator', {
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
       maxTouchPoints: 0,
     });
-    stubMatchMedia({ '(max-width: 582px)': true });
+    stubMatchMedia({ '(max-width: 460px)': true });
     const service = createService();
     expect(service.isMobile).toBe(false);
     expect(service.phoneLayout()).toBe(true);

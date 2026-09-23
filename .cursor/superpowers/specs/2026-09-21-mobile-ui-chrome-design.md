@@ -17,13 +17,13 @@ also-touches:
 
 ## Breakpoints and hit-area
 
-Существующие миксины: `tablet` ≤767px, `mobile` ≤582px, `laptop` ≤1080px.
+Существующие миксины: `tablet` ≤767px, `mobile` ≤460px, `laptop` ≤1080px.
 
-| Ярус | Ширина | Кнопка |
-|---|---|---|
-| Desktop | >767px | `--regular-btn-size: 32px` (как сейчас) |
-| Compact | 583–767px | **44px** |
-| Phone | ≤582px | **44px** |
+| Ярус    | Ширина    | Кнопка                                  |
+| ------- | --------- | --------------------------------------- |
+| Desktop | >767px    | `--regular-btn-size: 32px` (как сейчас) |
+| Compact | 583–767px | **44px**                                |
+| Phone   | ≤460px    | **44px**                                |
 
 Шевроны групп tools: высота как `.tool-panel-button`, толщина `--tool-chevron-thickness` (⅓ кнопки; на телефоне ≤582 — ½). Отступы `margin-left` / `margin-bottom` выводятся из толщины (ось и overlap как при ⅓). Toggle sidenav: высота 2× кнопки, ширина кнопки / 2.25 на `tablet`.
 

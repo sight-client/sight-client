@@ -1,10 +1,13 @@
-import { Injectable, signal, Signal } from '@angular/core';
+import { Injectable, inject, signal, Signal, computed } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { fromEvent } from 'rxjs';
 
 const UA_MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-const PHONE_MQ = '(max-width: 582px)';
-const TABLET_MQ = '(max-width: 767px)';
-const LAPTOP_MQ = '(max-width: 1080px)';
-const NARROW_MQ = '(max-width: 1660px)';
+const PHONE_MQ = '(max-width: 460px)'; // из моих брейкпойнтов
+const tabletWidthBorder = 767; // из моих брейкпойнтов
+const TABLET_MQ = `(max-width: ${tabletWidthBorder}px)`;
+const LAPTOP_MQ = '(max-width: 1080px)'; // из моих брейкпойнтов
+const NARROW_MQ = '(max-width: 1660)'; // выбор ИИ
 
 @Injectable({ providedIn: 'root' })
 export class CheckMobileDeviceService {
@@ -19,6 +22,17 @@ export class CheckMobileDeviceService {
   private readonly _laptopLayout = signal(false);
   private readonly _narrowChromeLayout = signal(false);
 
+  private document = inject(DOCUMENT);
+  private window = this.document.defaultView;
+  private nowMobileWidth = signal<number>(this.window?.innerWidth || 0);
+  readonly wideMobile = computed<boolean>(() => {
+    if (this.isMobile) {
+      return this.nowMobileWidth() > tabletWidthBorder;
+    } else {
+      return false;
+    }
+  });
+
   constructor() {
     this.isMobile = this.checkMobile();
     this.phoneLayout = this._phoneLayout.asReadonly();
@@ -29,6 +43,13 @@ export class CheckMobileDeviceService {
     this.bindQuery(TABLET_MQ, this._tabletLayout);
     this.bindQuery(LAPTOP_MQ, this._laptopLayout);
     this.bindQuery(NARROW_MQ, this._narrowChromeLayout);
+    if (this.isMobile) {
+      if (this.window) {
+        fromEvent(this.window, 'resize').subscribe(() => {
+          this.nowMobileWidth.set(this.window!.innerWidth);
+        });
+      }
+    }
   }
 
   public checkMobile(): boolean {

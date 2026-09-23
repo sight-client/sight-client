@@ -4,7 +4,7 @@
     // z-index: 101; // применено к кнопкам, причина - поднятие z-index спрятанного контейнера группы при его показе (по кнопке со стрелочкой)
     // right: 15px;
     // top: 75px;
-    left: 500px;
+    left: 460px;
     bottom: 15px;
     // width: 35px;
     width: max-content;
@@ -50,18 +50,14 @@
     padding: 0px;
     min-width: var(--tool-chevron-thickness);
     width: var(--tool-chevron-thickness);
-    height: var(--regular-btn-size);
+    height: var(--regular-btn-size); // повернуто на 90 гр.
     border-radius: 6px 0px 0px 6px;
     outline: 1px solid var(--theme-outline-color);
     border-right: 1px solid var(--theme-border-color);
     z-index: 101; // как у остальных кнопок
     // rotate(90deg) around center: keep visual axis and overlap as at thickness=btn/3
-    margin-bottom: calc(
-      var(--tool-chevron-thickness) / 2 - var(--regular-btn-size) * 55 / 96
-    );
-    margin-left: calc(
-      var(--regular-btn-size) * 49 / 96 - var(--tool-chevron-thickness) / 2
-    );
+    margin-bottom: calc(var(--tool-chevron-thickness) / 2 - var(--regular-btn-size) * 55 / 96);
+    margin-left: calc(var(--regular-btn-size) * 49 / 96 - var(--tool-chevron-thickness) / 2);
     transform: rotate(90deg);
     mat-icon {
       padding: 0;

@@ -19,16 +19,28 @@
   <div id="sightUiContainer">
     <mat-sidenav-container
       class="sight-main-sidenav-global"
-      [hasBackdrop]="$checkMobileDeviceService.tabletLayout() ? 'true' : 'false'"
+      [hasBackdrop]="
+        $checkMobileDeviceService.isMobile && !$checkMobileDeviceService.wideMobile()
+          ? 'true'
+          : 'false'
+      "
     >
       <mat-sidenav
         class="sight-main-sidenav"
         #sidenavRef
-        [mode]="$checkMobileDeviceService.tabletLayout() ? 'over' : 'side'"
+        [mode]="
+          $checkMobileDeviceService.isMobile && !$checkMobileDeviceService.wideMobile()
+            ? 'over'
+            : 'side'
+        "
         position="start"
-        [opened]="!$checkMobileDeviceService.tabletLayout()"
+        [opened]="!$checkMobileDeviceService.isMobile || $checkMobileDeviceService.wideMobile()"
         (openedChange)="sidenavOpened.set($event)"
-        [disableClose]="$checkMobileDeviceService.tabletLayout() ? 'false' : 'true'"
+        [disableClose]="
+          !$checkMobileDeviceService.isMobile || $checkMobileDeviceService.wideMobile()
+            ? 'true'
+            : 'false'
+        "
       >
         <div class="sight-main-sidenav-left-content">
           <!-- <div class="sight-main-sidenav-logo">
@@ -66,26 +78,54 @@
         </div>
       </mat-sidenav>
       <mat-sidenav-content class="sight-main-ui-container">
-        @if ($checkMobileDeviceService.tabletLayout() && !sidenavOpened()) {
+        @if ($checkMobileDeviceService.isMobile) {
+          <!-- [aria-hidden]="
+              $checkMobileDeviceService.wideMobile() ? false : sidenavRef.opened ? false : true
+            " -->
           <div
+            aria-hidden="false"
             class="sight-main-sidenav-edge-swipe"
-            aria-hidden="true"
             (touchstart)="onSidenavEdgeTouchStart($event)"
             (touchmove)="onSidenavEdgeTouchMove($event, sidenavRef)"
             (touchend)="onSidenavEdgeTouchEnd()"
             (touchcancel)="onSidenavEdgeTouchEnd()"
-          ></div>
+          >
+            <!-- [style.display]="
+                $checkMobileDeviceService.wideMobile()
+                  ? 'block'
+                  : !sidenavOpened()
+                    ? 'block'
+                    : 'none'
+              " -->
+            <button
+              class="sight-main-sidenav-toggle-button"
+              type="button"
+              matButton="tonal"
+              [matTooltip]="sidenavRef.opened ? 'Свернуть' : 'Развернуть'"
+              matTooltipShowDelay="1000"
+              (click)="sidenavRef.toggle()"
+            >
+              <mat-icon
+                [style.marginLeft]="'-4px'"
+                class="sight-main-sidenav-toggle-button-chevron"
+                >{{ sidenavRef.opened ? 'chevron_left' : 'chevron_right' }}</mat-icon
+              >
+            </button>
+          </div>
+        } @else {
+          <button
+            class="sight-main-sidenav-toggle-button"
+            type="button"
+            matButton="tonal"
+            [matTooltip]="sidenavRef.opened ? 'Свернуть' : 'Развернуть'"
+            matTooltipShowDelay="1000"
+            (click)="sidenavRef.toggle()"
+          >
+            <mat-icon [style.marginLeft]="'0px'" class="sight-main-sidenav-toggle-button-chevron">{{
+              sidenavRef.opened ? 'chevron_left' : 'chevron_right'
+            }}</mat-icon>
+          </button>
         }
-        <button
-          class="sight-main-sidenav-toggle-button"
-          type="button"
-          matButton="tonal"
-          [matTooltip]="sidenavRef.opened ? 'Свернуть' : 'Развернуть'"
-          matTooltipShowDelay="1000"
-          (click)="sidenavRef.toggle()"
-        >
-          <mat-icon>{{ sidenavRef.opened ? 'chevron_left' : 'chevron_right' }}</mat-icon>
-        </button>
         @defer (when $viewerService.viewerHasLoaded() === true) {
           @defer (when $cursorCoordsService.underMouseEntityHasLoaded() === true) {
             <cursor-coords-info />

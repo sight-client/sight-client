@@ -46,9 +46,6 @@
 }
 
 @include media-breakpoints-global.laptop {
-  // body {
-  //     outline: 1rem solid yellow;
-  // }
   .camera-height-container {
     left: 86px !important;
     top: 15px !important;
@@ -71,9 +68,12 @@
   .sight-main-sidenav {
     max-width: 75% !important;
   }
-  // body {
-  //     outline: 1rem solid gray;
-  // }
+  .tools-panel-container {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    bottom: calc(15px + env(safe-area-inset-bottom, 0px)) !important;
+  }
 }
 
 @include media-breakpoints-global.mobile {
