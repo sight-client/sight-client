@@ -119,6 +119,10 @@
         height: 100%; // (правка mat-стилей) если не указать, нарушится цепочка высот, необходимая для скролла проектов
       }
     }
+
+    @include media-breakpoints-global.tablet {
+      max-width: 75%;
+    }
   }
 
   // Правая от навбара сторона
@@ -211,6 +215,14 @@
       //     }
       //   }
       // }
+    }
+
+    @include media-breakpoints-global.mobile {
+      .header-buttons-container {
+        left: calc(15px + env(safe-area-inset-left, 0px));
+        top: calc(15px + env(safe-area-inset-top, 0px));
+        transform: none;
+      }
     }
   }
 }

@@ -19,10 +19,10 @@ description: Use when changing keyboard access, aria attributes, focus, tooltips
 
 ## Тач / mobile
 
-- Детектор: `CheckMobileDeviceService`. `isMobile` = UA-regex, **не** `maxTouchPoints`. Раскладка = CSS / `phoneLayout` (≤460) и `tabletLayout` (≤767), не UA. Overlay sidenav — не эти сигналы: `isMobile && !wideMobile()` (`wideMobile` = UA mobile и `innerWidth` >767).
+- Детектор: `CheckMobileDeviceService`. `isMobile` = UA-regex, **не** `maxTouchPoints`. Раскладка = CSS / `phoneLayout` (≤460) и `tabletLayout` (≤767), не UA. Overlay sidenav — `tabletLayout` ≤767, в том числе десктопный UA: `over`, backdrop, старт закрыт. Шире 767 — `side`, старт открыт, `disableClose`, включая `wideMobile` (UA mobile и `innerWidth` >767).
 - План `.cursor/superpowers/plans/2026-09-21-mobile-ui-chrome.md` — **executed** 2026-09-22. Не реализовывать заново; хром уже в as-is ui-theme / viewer-crs / map-tools.
 - Жесты карты — Cesium. Компас и кнопки зума `@znemz/cesium-navigation` монтируются и на UA mobile: `attachNavigationTouchBridge` в `znemz-navigation-mixin.ts` переводит touch в mouse/click миксина. Подписи этих элементов — `MatTooltip` (задержка 1000, слева), не атрибут `title`. Файлы пакета не менять и не снимать виджет с мобильного UA. `preventDefault` у этого моста только на жесте, который начался на `.compass` или `.navigation-controls`. Не вешать `preventDefault` на `touchmove` всего `document` без спроса (сломает скролл UI).
-- Свайп sidenav только на UA mobile: полоска `.sight-main-sidenav-edge-swipe` в `planet` (кнопка-шеврон внутри неё). Вправо открывает, влево закрывает (порог 48px, сильнее по горизонтали). Не слушатель на `document`. На десктопном UA полоски нет, кнопка отдельно.
+- Свайп sidenav: полоска `.sight-main-sidenav-edge-swipe` в `planet` при `isMobile` или `tabletLayout` (кнопка-шеврон внутри неё). Вправо открывает, влево закрывает (порог 48px, сильнее по горизонтали). Не слушатель на `document`. На десктопном UA шире 767 полоски нет, кнопка отдельно.
 - Брейкпоинты только из `media-breakpoints-global.scss`: `tablet()` ≤767px, `mobile()` ≤460px, `tiny()` ≤320px.
 - Hit-area: с `laptop` ≤1080 `--regular-btn-size: 44px` и `--tool-chevron-thickness` ½ кнопки (выше 1080 — 32px и ⅓). `margin-left`/`margin-bottom` из толщины. Sidenav toggle — высота 6× кнопки (на `tablet` ≤767 — 4×), ширина ½ кнопки.
 - Hover-only действия дублировать кликом/тапом.

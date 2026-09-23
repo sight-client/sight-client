@@ -23,11 +23,11 @@ Project skills in `.cursor/skills/` (auto-invoke in this chat, do not copy Super
 
 **SDD / Superpowers subagents:** they do not inherit this session's skill list. The controller (parent) must put **1–3 relevant** skill paths into the implementer brief and into the plan task (e.g. `.cursor/skills/sight-map-tools/SKILL.md`). Never dump the whole catalog. Reviewers judge against the spec, this file, and those named skills — not against Angular Style Guide. Permanent conventions stay here and in `.cursor/rules/`; skills are traps the neighboring file will not teach.
 
-**Standing decisions:** when I approve a new convention, stack rule, trap, or checklist, update the existing owner file (`AGENTS.md`, a `.cursor/rules` rule, a `sight-*` skill, or a spec under `.cursor/superpowers/specs/`). If the product contract changes (new/removed feature, tool name, CRS, route, export format), update the owning child spec (and the product index table if the feature is listed there). Do not changelog bugfixes or refactors here. If the owner is unclear, ask.
+**Standing decisions:** when I approve a new convention, stack rule, trap, or checklist, update the existing owner file (`AGENTS.md`, a `.cursor/rules` rule, a `sight-*` skill, or a spec under `.cursor/superpowers/specs/`). If a user-facing behavior changes and an as-is spec or `sight-*` skill already states the old one (feature, tool, CRS, route, export format, layout, sidenav, breakpoint), update that owner in the same change, and the product index table if the feature is listed there. Do not changelog bugfixes or refactors here. If the owner is unclear, ask.
 
 At the end of a completed work unit, append a short block to `.cursor/superpowers/log/YYYY-MM-DD.md` (goal, spec/plan, skills, consequential files, decisions, status). Not after every approval.
 
-When I close a plan in chat — intent like «закрывай план», «считаю, что все планы выполнены», «заканчиваем работу и обновляем документацию», «считай работу выполненной» — ask me first, naming the plan files, and stamp `executed` only after I confirm. «Ок» on one diff is not that confirmation. Checklist: `.cursor/rules/superpowers.mdc`.
+When I close a plan in chat — intent like «закрывай план», «считаю, что все планы выполнены», «заканчиваем работу и обновляем документацию», «считай работу выполненной» — ask me first. Name the plan files and every as-is spec or `sight-*` skill that still describes the old behavior. Stamp `executed` and update those docs only after I confirm. No plan file does not skip the doc list. «Ок» on one diff is not that confirmation. Checklist: `.cursor/rules/superpowers.mdc`.
 
 ## Stack
 

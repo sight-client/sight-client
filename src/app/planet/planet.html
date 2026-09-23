@@ -20,7 +20,8 @@
     <mat-sidenav-container
       class="sight-main-sidenav-global"
       [hasBackdrop]="
-        $checkMobileDeviceService.isMobile && !$checkMobileDeviceService.wideMobile()
+        ($checkMobileDeviceService.isMobile && !$checkMobileDeviceService.wideMobile()) ||
+        $checkMobileDeviceService.tabletLayout()
           ? 'true'
           : 'false'
       "
@@ -29,15 +30,20 @@
         class="sight-main-sidenav"
         #sidenavRef
         [mode]="
-          $checkMobileDeviceService.isMobile && !$checkMobileDeviceService.wideMobile()
+          ($checkMobileDeviceService.isMobile && !$checkMobileDeviceService.wideMobile()) ||
+          $checkMobileDeviceService.tabletLayout()
             ? 'over'
             : 'side'
         "
         position="start"
-        [opened]="!$checkMobileDeviceService.isMobile || $checkMobileDeviceService.wideMobile()"
+        [opened]="
+          (!$checkMobileDeviceService.isMobile && !$checkMobileDeviceService.tabletLayout()) ||
+          $checkMobileDeviceService.wideMobile()
+        "
         (openedChange)="sidenavOpened.set($event)"
         [disableClose]="
-          !$checkMobileDeviceService.isMobile || $checkMobileDeviceService.wideMobile()
+          (!$checkMobileDeviceService.isMobile && !$checkMobileDeviceService.tabletLayout()) ||
+          $checkMobileDeviceService.wideMobile()
             ? 'true'
             : 'false'
         "
@@ -78,7 +84,7 @@
         </div>
       </mat-sidenav>
       <mat-sidenav-content class="sight-main-ui-container">
-        @if ($checkMobileDeviceService.isMobile) {
+        @if ($checkMobileDeviceService.isMobile || $checkMobileDeviceService.tabletLayout()) {
           <!-- [aria-hidden]="
               $checkMobileDeviceService.wideMobile() ? false : sidenavRef.opened ? false : true
             " -->

@@ -1,3 +1,5 @@
+@use 'media-breakpoints-global';
+
 .floating-windows-tabs-panel {
   --size-modifier: 0.7;
   --floating-windows-tab-width: 11em;
@@ -91,5 +93,24 @@
         }
       }
     }
+  }
+
+  @media (max-width: 1660px) {
+    right: 15px;
+    top: 15px;
+    width: calc(var(--floating-windows-tab-width) * 1 + var(--floating-windows-tab-gap) * 1 + 1rem);
+    max-height: calc(var(--floating-windows-tab-height) * 4 + var(--floating-windows-tab-gap) * 3);
+    flex-flow: column;
+  }
+
+  @include media-breakpoints-global.laptop {
+    top: 50px;
+  }
+
+  @include media-breakpoints-global.mobile {
+    top: calc(
+      15px + env(safe-area-inset-top, 0px) + var(--regular-btn-size) - var(--regular-btn-size) * 7 /
+        96 + var(--tool-chevron-thickness) + 8px
+    );
   }
 }

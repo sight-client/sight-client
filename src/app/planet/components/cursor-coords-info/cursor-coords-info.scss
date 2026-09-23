@@ -146,6 +146,16 @@
 }
 
 @include media-breakpoints-global.mobile {
+  .coords-container-main {
+    width: var(--phone-height-stack-width, 0px);
+    visibility: hidden;
+    // "- 3px" — шеврон немного наслаивается на панель высоты
+    top: calc(15px + env(safe-area-inset-top, 0px) + var(--regular-btn-size) - 3px);
+    bottom: auto;
+    z-index: 102;
+    overflow: visible;
+  }
+
   .coords-container-main .coords-description-main {
     display: grid;
     grid-template-columns: max-content auto;

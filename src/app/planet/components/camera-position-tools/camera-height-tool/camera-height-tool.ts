@@ -33,6 +33,12 @@ import { CheckMobileDeviceService } from '@global/services/check-mobile-device-s
     </div>
   `,
   styles: `
+    @use 'media-breakpoints-global';
+
+    .camera-height-text-short {
+      display: none;
+    }
+
     .camera-height-container {
       display: flex;
       position: absolute;
@@ -60,6 +66,33 @@ import { CheckMobileDeviceService } from '@global/services/check-mobile-device-s
         width: 5em;
         padding: 2px 5px 2px 5px;
         background-color: var(--theme-inputs-background-color);
+      }
+    }
+
+    @include media-breakpoints-global.laptop {
+      .camera-height-container {
+        left: 86px;
+        top: 15px;
+      }
+    }
+
+    @include media-breakpoints-global.mobile {
+      .camera-height-container {
+        top: calc(15px + env(safe-area-inset-top, 0px));
+        bottom: auto;
+        white-space: nowrap;
+        text-align: left;
+        width: var(--phone-height-stack-width, 0px);
+        box-sizing: border-box;
+        visibility: hidden;
+      }
+
+      .camera-height-text-full {
+        display: none;
+      }
+
+      .camera-height-text-short {
+        display: inline;
       }
     }
   `,
