@@ -70,7 +70,7 @@ HTTP interceptors (`app.config.ts`): `badHtmlInterceptor`, `doubleReqPreventionI
 | Линейные и площадные измерения | map-tools (+ геодезия в viewer-crs) |
 | Камера, скриншот, fullscreen | viewer-crs (CameraViewTools, не виджет Cesium) |
 | Светлая/тёмная + четыре палитры | ui-theme |
-| Тач / mobile | ui-theme + viewer-crs (мышь vs центр canvas; хром по ширине). Implemented, merged into as-is: [mobile UI chrome](./2026-09-21-mobile-ui-chrome-design.md) |
+| Тач / mobile | ui-theme + viewer-crs (мышь vs центр canvas; хром по ширине, overlay sidenav — UA mobile при ≤767). Implemented, merged into as-is: [mobile UI chrome](./2026-09-21-mobile-ui-chrome-design.md) |
 
 ## Planning rule
 

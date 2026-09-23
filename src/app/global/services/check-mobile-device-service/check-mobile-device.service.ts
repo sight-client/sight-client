@@ -7,7 +7,7 @@ const PHONE_MQ = '(max-width: 460px)'; // из моих брейкпойнтов
 const tabletWidthBorder = 767; // из моих брейкпойнтов
 const TABLET_MQ = `(max-width: ${tabletWidthBorder}px)`;
 const LAPTOP_MQ = '(max-width: 1080px)'; // из моих брейкпойнтов
-const NARROW_MQ = '(max-width: 1660)'; // выбор ИИ
+const NARROW_MQ = '(max-width: 1660px)'; // выбор ИИ
 
 @Injectable({ providedIn: 'root' })
 export class CheckMobileDeviceService {

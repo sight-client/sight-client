@@ -171,8 +171,8 @@
 
     @include media-breakpoints-global.laptop {
       .sight-main-sidenav-toggle-button {
-        min-width: --tool-chevron-thickness;
-        width: --tool-chevron-thickness;
+        min-width: var(--tool-chevron-thickness);
+        width: var(--tool-chevron-thickness);
       }
     }
 

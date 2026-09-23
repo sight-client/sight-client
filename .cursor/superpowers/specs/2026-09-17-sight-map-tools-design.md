@@ -12,7 +12,7 @@ parent: 2026-09-17-sight-product-design.md
 
 ## Composition
 
-Правая панель: `ToolsPanel` — три группы: drawing, measuring, camera (UI камеры описан в viewer-crs). На `phoneLayout` (≤582) панель по центру снизу (`column-reverse`); `renderToolsGroupTemplates` / `moveToolToDefault` не переписывать. Хром — [ui-theme](./2026-09-17-sight-ui-theme-design.md).
+Правая панель: `ToolsPanel` — три группы: drawing, measuring, camera (UI камеры описан в viewer-crs). С `tablet` ≤767 панель по центру снизу; `column-reverse` у групп всегда. `renderToolsGroupTemplates` / `moveToolToDefault` не переписывать. Хром — [ui-theme](./2026-09-17-sight-ui-theme-design.md).
 
 Слева: `DrawingsList` (список вкладки рисования, подлёт, переименование, импорт/экспорт).
 
@@ -69,7 +69,7 @@ parent: 2026-09-17-sight-product-design.md
 
 ## Floating windows
 
-`FloatingWindowItem`: сигналы `collapsed`, `hidden`, `isActive`, `top`, опционально `left` / `right`. Когда вкладки сверху-справа (≤1660 / `narrowChromeLayout`) у item есть `left`, не `right`. При создании `collapsed` true если `phoneLayout`. Стопка сверху ~33px + высота шапки; clamp по `innerHeight - 300`.
+`FloatingWindowItem`: сигналы `collapsed`, `hidden`, `isActive`, `top`, опционально `left` / `right`. Когда вкладки сверху-справа (≤1660 / `narrowChromeLayout`) у item есть `left`, не `right`. При создании `collapsed` true если `phoneLayout` (≤460). Стопка сверху ~33px + высота шапки; clamp по `innerHeight - 300`.
 
 Не заменять на `MatDialog` без одобрения (импорты dialog в `planet.ts` закомментированы).
 
