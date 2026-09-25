@@ -43,7 +43,9 @@ parent: 2026-09-17-sight-product-design.md
 
 Sidenav `mode=over`, backdrop, старт закрыт, без `disableClose` — при `tabletLayout` ≤767, в том числе на десктопном UA. Шире 767 — `side`, старт открыт, `disableClose` (включая UA mobile с `wideMobile`). Полоска `.sight-main-sidenav-edge-swipe` (24px + `safe-area-inset-left`) есть при UA mobile или `tabletLayout` и содержит кнопку-шеврон; свайп вправо открывает, влево закрывает (порог 48px, сильнее по горизонтали). На десктопном UA шире 767 кнопка вне полоски. Слушатель не на `document`.
 
-**768–1080:** coords слева снизу развёрнуты; высота сверху у меню (`left: 86px`); `tools-panel` `left: 194px`. Компас znemz `scale(1.1)` вместе с кнопками 44px.
+**>1080:** coords слева снизу (`--coords-panel-left` / `--coords-panel-width` в `common-core`); `tools-panel` `--tools-panel-left` 510px; панель высоты по центру зазора между ними (`translateX(-50%)`). Не хардкодить `left: 200px` / `460px`.
+
+**768–1080:** coords слева снизу развёрнуты; высота сверху у меню (`left: 86px`, `transform: none`); `tools-panel` `left: 194px`. Компас znemz `scale(1.1)` вместе с кнопками 44px.
 
 **461–767:** те же coords без шеврона свёртки, высота как на laptop, столбика высоты+coords нет. `tools-panel` по центру снизу. Sidenav `over`, старт закрыт.
 

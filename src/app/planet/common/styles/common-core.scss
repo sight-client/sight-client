@@ -12,6 +12,10 @@
 
 :root {
   --main-tabs-content-width: 300px;
+  // Нижняя полоса desktop (>1080): середина высоты = зазор coords↔tools.
+  --coords-panel-left: 15px;
+  --coords-panel-width: 130px;
+  --tools-panel-left: 510px;
 }
 
 // Стек телефона: высота и coords — разные компоненты, общий якорь только здесь.
@@ -19,7 +23,7 @@
   .camera-height-container,
   .coords-container-main {
     left: 50% !important;
-    transform: translateX(-50%);
+    transform: translateX(-50%) !important;
     right: auto !important;
   }
 

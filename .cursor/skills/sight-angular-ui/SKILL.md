@@ -18,6 +18,7 @@ Angular 22, **zoneless**, standalone-компоненты, сигналы. Не 
 - Алиасы: `@/*`, `@global/*`, `@landing/*`.
 - Темы: `SetUserThemeService` / `SetLightDarkModeService`, CSS-переменные в `src/app/global/configs/angular-material.config.scss`, ключи `themePalettes` / схема в `localStorage`. `colorScheme` — только `'light' | 'dark'`, проверка `isColorScheme`.
 - Миксины: `src/app/global/styles`, `src/app/planet/common/styles`. Не дублировать `$breakpoints`.
+- Нижняя полоса desktop (>1080): `--coords-panel-left` / `--coords-panel-width` / `--tools-panel-left` в `common-core` `:root`. Высота — середина зазора coords↔tools, не `left: 200px` / `460px`.
 
 ## Сигналы
 

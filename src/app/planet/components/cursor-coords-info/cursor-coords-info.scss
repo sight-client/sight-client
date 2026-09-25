@@ -48,9 +48,9 @@
 .coords-container-main {
   position: absolute;
   z-index: 101;
-  left: 15px;
+  left: var(--coords-panel-left);
   bottom: 15px;
-  width: 130px;
+  width: var(--coords-panel-width);
   .coords-container-form-field {
     // Имеет исключения в mat-exceptions-core.scss
     width: 100%;

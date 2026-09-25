@@ -6,7 +6,7 @@
     // z-index: 101; // применено к кнопкам, причина - поднятие z-index спрятанного контейнера группы при его показе (по кнопке со стрелочкой)
     // right: 15px;
     // top: 75px;
-    left: 460px;
+    left: var(--tools-panel-left);
     bottom: 15px;
 
     @include media-breakpoints-global.laptop {

@@ -44,7 +44,10 @@ import { finiteCssPx } from '@global/lib/common-global.lib';
     .camera-height-container {
       display: flex;
       position: absolute;
-      left: 200px;
+      left: calc(
+        (var(--coords-panel-left) + var(--coords-panel-width) + var(--tools-panel-left)) / 2
+      );
+      transform: translateX(-50%);
       bottom: 15px;
       // Как у кнопок инструментов работы с картой
       height: var(--regular-btn-size);
@@ -75,6 +78,7 @@ import { finiteCssPx } from '@global/lib/common-global.lib';
       .camera-height-container {
         left: 86px;
         top: 15px;
+        transform: none;
       }
     }
 
