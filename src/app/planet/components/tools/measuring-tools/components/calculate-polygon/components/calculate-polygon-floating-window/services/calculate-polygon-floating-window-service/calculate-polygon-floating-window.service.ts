@@ -1,8 +1,9 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { computed, effect, Injectable, linkedSignal, untracked } from '@angular/core';
-import chalk from 'chalk';
 import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
+import { cartesian3ListFromProperty } from '@/components/tools/services/tools-service/tools.service';
 import { FloatingWindowsService } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
 import { MeasureService } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
 import type { MeasuringToolName } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
@@ -36,7 +37,7 @@ export class CalculatePolygonFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
     // Deprecated (на текущий момент для мерителей поддерживается только единоразовый сценарий использования)
@@ -55,7 +56,7 @@ export class CalculatePolygonFloatingWindowService {
     //       });
     //     }
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
     // Удаление сущностей инструмента с холста при уделении его плавающего окна
@@ -76,7 +77,7 @@ export class CalculatePolygonFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -102,12 +103,11 @@ export class CalculatePolygonFloatingWindowService {
     const selectedEntity = this.$viewerService.viewer?.newPickedEntity?.();
     let targetEntity: Cesium.Entity | undefined = undefined;
     untracked(() => {
-      // @ts-ignore (конфликт - кастомное свойство toolName)
       if (selectedEntity?.toolName !== this.toolName) return;
       if (!this.$calculatePolygonService.calculatePolygonList().length) return;
       const indexGroup = this.$calculatePolygonService
         .calculatePolygonList()
-        .findIndex((group) => selectedEntity.id.startsWith(group!.groupId));
+        .findIndex((group) => !!group && selectedEntity.id.startsWith(group.groupId));
       if (indexGroup === -1) return;
       const group =
         this.$calculatePolygonService.calculatePolygonList()[indexGroup];
@@ -116,7 +116,7 @@ export class CalculatePolygonFloatingWindowService {
       } else {
         if (!group?.entitiesList.length) return;
         const indexEntity = group?.entitiesList.findIndex((entity) =>
-          entity!.id.includes('-polygon-'),
+          !!entity && entity.id.includes('-polygon-'),
         );
         if (indexEntity === -1) return;
         targetEntity = group.entitiesList[indexEntity];
@@ -141,17 +141,16 @@ export class CalculatePolygonFloatingWindowService {
     let area: number = 0;
     if (this._validPickedEnttity() !== undefined) {
       untracked(() => {
-        const polygonPolylinePositions: Array<Cesium.Cartesian3> =
-          this._validPickedEnttity()!.polyline?.positions?.getValue();
+        const polygonPolylinePositions = cartesian3ListFromProperty(
+          this._validPickedEnttity()?.polyline?.positions?.getValue(),
+        );
         if (
-          polygonPolylinePositions?.length ||
-          !(polygonPolylinePositions[0] instanceof Cesium.Cartesian3)
+          polygonPolylinePositions?.length &&
+          polygonPolylinePositions[0] instanceof Cesium.Cartesian3
         ) {
           area = MeasuresLib.calculateAreaWithTurfWhithoutHumanify(polygonPolylinePositions);
         } else {
-          console.log(
-            chalk.red('Invalid polygonPolylinePositions array in validPickedEnttity signal'),
-          );
+          console.info('Invalid polygonPolylinePositions array in validPickedEnttity signal');
         }
       });
     }
@@ -181,17 +180,16 @@ export class CalculatePolygonFloatingWindowService {
     let perimeter: number = 0;
     if (this._validPickedEnttity() !== undefined) {
       untracked(() => {
-        const polygonPolylinePositions: Array<Cesium.Cartesian3> =
-          this._validPickedEnttity()!.polyline?.positions?.getValue();
+        const polygonPolylinePositions = cartesian3ListFromProperty(
+          this._validPickedEnttity()?.polyline?.positions?.getValue(),
+        );
         if (
-          polygonPolylinePositions?.length ||
-          !(polygonPolylinePositions[0] instanceof Cesium.Cartesian3)
+          polygonPolylinePositions?.length &&
+          polygonPolylinePositions[0] instanceof Cesium.Cartesian3
         ) {
           perimeter = MeasuresLib.calculatePosDistancesWhithoutHumanify(polygonPolylinePositions);
         } else {
-          console.log(
-            chalk.red('Invalid polygonPolylinePositions array in validPickedEnttity signal'),
-          );
+          console.info('Invalid polygonPolylinePositions array in validPickedEnttity signal');
         }
       });
     }

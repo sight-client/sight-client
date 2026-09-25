@@ -1,5 +1,5 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { computed, effect, Injectable, linkedSignal, untracked } from '@angular/core';
-import chalk from 'chalk';
 import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
@@ -30,7 +30,7 @@ export class DrawRectangleFloatingWindowService {
                 this.$drawingService.drawRectangleEntitiesList()?.[0]?.defaultEntity ||
                 this.$drawingService.drawRectangleEntitiesList()?.[0]?.entitiesList?.[0];
               if (!firstEntity || !(firstEntity instanceof Cesium.Entity)) {
-                console.log(chalk.red('Invalid entity has added'));
+                console.info('Invalid entity has added');
                 return;
               } else {
                 this._validPickedEnttity.set(firstEntity);
@@ -44,7 +44,7 @@ export class DrawRectangleFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
     effect(() => {
@@ -61,7 +61,7 @@ export class DrawRectangleFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -81,12 +81,11 @@ export class DrawRectangleFloatingWindowService {
     const selectedEntity = this.$viewerService.viewer?.newPickedEntity?.();
     let targetEntity: Cesium.Entity | undefined = undefined;
     untracked(() => {
-      // @ts-ignore (конфликт - кастомное свойство toolName)
       if (selectedEntity?.toolName !== this.toolName) return;
       if (!this.$drawRectangleService.rectangleAreaMeasurmentsList().length) return;
       const indexGroup = this.$drawRectangleService
         .rectangleAreaMeasurmentsList()
-        .findIndex((group) => selectedEntity.id.startsWith(group!.groupId));
+        .findIndex((group) => !!group && selectedEntity.id.startsWith(group.groupId));
       if (indexGroup === -1) return;
       const group = this.$drawRectangleService.rectangleAreaMeasurmentsList()[indexGroup];
       if (group?.defaultEntity) {
@@ -94,7 +93,7 @@ export class DrawRectangleFloatingWindowService {
       } else {
         if (!group?.entitiesList.length) return;
         const indexEntity = group?.entitiesList.findIndex((entity) =>
-          entity!.id.includes('-polygon-'),
+          !!entity && entity.id.includes('-polygon-'),
         );
         if (indexEntity === -1) return;
         targetEntity = group.entitiesList[indexEntity];

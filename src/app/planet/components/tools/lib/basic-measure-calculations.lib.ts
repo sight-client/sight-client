@@ -122,7 +122,7 @@ export function transformWGS84ToCartographic(
 //   _viewer: CustomViewer,
 // ): Cesium.Cartesian3 | false | null {
 //   if (_viewer && px) {
-//     const picks: any[] = _viewer.scene.drillPick(px);
+//     const picks: object[] = _viewer.scene.drillPick(px);
 //     let cartesian: Cesium.Cartesian3 | undefined;
 //     let isOn3dtiles: boolean = false;
 //     let isOnTerrain: boolean = false;
@@ -211,18 +211,17 @@ export function transformWGS84ToCartographic(
 
 // Используется только в данном блоке функций и в transformCartesianArrayToWGS84Array(), которая вынесена отдельно (выше), так как многократно применяется вне блока
 function transformCartesianToWGS84(position: Cesium.Cartesian3 | undefined): degreesPosObj {
-  let wgsPoint: degreesPosObj;
-  if (position) {
-    const ellipsoid = Cesium.Ellipsoid.WGS84;
-    if (position === undefined)
-      throw new Error('Error whith position in transformCartesianToWGS84 fn');
-    const cartographic: Cesium.Cartographic = ellipsoid.cartesianToCartographic(position);
-    wgsPoint = {
-      lng: Cesium.Math.toDegrees(cartographic.longitude),
-      lat: Cesium.Math.toDegrees(cartographic.latitude),
-      alt: cartographic.height,
-    };
-    return wgsPoint;
-  } else throw new Error('Error whith geting position argument in transformCartesianToWGS84 fn!');
+  if (!(position instanceof Cesium.Cartesian3)) {
+    throw new Error('Error whith geting position argument in transformCartesianToWGS84 fn!');
+  }
+  const cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(position);
+  if (!cartographic) {
+    throw new Error('Error whith position in transformCartesianToWGS84 fn');
+  }
+  const wgsPoint = new degreesPosObj();
+  wgsPoint.lng = Cesium.Math.toDegrees(cartographic.longitude);
+  wgsPoint.lat = Cesium.Math.toDegrees(cartographic.latitude);
+  wgsPoint.alt = cartographic.height;
+  return wgsPoint;
 }
 // --------------------------------------------------------------------------------------------------- //

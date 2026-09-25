@@ -1,5 +1,5 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { computed, effect, Injectable, linkedSignal, untracked } from '@angular/core';
-import chalk from 'chalk';
 import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
@@ -30,7 +30,7 @@ export class DrawingToolBlankFloatingWindowService {
                 this.$drawingService.drawingToolBlankList()?.[0]?.defaultEntity ||
                 this.$drawingService.drawingToolBlankList()?.[0]?.entitiesList?.[0];
               if (!firstEntity || !(firstEntity instanceof Cesium.Entity)) {
-                console.log(chalk.red('Invalid entity has added'));
+                console.info('Invalid entity has added');
                 return;
               } else {
                 this._validPickedEnttity.set(firstEntity);
@@ -44,7 +44,7 @@ export class DrawingToolBlankFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
     effect(() => {
@@ -61,7 +61,7 @@ export class DrawingToolBlankFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -78,7 +78,6 @@ export class DrawingToolBlankFloatingWindowService {
   // });
 
   private newPickedEntity = computed<Cesium.Entity | undefined>(() => {
-    // @ts-ignore (конфликт - кастомное свойство toolName)
     if (this.$viewerService.viewer?.newPickedEntity?.()?.toolName === this.toolName) {
       return this.$viewerService.viewer?.newPickedEntity?.();
     } else return undefined;

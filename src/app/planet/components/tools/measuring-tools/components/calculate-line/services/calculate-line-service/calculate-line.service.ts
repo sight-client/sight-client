@@ -1,10 +1,14 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, computed, effect, linkedSignal, signal, untracked } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  cartesianFromProperty,
+  cartesian3ListFromProperty,
+} from '@/components/tools/services/tools-service/tools.service';
 import {
   MeasureService,
   getRusMeasuringToolName,
@@ -80,7 +84,7 @@ export class CalculateLineService {
           }
         });
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
     // ------------------ Блок логики поведения инструмента при смене рельефа (end) ------------------- //
@@ -97,7 +101,7 @@ export class CalculateLineService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -116,7 +120,7 @@ export class CalculateLineService {
     try {
       this.$measureService.cancelMeasuringTool(); // общая функция отмены сценария любого из инструментов работы с картой
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     } finally {
       this._measureHasStarted.set(false);
       this.isActive.set(false);
@@ -132,7 +136,7 @@ export class CalculateLineService {
       this.nullAllToolTerrainSettigs();
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -159,11 +163,10 @@ export class CalculateLineService {
     const selectedEntity = this.$viewerService.viewer?.newPickedEntity?.();
     let targetEntity: Cesium.Entity | undefined = undefined;
     untracked(() => {
-      // @ts-ignore (конфликт - кастомное свойство toolName)
       if (selectedEntity?.toolName !== this.toolName) return;
       if (!this.linearMeasurmentsLinesList().length) return;
       const indexGroup = this.linearMeasurmentsLinesList().findIndex((group) =>
-        selectedEntity.id.startsWith(group!.groupId),
+        !!group && selectedEntity.id.startsWith(group.groupId),
       );
       if (indexGroup === -1) return;
       const group = this.linearMeasurmentsLinesList()[indexGroup];
@@ -172,7 +175,7 @@ export class CalculateLineService {
       } else {
         if (!group?.entitiesList.length) return;
         const indexEntity = group?.entitiesList.findIndex(
-          (entity) => !entity!.id.includes('auxiliary'), // "не вспомогательная" === "основная"
+          (entity) => !!entity && !entity.id.includes('auxiliary'), // "не вспомогательная" === "основная"
         );
         if (indexEntity === -1) return;
         targetEntity = group.entitiesList[indexEntity];
@@ -238,7 +241,7 @@ export class CalculateLineService {
         this.cancelThisTool();
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       this.cancelThisTool();
     }
   }
@@ -334,7 +337,7 @@ export class CalculateLineService {
             }
           } else {
             mouseEntity = await this.$toolsService.getMouseEntity(true);
-            nowPos = mouseEntity?.position?.getValue();
+            nowPos = cartesianFromProperty(mouseEntity?.position?.getValue());
           }
           if (nowPos === undefined) {
             // throw new Error('Position arg is undefined in drawLineMeasureGraphics()');
@@ -398,7 +401,7 @@ export class CalculateLineService {
             // Последующие точки
           } else {
             if (Cesium.Cartesian3.equals(nowPos, polylinePositions[polylinePositions.length - 1])) {
-              console.log(chalk.blue('Next & start positions are equal'));
+              console.info('Next & start positions are equal');
               return;
             }
             if (!this.$toolsService.isMobile) {
@@ -427,7 +430,7 @@ export class CalculateLineService {
                   });
                   pointEntity.label.text = new Cesium.ConstantProperty(nowLabelText);
                 } else {
-                  console.log(chalk.red('distanceChanks increasing failed'));
+                  console.info('distanceChanks increasing failed');
                 }
               }
               labelText = '...ожидание точки';
@@ -506,7 +509,7 @@ export class CalculateLineService {
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -518,7 +521,7 @@ export class CalculateLineService {
           if (polylinePositions.length < 2) return;
           if (!this.$toolsService.isMobile) {
             const mouseEntity: Cesium.Entity = await this.$toolsService.getMouseEntity(false); // без точного рельефа!
-            const movePos: Cesium.Cartesian3 | undefined = mouseEntity?.position?.getValue();
+            const movePos = cartesianFromProperty(mouseEntity?.position?.getValue());
             if (movePos === undefined) return;
             polylinePositions.pop(); // стирание предыдущей позиции из mousemove ИЛИ "заглушки" из предшествующих кликов
             polylinePositions.push(movePos); // добавление актуальной позиции по mousemove
@@ -542,7 +545,7 @@ export class CalculateLineService {
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -569,7 +572,7 @@ export class CalculateLineService {
                 polylinePositions[polylinePositions.length - 1],
               )
             ) {
-              console.log(chalk.blue('End & start positions are equal'));
+              console.info('End & start positions are equal');
               this.cancelThisTool();
               return;
             }
@@ -585,7 +588,7 @@ export class CalculateLineService {
               //   return;
               // }
               // if (Cesium.Cartesian3.equals(polylinePositions[0], endPos)) {
-              //   console.log(chalk.blue('End & start positions are equal'));
+              //   console.info('End & start positions are equal');
               //   this.cancelThisTool();
               //   return;
               // }
@@ -699,11 +702,9 @@ export class CalculateLineService {
               }
             }
             if (pointsQuantity !== polylinePositions.length) {
-              console.log(
-                chalk.red(
-                  'WARNING:',
-                  `pointsQuantity (${pointsQuantity}) !== polylinePositions.length (${polylinePositions.length})`,
-                ),
+              console.info(
+                'WARNING:',
+                `pointsQuantity (${pointsQuantity}) !== polylinePositions.length (${polylinePositions.length})`,
               );
             }
 
@@ -750,7 +751,7 @@ export class CalculateLineService {
           this.cancelThisTool();
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -759,8 +760,7 @@ export class CalculateLineService {
       return true;
     } catch (error: unknown) {
       this.cancelThisTool();
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
       return false;
     }
@@ -777,7 +777,7 @@ export class CalculateLineService {
       this._calculationsCache.clear();
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -801,7 +801,7 @@ export class CalculateLineService {
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -825,7 +825,7 @@ export class CalculateLineService {
         return true;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -841,7 +841,7 @@ export class CalculateLineService {
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -900,14 +900,19 @@ export class CalculateLineService {
         return true;
       } else return false;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
   private validateDistanceSegmentLengthM(event: Event): number {
     try {
       if (event.target instanceof HTMLInputElement) {
-        const newVal = Math.abs(Number(event.target.value));
+        const parsed = Number(event.target.value);
+        if (!Number.isFinite(parsed)) {
+          event.target.value = `${this.$viewerService.distanceSegmentLengthM}`;
+          return this.$viewerService.distanceSegmentLengthM;
+        }
+        const newVal = Math.abs(parsed);
         if (newVal < 1) {
           event.target.value = `${this.$viewerService.distanceSegmentLengthM}`;
           return this.$viewerService.distanceSegmentLengthM;
@@ -918,11 +923,11 @@ export class CalculateLineService {
           return newVal;
         }
       } else {
-        console.log(chalk.red('Invalid event.target in validateDistanceSegmentLengthM fn'));
+        console.info('Invalid event.target in validateDistanceSegmentLengthM fn');
         return this.$viewerService.distanceSegmentLengthM;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return this.$viewerService.distanceSegmentLengthM;
     }
   }
@@ -939,7 +944,7 @@ export class CalculateLineService {
       });
       return this._calculationsCache.get(newSerializedCacheKey);
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return undefined;
     }
   }
@@ -954,7 +959,7 @@ export class CalculateLineService {
       this._calculationsCache.set(newSerializedCacheKey, newCacheValue);
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -1015,24 +1020,21 @@ export class CalculateLineService {
           if (typeof calculationsCacheValue.distanceWithTerrain === 'number') {
             this._distanceWithTerrain.set(calculationsCacheValue.distanceWithTerrain);
             this._recalculationFlag.set(false);
-            console.log(
-              chalk.green(
-                'Distance with terrain result has taken from cache (by setDistanceWithTerrain fn)',
-              ),
+            console.info(
+              'Distance with terrain result has taken from cache (by setDistanceWithTerrain fn)',
             );
             return true;
           } else {
-            console.log(
-              chalk.blue(
-                'Invalid distance with terrain result in cache (by setDistanceWithTerrain fn)',
-              ),
+            console.info(
+              'Invalid distance with terrain result in cache (by setDistanceWithTerrain fn)',
             );
           }
         }
       }
       // ------------------------------- //
-      const polylinePositions: Array<Cesium.Cartesian3> =
-        validPickedEnttity!.polyline?.positions?.getValue();
+      const polylinePositions = cartesian3ListFromProperty(
+        validPickedEnttity?.polyline?.positions?.getValue(),
+      );
       if (
         polylinePositions?.length &&
         polylinePositions.length > 1 &&
@@ -1093,7 +1095,7 @@ export class CalculateLineService {
         //   newSegment || this.distanceSegmentLengthM(),
         //   withHumanify,
         // );
-        // console.log(chalk.blue('distance recalculation (by setDistanceWithTerrain fn)'));
+        // console.info('distance recalculation (by setDistanceWithTerrain fn)');
         // if (typeof calculation === 'number') {
         //   this._distanceWithTerrain.set(calculation);
         //   const calculationsCacheValue: CalculationsCacheValue = {
@@ -1106,7 +1108,7 @@ export class CalculateLineService {
         //   return true;
         // } else {
         //   console.log(
-        //     chalk.red('Invalid distance calculation result in setDistanceWithTerrain fn'),
+        //     ('Invalid distance calculation result in setDistanceWithTerrain fn'),
         //   );
         //   return false;
         // }
@@ -1114,7 +1116,7 @@ export class CalculateLineService {
         throw new Error('Invalid polylinePositions array in setDistanceWithTerrain fn');
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       this.mostDetailed.set(false);
       return false;
     } finally {
@@ -1133,7 +1135,7 @@ export class CalculateLineService {
       }
       return distanceWithTerrainText;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return '';
     }
   });
@@ -1179,24 +1181,21 @@ export class CalculateLineService {
           if (typeof calculationsCacheValue.distanceWithoutTerrain === 'number') {
             this._distanceWithoutTerrain.set(calculationsCacheValue.distanceWithoutTerrain);
             this._recalculationFlag.set(false);
-            console.log(
-              chalk.green(
-                'Distance without terrain result has taken from cache (by setDistanceWithoutTerrain fn)',
-              ),
+            console.info(
+              'Distance without terrain result has taken from cache (by setDistanceWithoutTerrain fn)',
             );
             return true;
           } else {
-            console.log(
-              chalk.blue(
-                'Invalid distance without terrain result in cache (by setDistanceWithoutTerrain fn)',
-              ),
+            console.info(
+              'Invalid distance without terrain result in cache (by setDistanceWithoutTerrain fn)',
             );
           }
         }
       }
       // ------------------------------- //
-      const polylinePositions: Array<Cesium.Cartesian3> =
-        validPickedEnttity!.polyline?.positions?.getValue();
+      const polylinePositions = cartesian3ListFromProperty(
+        validPickedEnttity?.polyline?.positions?.getValue(),
+      );
       if (
         polylinePositions?.length &&
         polylinePositions.length > 1 &&
@@ -1263,14 +1262,14 @@ export class CalculateLineService {
         //   return true;
         // } else {
         //   console.log(
-        //     chalk.red('Invalid distance calculation result in setDistanceWithoutTerrain fn'),
+        //     ('Invalid distance calculation result in setDistanceWithoutTerrain fn'),
         //   );
         // }
       } else {
         throw new Error('Invalid polylinePositions array in setDistanceWithoutTerrain fn');
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -1286,7 +1285,7 @@ export class CalculateLineService {
       }
       return distanceWithoutTerrainText;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return '';
     }
   });
@@ -1313,34 +1312,33 @@ export class CalculateLineService {
         return false;
       }
       if (validPickedEnttity === undefined || !(validPickedEnttity instanceof Cesium.Entity)) {
-        console.log(chalk.red('Invalid line entity in setNewEntityLabelsText fn'));
+        console.info('Invalid line entity in setNewEntityLabelsText fn');
         return false;
       }
-      const polylinePositions: Array<Cesium.Cartesian3> =
-        validPickedEnttity.polyline?.positions?.getValue();
+      const polylinePositions = cartesian3ListFromProperty(
+        validPickedEnttity.polyline?.positions?.getValue(),
+      );
       if (
         !polylinePositions?.length ||
         polylinePositions.length < 2 ||
         !(polylinePositions[1] instanceof Cesium.Cartesian3)
       ) {
-        console.log(chalk.red('Invalid polylinePositions array in setNewEntityLabelsText fn'));
+        console.info('Invalid polylinePositions array in setNewEntityLabelsText fn');
         return false;
       }
       // ------------------------------- //
       const indexGroup = this.linearMeasurmentsLinesList().findIndex((group) =>
-        validPickedEnttity.id.startsWith(group!.groupId),
+        !!group && validPickedEnttity.id.startsWith(group.groupId),
       );
       if (indexGroup === -1) {
-        console.log(
-          chalk.red("Index for entities group in store hasn't found in setNewEntityLabelsText fn"),
-        );
+        console.info("Index for entities group in store hasn't found in setNewEntityLabelsText fn");
         return false;
       }
       const group = this.linearMeasurmentsLinesList()[indexGroup];
       const entitiesList = group?.entitiesList;
       // Notice: минимально - две точки и линия
       if (!entitiesList || entitiesList.length < 3) {
-        console.log(chalk.red('Invalid entitiesList array in setNewEntityLabelsText fn'));
+        console.info('Invalid entitiesList array in setNewEntityLabelsText fn');
         return false;
       }
       // ------------------------------- //
@@ -1367,10 +1365,12 @@ export class CalculateLineService {
         ) {
           let cacheCounter: number = 0;
           for (let i = 0; i <= cachedPoints.length - 1; i++) {
-            const targetEntityIndex = entitiesList!.findIndex((entity) => {
+            const targetEntityIndex = entitiesList.findIndex((entity) => {
               // Notice: у точек polyline === undefined
               if (entity?.polyline === undefined && entity?.position) {
-                const entityPosSer = JSON.stringify(entity.position.getValue());
+                const entityPos = cartesianFromProperty(entity.position.getValue());
+                if (!entityPos) return false;
+                const entityPosSer = JSON.stringify(entityPos);
                 const cachedPosSer = JSON.stringify(cachedPoints[i].position);
                 if (entityPosSer === cachedPosSer) {
                   return true;
@@ -1385,33 +1385,29 @@ export class CalculateLineService {
               continue;
             } else {
               let distanceText = cachedPoints[i].distanceText;
-              const targetEntity = entitiesList![targetEntityIndex];
+              const targetEntity = entitiesList[targetEntityIndex];
               if (typeof distanceText === 'string' && targetEntity?.label) {
                 targetEntity.label.text = new Cesium.ConstantProperty(distanceText);
                 cacheCounter++;
               } else {
-                console.log(chalk.blue('Invalid distanceText result in setNewEntityLabelsText fn'));
+                console.info('Invalid distanceText result in setNewEntityLabelsText fn');
               }
             }
           }
           if (cacheCounter !== polylinePositions.length) {
-            console.log(
-              chalk.blue("Getting poit's labels from cache failed (in setNewEntityLabelsText fn)"),
-            );
+            console.info("Getting poit's labels from cache failed (in setNewEntityLabelsText fn)");
             // Будет осуществлен перерасчет (ниже)
           } else {
             // Сообщение отключено, т.к. это нормальный сценарий (оставлено для тестов)
             // console.log(
-            //   chalk.green(
+            //   (
             //     'Entities labels text have taken from cache (by setNewEntityLabelsText fn)',
             //   ),
             // );
             return true;
           }
         } else {
-          console.log(
-            chalk.blue('Invalid cached points array in cache (by setNewEntityLabelsText fn)'),
-          );
+          console.info('Invalid cached points array in cache (by setNewEntityLabelsText fn)');
           // Будет осуществлен перерасчет (ниже)
         }
       }
@@ -1423,10 +1419,12 @@ export class CalculateLineService {
       for (let i = 1; i <= polylinePositions.length - 1; i++) {
         const prevPos = polylinePositions[i - 1];
         const nowPos = polylinePositions[i];
-        const targetEntityIndex = entitiesList!.findIndex((entity) => {
+        const targetEntityIndex = entitiesList.findIndex((entity) => {
           // Notice: у точек polyline === undefined
           if (entity?.polyline === undefined && entity?.position) {
-            const entityPosSer = JSON.stringify(entity.position.getValue());
+            const entityPos = cartesianFromProperty(entity.position.getValue());
+            if (!entityPos) return false;
+            const entityPosSer = JSON.stringify(entityPos);
             const nowPosSer = JSON.stringify(nowPos);
             if (entityPosSer === nowPosSer) {
               return true;
@@ -1453,7 +1451,7 @@ export class CalculateLineService {
           } else {
             throw new Error('Invalid distanceChank result in setNewEntityLabelsText fn');
           }
-          const targetEntity = entitiesList![targetEntityIndex];
+          const targetEntity = entitiesList[targetEntityIndex];
           if (typeof distanceText === 'string' && targetEntity?.label) {
             targetEntity.label.text = new Cesium.ConstantProperty(distanceText);
             calcCounter++;
@@ -1464,14 +1462,14 @@ export class CalculateLineService {
       }
       // "- 1", так как первая (нулевая) позиция пропускается
       if (calcCounter !== polylinePositions.length - 1) {
-        console.log(chalk.red("Not all poit's labels have rewritten in setNewEntityLabelsText fn"));
+        console.info("Not all poit's labels have rewritten in setNewEntityLabelsText fn");
         return false;
       }
 
-      console.log(chalk.blue("Poit's labels have recalculated (in setNewEntityLabelsText fn)"));
+      console.info("Poit's labels have recalculated (in setNewEntityLabelsText fn)");
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }

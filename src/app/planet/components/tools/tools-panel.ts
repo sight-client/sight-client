@@ -1,23 +1,24 @@
+import { reportError } from '@global/lib/report-error.lib';
 import {
   Component,
   ChangeDetectionStrategy,
   HostListener,
   ViewChild,
-  ViewChildren,
   ViewContainerRef,
   TemplateRef,
-  QueryList,
   ViewRef,
   ElementRef,
   EmbeddedViewRef,
   AfterViewInit,
   OnInit,
   OnDestroy,
-  signal,
+  Signal,
   WritableSignal,
+  signal,
+  viewChild,
+  viewChildren,
 } from '@angular/core';
 import { first, repeat, Subscription } from 'rxjs';
-import chalk from 'chalk';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -52,6 +53,16 @@ import { TakeScreenshot } from '@/components/tools/camera-view-tools/components/
 import { SceneModeChanger } from '@/components/tools/camera-view-tools/components/scene-mode-changer/scene-mode-changer';
 import { ToggleFullscreen } from '@/components/tools/camera-view-tools/components/toggle-fullscreen/toggle-fullscreen';
 
+interface ToolGroup {
+  templates: Signal<readonly TemplateRef<unknown>[]>;
+  defaultVcr: Signal<ViewContainerRef>;
+  hiddenVcr: Signal<ViewContainerRef>;
+  defaultDiv: Signal<ElementRef<HTMLElement>>;
+  hiddenDiv: Signal<ElementRef<HTMLElement>>;
+  expanded: WritableSignal<boolean>;
+  outsideClickIgnore: string;
+}
+
 @Component({
   selector: 'tools-panel',
   imports: [
@@ -85,16 +96,10 @@ import { ToggleFullscreen } from '@/components/tools/camera-view-tools/component
         </div>
         @if (!$toolsService.drawingsBlocker()) {
           <button
-            [class.tool-panel-button-svg-mirrored]="hiddenDivHasShownForDrawingTools() === true"
+            [class.tool-panel-button-svg-mirrored]="drawingTools.expanded() === true"
             class="tool-chevron-button drawind-tools-chevron-button"
             matButton="tonal"
-            (click)="
-              toggleHiddenVisibility(
-                hiddenDivERForDrawingTools,
-                hiddenDivHasShownForDrawingTools,
-                $event
-              )
-            "
+            (click)="toggleHiddenVisibility(drawingTools, $event)"
           >
             <mat-icon>
               <svg width="24" height="24" viewBox="0 0 24 24">
@@ -106,19 +111,10 @@ import { ToggleFullscreen } from '@/components/tools/camera-view-tools/component
         <div
           class="tools-panel-group-hidden"
           [class]="
-            hiddenDivHasShownForDrawingTools() === true ? 'tools-panel-group-hidden-raised' : ''
+            drawingTools.expanded() === true ? 'tools-panel-group-hidden-raised' : ''
           "
           #hiddenDivForDrawingTools
-          (mousedown)="
-            moveToolToDefault(
-              $event,
-              defaultNGCVCRForDrawingTools,
-              hiddenNGCVCRForDrawingTools,
-              defaultDivERForDrawingTools,
-              hiddenDivERForDrawingTools,
-              hiddenDivHasShownForDrawingTools
-            )
-          "
+          (mousedown)="moveToolToDefault($event, drawingTools)"
         >
           <ng-container #hiddenNGCForDrawingTools>
             <ng-template #childNGTForDrawingTools><draw-mark [attr.position]="0" /></ng-template>
@@ -141,16 +137,10 @@ import { ToggleFullscreen } from '@/components/tools/camera-view-tools/component
         </div>
         @if (!$toolsService.drawingsBlocker()) {
           <button
-            [class.tool-panel-button-svg-mirrored]="hiddenDivHasShownForMeasuringTools() === true"
+            [class.tool-panel-button-svg-mirrored]="measuringTools.expanded() === true"
             class="tool-chevron-button measuring-tools-chevron-button"
             matButton="tonal"
-            (click)="
-              toggleHiddenVisibility(
-                hiddenDivERForMeasuringTools,
-                hiddenDivHasShownForMeasuringTools,
-                $event
-              )
-            "
+            (click)="toggleHiddenVisibility(measuringTools, $event)"
           >
             <mat-icon>
               <svg width="24" height="24" viewBox="0 0 24 24">
@@ -162,19 +152,10 @@ import { ToggleFullscreen } from '@/components/tools/camera-view-tools/component
         <div
           class="tools-panel-group-hidden"
           [class]="
-            hiddenDivHasShownForMeasuringTools() === true ? 'tools-panel-group-hidden-raised' : ''
+            measuringTools.expanded() === true ? 'tools-panel-group-hidden-raised' : ''
           "
           #hiddenDivForMeasuringTools
-          (mousedown)="
-            moveToolToDefault(
-              $event,
-              defaultNGCVCRForMeasuringTools,
-              hiddenNGCVCRForMeasuringTools,
-              defaultDivERForMeasuringTools,
-              hiddenDivERForMeasuringTools,
-              hiddenDivHasShownForMeasuringTools
-            )
-          "
+          (mousedown)="moveToolToDefault($event, measuringTools)"
         >
           <ng-container #hiddenNGCForMeasuringTools>
             <ng-template #childNGTForMeasuringTools
@@ -199,16 +180,10 @@ import { ToggleFullscreen } from '@/components/tools/camera-view-tools/component
         </div>
         @if (!$toolsService.drawingsBlocker() && !$viewerService.cameraIsFlyingAround()) {
           <button
-            [class.tool-panel-button-svg-mirrored]="hiddenDivHasShownForCameraViewTools() === true"
+            [class.tool-panel-button-svg-mirrored]="cameraTools.expanded() === true"
             class="tool-chevron-button camera-view-tools-chevron-button"
             matButton="tonal"
-            (click)="
-              toggleHiddenVisibility(
-                hiddenDivERForCameraViewTools,
-                hiddenDivHasShownForCameraViewTools,
-                $event
-              )
-            "
+            (click)="toggleHiddenVisibility(cameraTools, $event)"
           >
             <mat-icon>
               <svg width="24" height="24" viewBox="0 0 24 24">
@@ -220,19 +195,10 @@ import { ToggleFullscreen } from '@/components/tools/camera-view-tools/component
         <div
           class="tools-panel-group-hidden"
           [class]="
-            hiddenDivHasShownForCameraViewTools() === true ? 'tools-panel-group-hidden-raised' : ''
+            cameraTools.expanded() === true ? 'tools-panel-group-hidden-raised' : ''
           "
           #hiddenDivForCameraViewTools
-          (mousedown)="
-            moveToolToDefault(
-              $event,
-              defaultNGCVCRForCameraViewTools,
-              hiddenNGCVCRForCameraViewTools,
-              defaultDivERForCameraViewTools,
-              hiddenDivERForCameraViewTools,
-              hiddenDivHasShownForCameraViewTools
-            )
-          "
+          (mousedown)="moveToolToDefault($event, cameraTools)"
         >
           <ng-container #hiddenNGCForCameraViewTools>
             <ng-template #childNGTForCameraViewTools><fly-around [attr.position]="0" /></ng-template>
@@ -266,96 +232,91 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
   // Формирование состава групп инструментов (групп представлений), логика перемещения шаблона компонента выбранного инструмента (представления) между подгруппами
   // ---------------------------------------------------------------------------------------------------------------- //
 
-  // -------------------------------------------------------------------------- //
-  // Группа инструментов "DrawingTools"
-  @ViewChildren('childNGTForDrawingTools') childrenQLTRForDrawingTools: QueryList<
-    TemplateRef<unknown>
-  >; // список ссылок на <ng-template> монтируемых с привязкой по EmbeddedViewRef шаблонов инструментов группы
-  @ViewChild('defaultNGCForDrawingTools', { read: ViewContainerRef }) // ссылка на <ng-conteiner> в который динамически монтируются шаблоны инструментов группы
-  defaultNGCVCRForDrawingTools: ViewContainerRef;
-  @ViewChild('hiddenNGCForDrawingTools', { read: ViewContainerRef }) // -- // -- // -- // --
-  hiddenNGCVCRForDrawingTools: ViewContainerRef;
-  @ViewChild('defaultDivForDrawingTools', { read: ElementRef }) // ссылка для последующего управления кастомным атрибутом 'button-visibility' хостов дочерних компонентов (инструментов группы)
-  defaultDivERForDrawingTools: ElementRef;
-  @ViewChild('hiddenDivForDrawingTools', { read: ElementRef }) // -- // -- // -- // --
-  hiddenDivERForDrawingTools: ElementRef;
-  protected hiddenDivHasShownForDrawingTools = signal<boolean>(false); // флаг показа скрываемой подгруппы
-  // -------------------------------------------------------------------------- //
-  // Группа инструментов "MeasuringTools"
-  @ViewChildren('childNGTForMeasuringTools') childrenQLTRForMeasuringTools: QueryList<
-    TemplateRef<unknown>
-  >;
-  @ViewChild('defaultNGCForMeasuringTools', { read: ViewContainerRef })
-  defaultNGCVCRForMeasuringTools: ViewContainerRef;
-  @ViewChild('hiddenNGCForMeasuringTools', { read: ViewContainerRef })
-  hiddenNGCVCRForMeasuringTools: ViewContainerRef;
-  @ViewChild('defaultDivForMeasuringTools', { read: ElementRef })
-  defaultDivERForMeasuringTools: ElementRef;
-  @ViewChild('hiddenDivForMeasuringTools', { read: ElementRef })
-  hiddenDivERForMeasuringTools: ElementRef;
-  protected hiddenDivHasShownForMeasuringTools = signal<boolean>(false);
-  // -------------------------------------------------------------------------- //
-  // Группа инструментов "CameraViewTools"
-  @ViewChildren('childNGTForCameraViewTools') childrenQLTRForCameraViewTools: QueryList<
-    TemplateRef<unknown>
-  >;
-  @ViewChild('defaultNGCForCameraViewTools', { read: ViewContainerRef })
-  defaultNGCVCRForCameraViewTools: ViewContainerRef;
-  @ViewChild('hiddenNGCForCameraViewTools', { read: ViewContainerRef })
-  hiddenNGCVCRForCameraViewTools: ViewContainerRef;
-  @ViewChild('defaultDivForCameraViewTools', { read: ElementRef })
-  defaultDivERForCameraViewTools: ElementRef;
-  @ViewChild('hiddenDivForCameraViewTools', { read: ElementRef })
-  hiddenDivERForCameraViewTools: ElementRef;
-  protected hiddenDivHasShownForCameraViewTools = signal<boolean>(false);
-  // -------------------------------------------------------------------------- //
-  // ...другие группы
+  private readonly drawingTemplates = viewChildren('childNGTForDrawingTools', { read: TemplateRef });
+  private readonly drawingDefaultVcr = viewChild.required('defaultNGCForDrawingTools', {
+    read: ViewContainerRef,
+  });
+  private readonly drawingHiddenVcr = viewChild.required('hiddenNGCForDrawingTools', {
+    read: ViewContainerRef,
+  });
+  private readonly drawingDefaultDiv = viewChild.required('defaultDivForDrawingTools', {
+    read: ElementRef,
+  });
+  private readonly drawingHiddenDiv = viewChild.required('hiddenDivForDrawingTools', {
+    read: ElementRef,
+  });
+  private readonly measuringTemplates = viewChildren('childNGTForMeasuringTools', {
+    read: TemplateRef,
+  });
+  private readonly measuringDefaultVcr = viewChild.required('defaultNGCForMeasuringTools', {
+    read: ViewContainerRef,
+  });
+  private readonly measuringHiddenVcr = viewChild.required('hiddenNGCForMeasuringTools', {
+    read: ViewContainerRef,
+  });
+  private readonly measuringDefaultDiv = viewChild.required('defaultDivForMeasuringTools', {
+    read: ElementRef,
+  });
+  private readonly measuringHiddenDiv = viewChild.required('hiddenDivForMeasuringTools', {
+    read: ElementRef,
+  });
+  private readonly cameraTemplates = viewChildren('childNGTForCameraViewTools', { read: TemplateRef });
+  private readonly cameraDefaultVcr = viewChild.required('defaultNGCForCameraViewTools', {
+    read: ViewContainerRef,
+  });
+  private readonly cameraHiddenVcr = viewChild.required('hiddenNGCForCameraViewTools', {
+    read: ViewContainerRef,
+  });
+  private readonly cameraDefaultDiv = viewChild.required('defaultDivForCameraViewTools', {
+    read: ElementRef,
+  });
+  private readonly cameraHiddenDiv = viewChild.required('hiddenDivForCameraViewTools', {
+    read: ElementRef,
+  });
+  protected readonly drawingTools: ToolGroup = {
+    templates: this.drawingTemplates,
+    defaultVcr: this.drawingDefaultVcr,
+    hiddenVcr: this.drawingHiddenVcr,
+    defaultDiv: this.drawingDefaultDiv,
+    hiddenDiv: this.drawingHiddenDiv,
+    expanded: signal(false),
+    outsideClickIgnore: '.drawind-tools-chevron-button',
+  };
+  protected readonly measuringTools: ToolGroup = {
+    templates: this.measuringTemplates,
+    defaultVcr: this.measuringDefaultVcr,
+    hiddenVcr: this.measuringHiddenVcr,
+    defaultDiv: this.measuringDefaultDiv,
+    hiddenDiv: this.measuringHiddenDiv,
+    expanded: signal(false),
+    outsideClickIgnore: '.measuring-tools-chevron-button',
+  };
+  protected readonly cameraTools: ToolGroup = {
+    templates: this.cameraTemplates,
+    defaultVcr: this.cameraDefaultVcr,
+    hiddenVcr: this.cameraHiddenVcr,
+    defaultDiv: this.cameraDefaultDiv,
+    hiddenDiv: this.cameraHiddenDiv,
+    expanded: signal(false),
+    outsideClickIgnore: '.camera-view-tools-chevron-button',
+  };
+  private readonly toolGroups = [this.drawingTools, this.measuringTools, this.cameraTools];
 
-  // Отрисовка групп инструментов после получения необходимых для динамического монтирования ссылок
   ngAfterViewInit() {
-    // Для группы "DrawingTools"
-    this.renderToolsGroupTemplates(
-      this.childrenQLTRForDrawingTools,
-      this.defaultNGCVCRForDrawingTools,
-      this.hiddenNGCVCRForDrawingTools,
-      this.defaultDivERForDrawingTools,
-      this.hiddenDivERForDrawingTools,
-      this.hiddenDivHasShownForDrawingTools,
-    );
-    // Для группы "MeasuringTools"
-    this.renderToolsGroupTemplates(
-      this.childrenQLTRForMeasuringTools,
-      this.defaultNGCVCRForMeasuringTools,
-      this.hiddenNGCVCRForMeasuringTools,
-      this.defaultDivERForMeasuringTools,
-      this.hiddenDivERForMeasuringTools,
-      this.hiddenDivHasShownForMeasuringTools,
-    );
-
-    // Для группы "CameraViewTools"
-    this.renderToolsGroupTemplates(
-      this.childrenQLTRForCameraViewTools,
-      this.defaultNGCVCRForCameraViewTools,
-      this.hiddenNGCVCRForCameraViewTools,
-      this.defaultDivERForCameraViewTools,
-      this.hiddenDivERForCameraViewTools,
-      this.hiddenDivHasShownForCameraViewTools,
-    );
-
-    // ...другие группы
+    for (const group of this.toolGroups) {
+      this.renderToolsGroupTemplates(group);
+    }
   }
 
-  // Метод для ngAfterViewInit
-  private renderToolsGroupTemplates(
-    childrenQLTR: QueryList<TemplateRef<unknown>>,
-    defaultNGCVCR: ViewContainerRef,
-    hiddenNGCVCR: ViewContainerRef,
-    defaultDivER: ElementRef,
-    hiddenDivER: ElementRef,
-    hiddenDivHasShown: WritableSignal<boolean>,
-  ): boolean {
+  private renderToolsGroupTemplates(group: ToolGroup): boolean {
+    const childrenQLTR = group.templates();
+    const defaultNGCVCR = group.defaultVcr();
+    const hiddenNGCVCR = group.hiddenVcr();
+    const defaultDivER = group.defaultDiv();
+    const hiddenDivER = group.hiddenDiv();
+    const hiddenDivHasShown = group.expanded;
     try {
-      const firstTR = childrenQLTR.first;
+      const firstTR = childrenQLTR[0];
       for (const child of childrenQLTR) {
         // Изначально шаблон компонента в <ng-template> не отрисовывается.
         // Выражение отрисует шаблон дочернего компонента в указанном по ссылке месте и далее позволит динамически перемещать такой шаблон без перемонтирования его компонента (без потери состояний)
@@ -379,24 +340,22 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
         // console.log(hiddenDivHasShown());
         return true;
       } else {
-        console.log('setNormalButtonsVisibility fn has failed');
+        console.info('setNormalButtonsVisibility fn has failed');
         return false;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
 
   // Метод для клика по кнопке внутри вспомогательного контейнера группы
-  protected moveToolToDefault(
-    event: MouseEvent,
-    defaultNGCVCR: ViewContainerRef,
-    hiddenNGCVCR: ViewContainerRef,
-    defaultDivER: ElementRef,
-    hiddenDivER: ElementRef,
-    hiddenDivHasShown: WritableSignal<boolean>,
-  ): boolean {
+  protected moveToolToDefault(event: MouseEvent, group: ToolGroup): boolean {
+    const defaultNGCVCR = group.defaultVcr();
+    const hiddenNGCVCR = group.hiddenVcr();
+    const defaultDivER = group.defaultDiv();
+    const hiddenDivER = group.hiddenDiv();
+    const hiddenDivHasShown = group.expanded;
     try {
       event.stopPropagation();
       if (event.button !== 0) {
@@ -420,7 +379,7 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
         }
         // При отсутствии кнопки во всплытии события (возможно при перехвате события ниже по DOM-ветке)
       } else if (whereCatchedIndex === 0) {
-        this.offHiddenVisibility(hiddenDivER, hiddenDivHasShown);
+        this.offHiddenVisibility(group);
         throw new Error("Event's bubbling hasn't contained button element");
       }
 
@@ -430,14 +389,13 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
 
       // Проверка на наличие кастомного атрибута 'position' хоста кнопки в дефолтном контейнере
       const defaultBtnEl = defaultDivER.nativeElement.firstChild;
-      const defaultBtnElPositionAttr: string | null | undefined = (
-        defaultBtnEl as HTMLElement
-      )?.getAttribute('position');
+      const defaultBtnElPositionAttr =
+        defaultBtnEl instanceof HTMLElement ? defaultBtnEl.getAttribute('position') : null;
       const defaultBtnElPosition = Number(defaultBtnElPositionAttr);
 
       // Перенос заменяемой кнопки из дефолтного обратно в скрываемый контейнер
       // Сценарий с сохранением порядка очередности инструментов (используется кастомный атрибут 'position')
-      if (defaultBtnElPositionAttr !== null && isFinite(defaultBtnElPosition)) {
+      if (defaultBtnElPositionAttr !== null && Number.isFinite(defaultBtnElPosition)) {
         if (defaultBtnElPosition < 0) {
           throw new Error(
             `defaultBtnElPosition is invalid in moveToolToDefault fn: ${defaultBtnElPosition}`,
@@ -461,15 +419,14 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
             const hidArr = Array.from(hiddenDivER.nativeElement.children);
             let indexInVCRToPaste: number | undefined = undefined;
             for (let i = 0; i <= hidArr.length - 1; i++) {
-              if (hidArr[i] && hidArr[i] instanceof HTMLElement) {
-                const thisElPosAttr = (hidArr[i] as HTMLElement).getAttribute('position');
+              const hiddenChild = hidArr[i];
+              if (hiddenChild instanceof HTMLElement) {
+                const thisElPosAttr = hiddenChild.getAttribute('position');
                 const thisElPos = Number(thisElPosAttr);
-                if (thisElPosAttr === null || !isFinite(defaultBtnElPosition)) {
-                  console.log(
-                    chalk.blue(
-                      'Position attribute is not valid in hiddenDiv\'s "for"-cicle: ',
-                      thisElPosAttr,
-                    ),
+                if (thisElPosAttr === null || !Number.isFinite(thisElPos)) {
+                  console.info(
+                    'Position attribute is not valid in hiddenDiv\'s "for"-cicle: ',
+                    thisElPosAttr,
                   );
                   indexInVCRToPaste = undefined;
                   break;
@@ -491,9 +448,9 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
               const detachedViewPrev = defaultNGCVCR.detach(0);
               if (detachedViewPrev) {
                 hiddenNGCVCR.insert(detachedViewPrev);
-                console.log(chalk.blue('indexInVCRToPaste is not defined'));
-                console.log('Searched in ', hidArr);
-                console.log(chalk.blue("Insert without using tool's positions"));
+                console.info('indexInVCRToPaste is not defined');
+                console.info('Searched in ', hidArr);
+                console.info("Insert without using tool's positions");
               } else throw new Error('View detach has failed in moveToolToDefault fn');
             }
           }
@@ -503,8 +460,8 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
         const detachedViewPrev = defaultNGCVCR.detach(0);
         if (detachedViewPrev) {
           hiddenNGCVCR.insert(detachedViewPrev);
-          console.log(chalk.blue(`defaultBtnElPositionAttr === ${defaultBtnElPositionAttr}`));
-          console.log(chalk.blue("Insert without using tool's positions"));
+          console.info(`defaultBtnElPositionAttr === ${defaultBtnElPositionAttr}`);
+          console.info("Insert without using tool's positions");
         } else throw new Error('View detach has failed in moveToolToDefault fn');
       }
 
@@ -518,8 +475,8 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
         }
       }
       if (indexInVCRToCut === undefined || indexInVCRToCut === -1) {
-        console.log(hiddenChildren);
-        console.log(btnElHost);
+        console.info(hiddenChildren);
+        console.info(btnElHost);
         throw new Error(
           "Tool's host element index wasn't found in hiddenDivER in moveToolToDefault fn",
         );
@@ -540,7 +497,7 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
         throw new Error('setNormalButtonsVisibility fn has failed in moveToolToDefault fn');
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -552,71 +509,33 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   // Метод для клика вне границ контейнеров для вспомогательных подгрупп
   handleForOutOfHiddenGroupBoundariesClick(event: MouseEvent): void {
-    // Для группы "DrawingTools"
-    if (this.hiddenDivHasShownForDrawingTools() === true) {
-      if (this.hiddenDivERForDrawingTools?.nativeElement) {
-        if (
-          this.hiddenDivERForDrawingTools.nativeElement.contains(event.target) === false &&
-          event.target instanceof Element &&
-          !event.target?.closest?.('.drawind-tools-chevron-button')
-        ) {
-          if (hideAuxillarySubgroup(this.hiddenDivERForDrawingTools) === true) {
-            this.hiddenDivHasShownForDrawingTools.set(false);
-          } else
-            console.log(
-              `Hiding ${this.hiddenDivERForDrawingTools.nativeElement.tagName} button by Esc has failed in outOfBoundaries handler`,
-            );
+    for (const group of this.toolGroups) {
+      if (group.expanded() !== true) continue;
+      const hiddenDiv = group.hiddenDiv()?.nativeElement;
+      if (!hiddenDiv) {
+        console.info('"hiddenDivER" was not defined in out-of-boundaries handler');
+        continue;
+      }
+      if (
+        event.target instanceof Element &&
+        hiddenDiv.contains(event.target) === false &&
+        !event.target.closest(group.outsideClickIgnore)
+      ) {
+        if (hideAuxillarySubgroup(group.hiddenDiv()) === true) {
+          group.expanded.set(false);
+        } else {
+          console.info(
+            `Hiding ${hiddenDiv.tagName} button by Esc has failed in outOfBoundaries handler`,
+          );
         }
-      } else
-        console.log('"hiddenDivER" was not defined for DrawingTools in out-of-boundaries handler');
+      }
     }
-    // Для группы "MeasuringTools"
-    if (this.hiddenDivHasShownForMeasuringTools() === true) {
-      if (this.hiddenDivERForMeasuringTools?.nativeElement) {
-        if (
-          this.hiddenDivERForMeasuringTools.nativeElement.contains(event.target) === false &&
-          event.target instanceof Element &&
-          !event.target?.closest?.('.measuring-tools-chevron-button')
-        ) {
-          if (hideAuxillarySubgroup(this.hiddenDivERForMeasuringTools) === true) {
-            this.hiddenDivHasShownForMeasuringTools.set(false);
-          } else
-            console.log(
-              `Hiding ${this.hiddenDivERForMeasuringTools.nativeElement.tagName} button by Esc has failed in outOfBoundaries handler`,
-            );
-        }
-      } else
-        console.log(
-          '"hiddenDivER" was not defined for MeasuringTools in out-of-boundaries handler',
-        );
-    }
-    // Для группы "CameraViewTools"
-    if (this.hiddenDivHasShownForCameraViewTools() === true) {
-      if (this.hiddenDivERForCameraViewTools?.nativeElement) {
-        if (
-          this.hiddenDivERForCameraViewTools.nativeElement.contains(event.target) === false &&
-          event.target instanceof Element &&
-          !event.target?.closest?.('.camera-view-tools-chevron-button')
-        ) {
-          if (hideAuxillarySubgroup(this.hiddenDivERForCameraViewTools) === true) {
-            this.hiddenDivHasShownForCameraViewTools.set(false);
-          } else
-            console.log(
-              `Hiding ${this.hiddenDivERForCameraViewTools.nativeElement.tagName} button by Esc has failed in outOfBoundaries handler`,
-            );
-        }
-      } else
-        console.log('"hiddenDivER" was not defined for CameraViewTools in out-of-boundaries handler');
-    }
-    // ...другие группы
   }
 
   // Метод для клика по кнопке, переключающей видимость вспомогательной подгруппы кнопок
-  protected toggleHiddenVisibility(
-    hiddenDivER: ElementRef,
-    hiddenDivHasShown: WritableSignal<boolean>,
-    _event?: MouseEvent,
-  ): boolean {
+  protected toggleHiddenVisibility(group: ToolGroup, _event?: MouseEvent): boolean {
+    const hiddenDivER = group.hiddenDiv();
+    const hiddenDivHasShown = group.expanded;
     try {
       // _event.stopPropagation(); // не перехватывать, нужно для this.handleForOutOfHiddenGroupBoundariesClick()
       if (hiddenDivHasShown() === false) {
@@ -625,7 +544,7 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
           // console.log(hiddenDivHasShown());
           return true;
         } else {
-          console.log('showAuxillarySubgroup fn has failed');
+          console.info('showAuxillarySubgroup fn has failed');
           return false;
         }
       } else if (hiddenDivHasShown() === true) {
@@ -634,22 +553,21 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
           // console.log(hiddenDivHasShown());
           return true;
         } else {
-          console.log('hideAuxillarySubgroup fn has failed');
+          console.info('hideAuxillarySubgroup fn has failed');
           return false;
         }
       } else
         throw new Error('"hiddenDivHasShown" signal is not defined in toggleHiddenVisibility fn');
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
 
   // Метод для прослушивателя нажатия Esc
-  protected offHiddenVisibility(
-    hiddenDivER: ElementRef,
-    hiddenDivHasShown: WritableSignal<boolean>,
-  ): boolean {
+  protected offHiddenVisibility(group: ToolGroup): boolean {
+    const hiddenDivER = group.hiddenDiv();
+    const hiddenDivHasShown = group.expanded;
     try {
       // event.stopPropagation(); // уже остановлено в общем хэндлере
       if (hideAuxillarySubgroup(hiddenDivER)) {
@@ -658,7 +576,7 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
         return true;
       } else return false;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -691,9 +609,7 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
       this.unexpectedErrorSubscription = this.$toolsService.cancelEvent$
         .pipe(first(), repeat())
         .subscribe((data) => {
-          console.log(
-            chalk.blue(`Canceled because tool's error has detected (from tool "${data}")`),
-          );
+          console.info(`Canceled because tool's error has detected (from tool "${data}")`);
           // Инструменты рисования
           if (data === this.drawMarkRef.toolName) {
             this.drawMarkRef.cancelByEsc();
@@ -745,8 +661,7 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
           }
         });
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
     }
   }
 
@@ -763,92 +678,63 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
   // Сокрытие вспомогательных групп инструментов по Esc
   private handleForEscHideSubgroup(_event?: Event): void {
     try {
-      // Инструменты рисования
-      if (this.hiddenDivHasShownForDrawingTools() === true) {
-        this.offHiddenVisibility(
-          this.hiddenDivERForDrawingTools,
-          this.hiddenDivHasShownForDrawingTools,
-        );
+      for (const group of this.toolGroups) {
+        if (group.expanded() === true) this.offHiddenVisibility(group);
       }
-      // Инструменты измерения
-      if (this.hiddenDivHasShownForMeasuringTools() === true) {
-        this.offHiddenVisibility(
-          this.hiddenDivERForMeasuringTools,
-          this.hiddenDivHasShownForMeasuringTools,
-        );
-      }
-      // Инструменты работы с камерой
-      if (this.hiddenDivHasShownForCameraViewTools() === true) {
-        this.offHiddenVisibility(
-          this.hiddenDivERForCameraViewTools,
-          this.hiddenDivHasShownForCameraViewTools,
-        );
-      }
-      // ...другие группы
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     }
   }
 
   // Деактивация инструментов по Esc
   private handleForEscToolDeactivation(_event?: Event): void {
     try {
-      // @ts-ignore (конфликт - кастомное свойство _initializer)
-      if (!this.$toolsService?.commonHandler?.()?._initializer) return;
+      const initializer = this.$toolsService?.commonHandler?.()?._initializer;
+      if (!initializer) return;
       // Инструменты рисования
-      // @ts-ignore (конфликт - кастомное свойство _initializer)
-      if (this.$toolsService.commonHandler()._initializer === this.drawMarkRef.toolName) {
+      if (initializer === this.drawMarkRef.toolName) {
         this.drawMarkRef.cancelByEsc();
         return;
       }
-      // @ts-ignore (конфликт - кастомное свойство _initializer)
-      else if (this.$toolsService.commonHandler()._initializer === this.drawLineRef.toolName) {
+      else if (initializer === this.drawLineRef.toolName) {
         this.drawLineRef.cancelByEsc();
         return;
       }
-      // @ts-ignore (конфликт - кастомное свойство _initializer)
-      else if (this.$toolsService.commonHandler()._initializer === this.drawRectangleRef.toolName) {
+      else if (initializer === this.drawRectangleRef.toolName) {
         this.drawRectangleRef.cancelByEsc();
         return;
       }
-      // @ts-ignore (конфликт - кастомное свойство _initializer)
-      else if (this.$toolsService.commonHandler()._initializer === this.drawCircleRef.toolName) {
+      else if (initializer === this.drawCircleRef.toolName) {
         this.drawCircleRef.cancelByEsc();
         return;
       }
-      // @ts-ignore (конфликт - кастомное свойство _initializer)
-      else if (this.$toolsService.commonHandler()._initializer === this.drawPolygonRef.toolName) {
+      else if (initializer === this.drawPolygonRef.toolName) {
         this.drawPolygonRef.cancelByEsc();
         return;
-        // @ts-ignore (конфликт - кастомное свойство _initializer)
-      } else if (this.$toolsService.commonHandler()._initializer === this.entityRubberRef.toolName) {
+      } else if (initializer === this.entityRubberRef.toolName) {
         this.entityRubberRef.cancelByEsc();
         return;
       }
 
       // Инструменты измерения
       else if (
-        // @ts-ignore (конфликт - кастомное свойство _initializer)
-        this.$toolsService.commonHandler()._initializer === this.calculateLineRef.toolName
+        initializer === this.calculateLineRef.toolName
       ) {
         this.calculateLineRef.cancelByEsc();
         return;
       } else if (
-        // @ts-ignore (конфликт - кастомное свойство _initializer)
-        this.$toolsService.commonHandler()._initializer ===
+        initializer ===
         this.calculateRectangleRef.toolName
       ) {
         this.calculateRectangleRef.cancelByEsc();
         return;
       } else if (
-        // @ts-ignore (конфликт - кастомное свойство _initializer)
-        this.$toolsService.commonHandler()._initializer === this.calculateCircleRef.toolName
+        initializer === this.calculateCircleRef.toolName
       ) {
         this.calculateCircleRef.cancelByEsc();
         return;
       } else if (
-        // @ts-ignore (конфликт - кастомное свойство _initializer)
-        this.$toolsService.commonHandler()._initializer ===
+        initializer ===
         this.calculatePolygonRef.toolName
       ) {
         this.calculatePolygonRef.cancelByEsc();
@@ -857,25 +743,20 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
 
       // Инструменты измерения
       else if (
-        // @ts-ignore (конфликт - кастомное свойство _initializer)
-        this.$toolsService.commonHandler()._initializer === this.flyAroundRef.toolName ||
-        // @ts-ignore (конфликт - кастомное свойство _initializer)
-        this.$toolsService.commonHandler()._initializer === this.flyAroundRef.toolNameAlt
+        initializer === this.flyAroundRef.toolName ||
+        initializer === this.flyAroundRef.toolNameAlt
       ) {
         this.flyAroundRef.cancelByEsc();
         return;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     }
   }
 
   protected visibleWindow(chapterId: string) {
-    let element = document.getElementById(chapterId);
-    if (element!.style.display === 'none') {
-      element!.style.display = 'block';
-    } else {
-      element!.style.display = 'none';
-    }
+    const element = document.getElementById(chapterId);
+    if (!element) return;
+    element.style.display = element.style.display === 'none' ? 'block' : 'none';
   }
 }

@@ -1,3 +1,4 @@
+import { inject } from '@angular/core';
 import {
   HttpInterceptorFn,
   HttpRequest,
@@ -12,10 +13,9 @@ import {
   tap,
   // catchError
 } from 'rxjs';
-import chalk from 'chalk';
 import { CACHING_ENABLED_TOKEN } from '@global/tokens/http-context-tokens';
 
-import { getUserNameGlobal } from '@global/services/user-data-service/user-data.service';
+import { UserDataService } from '@global/services/user-data-service/user-data.service';
 
 // Если необходимо кэширование запроса, устанавливать токен на true вручную, в контексте запроса, например:
 // const data$ = http.get('/sensitive/data', {
@@ -27,7 +27,7 @@ const cache = new Map<
     userName: string | undefined;
     url: string;
     params: HttpParams;
-    body: any;
+    body: unknown;
   },
   HttpEvent<unknown>
 >();
@@ -40,14 +40,15 @@ const getReqCachingInterceptor: HttpInterceptorFn = (
   if (!req.context?.get(CACHING_ENABLED_TOKEN)) return next(req);
   if (req.method !== 'GET') return next(req);
   const cachedReqObj = {
-    userName: getUserNameGlobal(),
+    userName: inject(UserDataService).userName(),
     url: req.url,
     params: req?.params,
     body: req?.body,
   };
-  if (cache.has(cachedReqObj) && cache.get(cachedReqObj) !== undefined) {
-    console.log(chalk.blue('The request has already cached'));
-    return of(cache.get(cachedReqObj) as HttpEvent<unknown>);
+  const cached = cache.get(cachedReqObj);
+  if (cached !== undefined) {
+    console.info('The request has already cached');
+    return of(cached);
   } else {
     return next(req).pipe(
       tap((event: HttpEvent<unknown>) => {

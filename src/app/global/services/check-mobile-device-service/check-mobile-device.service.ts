@@ -43,12 +43,11 @@ export class CheckMobileDeviceService {
     this.bindQuery(TABLET_MQ, this._tabletLayout);
     this.bindQuery(LAPTOP_MQ, this._laptopLayout);
     this.bindQuery(NARROW_MQ, this._narrowChromeLayout);
-    if (this.isMobile) {
-      if (this.window) {
-        fromEvent(this.window, 'resize').subscribe(() => {
-          this.nowMobileWidth.set(this.window!.innerWidth);
-        });
-      }
+    const view = this.window;
+    if (this.isMobile && view) {
+      fromEvent(view, 'resize').subscribe(() => {
+        this.nowMobileWidth.set(view.innerWidth);
+      });
     }
   }
 

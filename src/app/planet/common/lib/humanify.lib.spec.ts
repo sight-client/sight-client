@@ -18,6 +18,11 @@ describe('humanify.lib', () => {
     expect(formatNumber(12345.6, 1)).toBe('12 345,6');
   });
 
+  it('formatNumber returns empty string for non-finite numbers', () => {
+    expect(formatNumber(Number.NaN)).toBe('');
+    expect(formatNumber(Number.POSITIVE_INFINITY)).toBe('');
+  });
+
   it('distanceM uses meters below 2000 and km at 2000', () => {
     expect(distanceM(0)).toBe('0 м');
     expect(distanceM(1500)).toBe('1500 м');

@@ -122,4 +122,16 @@ describe('ToolsPanel', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('shows only the first button of each tool group', () => {
+    const display = (selector: string) =>
+      (fixture.nativeElement.querySelector(selector) as HTMLElement).style.display;
+
+    expect(display('draw-mark')).toBe('block');
+    expect(display('draw-line')).toBe('none');
+    expect(display('calculate-line')).toBe('block');
+    expect(display('calculate-rectangle')).toBe('none');
+    expect(display('fly-around')).toBe('block');
+    expect(display('take-screenshot')).toBe('none');
+  });
 });

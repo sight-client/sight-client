@@ -1,10 +1,15 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, computed, effect, linkedSignal, signal, untracked } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  cartesianFromProperty,
+  booleanFromProperty,
+  getCircle,
+} from '@/components/tools/services/tools-service/tools.service';
 import {
   MeasureService,
   getRusMeasuringToolName,
@@ -52,7 +57,7 @@ export class CalculateCircleService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -70,7 +75,7 @@ export class CalculateCircleService {
     try {
       this.$measureService.cancelMeasuringTool(); // общая функция отмены сценария любого из инструментов работы с картой
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     } finally {
       this._measureHasStarted.set(false);
       this.isActive.set(false);
@@ -126,7 +131,7 @@ export class CalculateCircleService {
         this.cancelThisTool();
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       this.cancelThisTool();
     }
   }
@@ -251,7 +256,7 @@ export class CalculateCircleService {
             }
           } else {
             mouseEntity = await this.$toolsService.getMouseEntity(true);
-            startPos = mouseEntity?.position?.getValue();
+            startPos = cartesianFromProperty(mouseEntity?.position?.getValue());
           }
           if (startPos === undefined) {
             // throw new Error('Start position is undefined in drawCircleAreaMeasureGraphics()');
@@ -326,10 +331,18 @@ export class CalculateCircleService {
               hierarchy: new Cesium.CallbackProperty(() => polygonHierarchy, false),
             });
 
-            if (!labelTextLine && lineEntity?.label?.show?.getValue() === true) {
+            if (
+              !labelTextLine &&
+              lineEntity?.label &&
+              booleanFromProperty(lineEntity.label.show?.getValue()) === true
+            ) {
               lineEntity.label.show = new Cesium.ConstantProperty(false);
             }
-            if (!labelTextMain && ellipseEntity?.label?.show?.getValue() === true) {
+            if (
+              !labelTextMain &&
+              ellipseEntity?.label &&
+              booleanFromProperty(ellipseEntity.label.show?.getValue()) === true
+            ) {
               ellipseEntity.label.show = new Cesium.ConstantProperty(false);
             }
 
@@ -341,7 +354,7 @@ export class CalculateCircleService {
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -369,7 +382,7 @@ export class CalculateCircleService {
             }
           } else {
             mouseEntity = await this.$toolsService.getMouseEntity(true);
-            movePos = mouseEntity?.position?.getValue();
+            movePos = cartesianFromProperty(mouseEntity?.position?.getValue());
           }
           if (movePos === undefined) return;
           labelPositionLine = movePos;
@@ -388,15 +401,23 @@ export class CalculateCircleService {
             polylinePositionsMain = polylinePositionsForCircle;
             polygonHierarchy.positions = polylinePositionsForCircle;
           }
-          if (lineEntity?.label?.show?.getValue() === false && labelTextLine) {
+          if (
+            lineEntity?.label &&
+            booleanFromProperty(lineEntity.label.show?.getValue()) === false &&
+            labelTextLine
+          ) {
             lineEntity.label.show = new Cesium.ConstantProperty(true);
           }
-          if (ellipseEntity?.label?.show?.getValue() === false && labelTextMain) {
+          if (
+            ellipseEntity?.label &&
+            booleanFromProperty(ellipseEntity.label.show?.getValue()) === false &&
+            labelTextMain
+          ) {
             ellipseEntity.label.show = new Cesium.ConstantProperty(true);
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -427,7 +448,7 @@ export class CalculateCircleService {
               polylinePositionsLine[polylinePositionsLine.length - 1],
             )
           ) {
-            console.log(chalk.blue('End & start positions are equal'));
+            console.info('End & start positions are equal');
             this.cancelThisTool();
             return;
           }
@@ -443,7 +464,7 @@ export class CalculateCircleService {
           //   return;
           // }
           // if (Cesium.Cartesian3.equals(startPos, endPos)) {
-          //   console.log(chalk.blue('End & start positions are equal'));
+          //   console.info('End & start positions are equal');
           //   this.cancelThisTool();
           //   return;
           // }
@@ -493,58 +514,16 @@ export class CalculateCircleService {
           this.cancelThisTool();
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
       this.$toolsService.setCommonHandler(finishMeasure, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
 
       return true;
-
-      function getCircle(ellipseEntity: Cesium.Entity): Array<Cesium.Cartesian3> {
-        if (!ellipseEntity?.ellipse) throw new Error('Entity ellipse is undefined in getCircle()');
-        if (
-          !ellipseEntity?.position?.getValue() ||
-          !ellipseEntity.ellipse?.semiMajorAxis ||
-          !ellipseEntity.ellipse?.semiMinorAxis
-        )
-          throw new Error('Entity is not valid in getCircle()');
-        const ellipse = ellipseEntity?.ellipse;
-        const position = ellipseEntity?.position?.getValue();
-        const semiMajor = ellipse?.semiMajorAxis?.getValue();
-        const semiMinor = ellipse?.semiMinorAxis?.getValue();
-        const rotation = ellipse?.rotation?.getValue();
-
-        const geometry = new Cesium.EllipseOutlineGeometry({
-          center: position || Cesium.Cartesian3.ZERO,
-          semiMajorAxis: semiMajor || 0.0,
-          semiMinorAxis: semiMinor || 0.0,
-          rotation: rotation || 0,
-          granularity: Math.PI / 360, // плотность точек
-        });
-
-        const ellipseGeometry = Cesium.EllipseOutlineGeometry.createGeometry(geometry);
-        if (!ellipseGeometry) return [];
-        const positions = [];
-        if (!ellipseGeometry.attributes.position)
-          throw new Error('Ellipse geometry creation failure in getCircle()');
-        for (let i = 0; i < ellipseGeometry.attributes.position.values.length; i += 3) {
-          positions.push(
-            new Cesium.Cartesian3(
-              ellipseGeometry.attributes.position.values[i],
-              ellipseGeometry.attributes.position.values[i + 1],
-              ellipseGeometry.attributes.position.values[i + 2],
-            ),
-          );
-        }
-        // Замыкание линии
-        positions.push(positions[0]);
-        return positions;
-      }
     } catch (error: unknown) {
       this.cancelThisTool();
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
       return false;
     }

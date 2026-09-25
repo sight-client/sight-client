@@ -1,10 +1,16 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, computed, effect, linkedSignal, signal, untracked } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { ToolsService, getCircle } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  cartesianFromProperty,
+  getCircle,
+  stringFromProperty,
+  booleanFromProperty,
+} from '@/components/tools/services/tools-service/tools.service';
 import {
   DrawingService,
   getRusDrawingToolName,
@@ -55,7 +61,7 @@ export class DrawCircleService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -74,7 +80,7 @@ export class DrawCircleService {
       if (this._isActive() && this.counter > 0) this.counter--;
       this.$drawingService.cancelDrawingTool(); // общая функция отмены сценария любого из инструментов работы с картой
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     } finally {
       this._drawingHasStarted.set(false);
       this.isActive.set(false);
@@ -119,7 +125,7 @@ export class DrawCircleService {
         this.cancelThisTool();
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       this.cancelThisTool();
     }
   }
@@ -221,7 +227,7 @@ export class DrawCircleService {
             }
           } else {
             mouseEntity = await this.$toolsService.getMouseEntity(true);
-            startPos = mouseEntity?.position?.getValue();
+            startPos = cartesianFromProperty(mouseEntity?.position?.getValue());
           }
           if (startPos === undefined) {
             // throw new Error('Start position is undefined in drawCircleAreaDrawingGraphics()');
@@ -270,7 +276,11 @@ export class DrawCircleService {
               hierarchy: new Cesium.CallbackProperty(() => polygonHierarchy, false),
             });
 
-            if (!labelTextMain && ellipseEntity?.label?.show?.getValue() === true) {
+            if (
+              !labelTextMain &&
+              ellipseEntity?.label &&
+              booleanFromProperty(ellipseEntity.label.show?.getValue()) === true
+            ) {
               ellipseEntity.label.show = new Cesium.ConstantProperty(false);
             }
 
@@ -280,7 +290,7 @@ export class DrawCircleService {
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -307,12 +317,12 @@ export class DrawCircleService {
                 movePos = await this.$toolsService.getDetailedPosition(movePos);
               }
             }
-            if (ellipseEntity?.label && ellipseEntity.label.text?.getValue() !== labelTextGagTwo) {
+            if (ellipseEntity?.label && stringFromProperty(ellipseEntity.label.text?.getValue()) !== labelTextGagTwo) {
               ellipseEntity.label.text = new Cesium.ConstantProperty(labelTextGagTwo);
             }
           } else {
             mouseEntity = await this.$toolsService.getMouseEntity(true);
-            movePos = mouseEntity?.position?.getValue();
+            movePos = cartesianFromProperty(mouseEntity?.position?.getValue());
           }
           if (movePos === undefined) return;
           radiusVectorPositions = [startPos, movePos];
@@ -322,7 +332,7 @@ export class DrawCircleService {
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -367,7 +377,7 @@ export class DrawCircleService {
             // if (polylinePositionsForCircle.length) {
             //   polygonHierarchy.positions = polylinePositionsForCircle;
             // }
-            if (ellipseEntity?.label && ellipseEntity.label.text?.getValue() !== labelTextMain) {
+            if (ellipseEntity?.label && stringFromProperty(ellipseEntity.label.text?.getValue()) !== labelTextMain) {
               ellipseEntity.label.text = new Cesium.ConstantProperty(labelTextMain);
             }
           }
@@ -378,7 +388,7 @@ export class DrawCircleService {
               radiusVectorPositions[radiusVectorPositions.length - 1],
             )
           ) {
-            console.log(chalk.blue('End & start positions are equal'));
+            console.info('End & start positions are equal');
             this.cancelThisTool();
             return;
           }
@@ -401,7 +411,7 @@ export class DrawCircleService {
           } else this.cancelThisTool();
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -410,7 +420,7 @@ export class DrawCircleService {
       return true;
     } catch (error: unknown) {
       this.cancelThisTool();
-      console.log(chalk.red(error));
+      reportError(error);
       alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
       return false;
     }

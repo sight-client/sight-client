@@ -1,6 +1,6 @@
 /*
 Советы для быстрого начала работы с данной заготовкой (типового инструмента работы с картой, использующего сторы drawing.service.ts).
-1. Скопировать всю текущую (обновляемую) дирректорию /drawing-tool-blank в /sight/../sight-code-blanks/sight-client (если уже есть - перезаписать).
+1. Скопировать всю текущую (обновляемую) дирректорию /drawing-tool-blank в /<project-name>/../<project-name>-blanks/<project-name> (если уже есть - перезаписать).
 2. В drawing.service.ts добавить новую информацию, характерную своему инструмента (только в случае нанесения на карту его сущностей):
 - имя - в массив имен drawingToolsNames;
 - новый вариант для перебора - в "getRusDrawingToolName()";
@@ -10,7 +10,7 @@
 - ссылка на стор - в объект "_allEntitiesListsLinks";
 - при необходимости, условие для обработки импортируемого .kml в методе setEntitiesGroupDefaultEntity (drawings-list.service.ts).
 3. Перименовать все дирретории и файлы в дирректории /tools/drawing-tools/components/drawing-tool-blank (заменить НАЧАЛО имени "drawing-tool-blank" на свое). Импорты можно не обновлять.
-4. В vs code перейти в поисковую панель, ВКЛЮЧИТЬ УСЛОВИЯ ПОЛНОГО СОВПАДЕНИЯ и ДОБАВИТЬ в поле "files to include" ДИРРЕКТОРИЮ ЗАГОТОВКИ "/home/user/proj/sight/sight-client/src/app/planet/core/tools/drawing-tools/components/своя-новая-дирректория/**".
+4. В vs code перейти в поисковую панель, ВКЛЮЧИТЬ УСЛОВИЯ ПОЛНОГО СОВПАДЕНИЯ и ДОБАВИТЬ в поле "files to include" ДИРРЕКТОРИЮ ЗАГОТОВКИ "/home/user/proj/sight/<project-name>/src/app/planet/core/tools/drawing-tools/components/своя-новая-дирректория/**".
 5. Заменить на свои следующие наименования (или их части):
 - "drawing-tool-blank";
 - "DrawingToolBlank":
@@ -42,8 +42,6 @@ import {
   // OnInit,
   // OnDestroy,
 } from '@angular/core';
-// import chalk from 'chalk';
-
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -54,7 +52,10 @@ import { DrawingToolBlankService } from '@/components/tools/drawing-tools/compon
 
 // ИМПОРТИРОВАТЬ И ЗАПРОВАЙДИТЬ В tools-floating-windows.ts
 // import { DrawingToolBlankFloatingWindowService } from '@/components/tools/drawing-tools/components/drawing-tool-blank/components/drawing-tool-blank-floating-window/services/drawing-tool-blank-floating-window-service/drawing-tool-blank-floating-window.service';
-import { getRusDrawingToolName } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
+import {
+  getRusDrawingToolName,
+  type DrawingToolName,
+} from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 // import {
 //   setStartBtnVisibility,
 //   getBtnVisibilityObserver,
@@ -68,7 +69,6 @@ import { getRusDrawingToolName } from '@/components/tools/drawing-tools/services
   providers: [],
   imports: [MatButtonModule, MatIconModule, MatTooltipModule, MatBadgeModule],
   template: `
-    <!-- [style.display]="buttonVisibility() ? 'block' : 'none'" -->
     <button
       [matTooltip]="getRusDrawingToolName(this.$drawingToolBlankService.toolName)"
       matTooltipShowDelay="1000"
@@ -98,45 +98,16 @@ import { getRusDrawingToolName } from '@/components/tools/drawing-tools/services
 })
 export class DrawingToolBlank {
   // implements OnInit, OnDestroy
-  declare public readonly toolName;
+  declare public readonly toolName: DrawingToolName;
   constructor(
     protected readonly $drawingToolBlankService: DrawingToolBlankService,
     // ВНЕДРИТЬ В tools-floating-windows.ts (вместе с компонентом плавающего окна, см. п.8):
     // protected readonly $drawingToolBlankFloatingWindowService: DrawingToolBlankFloatingWindowService,
-
-    // -------------------------- Управление видимостью кнопки (входящей в группу инструментов) (start) -------------------------- //
-    // -------------------------------------------- (раскомментить при необходимости) -------------------------------------------- //
-    // private el: ElementRef<HTMLElement>,
   ) {
     this.toolName = this.$drawingToolBlankService.toolName;
   }
 
-  // // Управление видимостью кнопки (входящей в группу инструментов)
-  // protected buttonVisibility = signal<boolean>(false);
-  // private observer: MutationObserver | undefined;
-
-  // ngOnInit() {
-  //   try {
-  //     // Определение стартового значения флага видимости кнопки
-  //     if (setStartBtnVisibility(this.el, this.buttonVisibility)) {
-  //       // Отслеживание изменения кастомного атрибута хоста для выставления флага видимости кнопки
-  //       this.observer = getBtnVisibilityObserver(this.el, this.buttonVisibility);
-  //       if (this.observer !== undefined) {
-  //         this.observer.observe(this.el.nativeElement, {
-  //           attributes: true,
-  //         });
-  //       } else throw new Error('getBtnVisibilityObserver fn has failed');
-  //     } else throw new Error('setStartBtnVisibility fn has failed');
-  //   } catch (error: unknown) {
-  //     console.log(chalk.red(error));
-  //     if (error instanceof Error) console.log(error.stack);
-  //   }
-  // }
-
-  // ngOnDestroy() {
-  //   this.observer?.disconnect();
-  // }
-  // -------------------------- Управление видимостью кнопки (входящей в группу инструментов) (end) -------------------------- //
+  // Видимость хоста задаёт панель через style.display (block / none).
 
   // Нормализация литерала названия инструмента
   protected getRusDrawingToolName = getRusDrawingToolName;

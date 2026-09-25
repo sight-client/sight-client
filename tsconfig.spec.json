@@ -9,7 +9,7 @@
   },
   "include": ["src/**/*.d.ts", "src/**/*.spec.ts"],
   "exclude": [
-    "src/app/planet/components/tools/drawing-tools/components/drawing-tool-blank/**/*",
+    "src/app/planet/components/tools/drawing-tools/components/drawing-tool-blank/**",
     "src/app/global/interceptors/api-url-chunk-proxy-interceptor/**/*"
   ]
 }

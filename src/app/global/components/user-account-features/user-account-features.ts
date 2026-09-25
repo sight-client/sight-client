@@ -6,7 +6,7 @@ import {
   untracked,
   Input,
 } from '@angular/core';
-import chalk from 'chalk';
+import { reportError } from '@global/lib/report-error.lib';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -74,14 +74,17 @@ export class UserAccountFeatures {
         autoFocus: false, // выставлен вручную
       });
       // this.$userDataService.userName.set('user');
-    } catch (error) {
-      console.log(chalk.red('Auth forms opening failed'));
+    } catch (error: unknown) {
+      console.info('Auth forms opening failed');
+      reportError(error);
       throw error;
     }
   }
   public clickFromParentMenu(): void {
     if (this.$userDataService.userName()) {
-      this.$userDataService.getLogoutSubscription();
+      this.$userDataService.logoutConnectionSubscription = this.$userDataService
+        .logout()
+        .subscribe();
     } else {
       this.openAuthModal();
     }

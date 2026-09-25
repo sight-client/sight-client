@@ -1,10 +1,14 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, computed, effect, linkedSignal, signal, untracked } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  cartesianFromProperty,
+  stringFromProperty,
+} from '@/components/tools/services/tools-service/tools.service';
 import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
 import {
   DrawingService,
@@ -44,7 +48,7 @@ export class DrawMarkService {
     //         const pickedEntity = this.$viewerService.viewer.newPickedEntity();
     //         if (pickedEntity) {
     //           const height = await this.$viewerService.getHeight(
-    //             Cesium.Cartographic.fromCartesian(pickedEntity.position?.getValue()!),
+    //             Cesium.Cartographic.fromCartesian(pickedEntity.position?.getValue() ?? Cesium.Cartesian3.ZERO),
     //           );
     //           const coords = await this.$toolsService.getPositionCoordsDescription(
     //             pickedEntity.position?.getValue(Cesium.JulianDate.now()),
@@ -60,9 +64,9 @@ export class DrawMarkService {
     //         }
     //       } else {
     //         const pickedEntity = this.$viewerService.viewer.newPickedEntity();
-    //         if (pickedEntity != undefined) {
+    //         if (pickedEntity !== undefined) {
     //           const height = await this.$viewerService.getHeight(
-    //             Cesium.Cartographic.fromCartesian(pickedEntity.position?.getValue()!),
+    //             Cesium.Cartographic.fromCartesian(pickedEntity.position?.getValue() ?? Cesium.Cartesian3.ZERO),
     //           );
     //           const coords = await this.$toolsService.getPositionCoordsDescription(
     //             pickedEntity.position?.getValue(Cesium.JulianDate.now()),
@@ -79,7 +83,7 @@ export class DrawMarkService {
     //       }
     //     });
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
     effect(() => {
@@ -95,7 +99,7 @@ export class DrawMarkService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -117,7 +121,7 @@ export class DrawMarkService {
     try {
       this.$drawingService.cancelDrawingTool(); // общая функция отмены сценария любого из инструментов работы с картой
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     } finally {
       this.isActive.set(false);
     }
@@ -148,7 +152,7 @@ export class DrawMarkService {
         this.cancelThisTool();
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       this.cancelThisTool();
     }
   }
@@ -232,7 +236,7 @@ export class DrawMarkService {
             }
           } else {
             mouseEntity = await this.$toolsService.getMouseEntity(true);
-            pos = mouseEntity?.position?.getValue();
+            pos = cartesianFromProperty(mouseEntity?.position?.getValue());
           }
           if (pos === undefined) {
             // throw new Error('Start position is undefined in drawPointGraphics()');
@@ -262,8 +266,8 @@ export class DrawMarkService {
           optForPoint.name = `${optForPoint.name || getRusDrawingToolName(this.toolName)} ${this.counter}`;
           if (optForPoint?.label) {
             if (optForPoint.withCoordsDesc) {
-              optForPoint.label.text =
-                mouseEntity?.label?.text?.getValue() || 'coords description error'; // актуализация
+              const cursorLabel = stringFromProperty(mouseEntity?.label?.text?.getValue());
+              optForPoint.label.text = cursorLabel || 'coords description error'; // актуализация
             } else {
               optForPoint.label.text = optForPoint.name;
             }
@@ -288,7 +292,7 @@ export class DrawMarkService {
           } else this.cancelThisTool();
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -303,7 +307,7 @@ export class DrawMarkService {
       return true;
     } catch (error: unknown) {
       this.cancelThisTool();
-      console.log(chalk.red(error));
+      reportError(error);
       alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
       return false;
     }

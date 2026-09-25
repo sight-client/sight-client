@@ -14,6 +14,7 @@ Match existing files. Do not introduce a second style.
 - Path aliases: `@/*` → `src/app/planet/*`, `@global/*` → `src/app/global/*`, `@landing/*` → `src/app/landing-page/*`.
 - Selectors have no `app-` prefix except `app-root` (schematic `prefix` is empty).
 - Injected services are often `$serviceName`. Keep that pattern in the file you edit.
+- Classes Evgeniy wrote stay classes. Do not rewrite them as interfaces, type aliases, or other erased types, even when there is no `instanceof` yet. He may add that check later (`UserRegistrationData`).
 - SCSS; global mixins live in `src/app/global/styles` and `src/app/planet/common/styles`.
 - Tests: Vitest 4.1 via `ng test` (`@angular/build:unit-test`, jsdom). Colocated `*.spec.ts` with `TestBed` + `provideZonelessChangeDetection()`.
 

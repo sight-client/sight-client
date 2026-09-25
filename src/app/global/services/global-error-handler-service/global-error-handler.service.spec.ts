@@ -17,18 +17,22 @@ describe('GlobalErrorHandlerService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('handleError with cause red logs and returns', () => {
-    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
-    service.handleError({ cause: 'red', stack: 's' });
-    expect(log).toHaveBeenCalled();
-    log.mockRestore();
+  it('logs the error with console.error', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const err = { message: 'plain' };
+
+    service.handleError(err);
+
+    expect(errorSpy).toHaveBeenCalledWith(err);
+    errorSpy.mockRestore();
   });
 
-  it('handleError without cause still logs the error', () => {
-    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const err = { message: 'plain' };
-    service.handleError(err);
-    expect(log).toHaveBeenCalledWith(err);
-    log.mockRestore();
+  it('logs a nested validation message', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    service.handleError({ error: { message: 'bad field' } });
+
+    expect(errorSpy).toHaveBeenCalledWith('bad field');
+    errorSpy.mockRestore();
   });
 });

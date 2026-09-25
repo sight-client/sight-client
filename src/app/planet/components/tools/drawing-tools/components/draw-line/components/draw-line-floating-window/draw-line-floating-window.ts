@@ -1,6 +1,4 @@
 import { Component, ChangeDetectionStrategy, signal, effect, untracked } from '@angular/core';
-// import chalk from 'chalk';
-
 import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,7 +7,11 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import * as Cesium from 'cesium';
 
-import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  colorMaterialFromProperty,
+  colorFromCssString,
+} from '@/components/tools/services/tools-service/tools.service';
 import { DrawingService } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 import { DrawLineService } from '@/components/tools/drawing-tools/components/draw-line/services/draw-line-service/draw-line.service';
 import { DrawLineFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-line/components/draw-line-floating-window/services/draw-line-floating-window-service/draw-line-floating-window.service';
@@ -43,7 +45,11 @@ export class DrawLineFloatingWindow {
       if (!pickedEntity) return;
       untracked(() => {
         this.entity.set(pickedEntity);
-        this.newColor = pickedEntity.polyline?.material.getValue().color.toCssHexString();
+        const material = colorMaterialFromProperty(pickedEntity.polyline?.material?.getValue());
+        const color = material?.color;
+        if (color) {
+          this.newColor = color.toCssHexString();
+        }
       });
     });
   }
@@ -54,10 +60,13 @@ export class DrawLineFloatingWindow {
   entity = signal<Cesium.Entity | undefined>(undefined);
 
   changeColor(color: Cesium.Color | string) {
-    if (this.entity() === undefined) return;
-    this.entity()!.properties!['lineColor'] = color;
+    const entity = this.entity();
+    if (!entity?.properties) return;
+    entity.properties['lineColor'] = color;
     if (typeof color === 'string') {
-      color = Cesium.Color.fromCssColorString(color);
+      const parsed = colorFromCssString(color);
+      if (!parsed) return;
+      color = parsed;
     }
     // this.$drawLineService.newCesiumColor.set(color);
   }

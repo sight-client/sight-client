@@ -1,16 +1,31 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable } from '@angular/core';
-import chalk from 'chalk';
 import * as Cesium from 'cesium';
 import { cloneDeep } from 'lodash';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  booleanFromProperty as readBoolean,
+  numberFromProperty as readNumber,
+  stringFromProperty as readString,
+  cartesian3ListFromProperty as readCartesian3List,
+  cartesianFromProperty as readCartesian3,
+  colorFromProperty as readColor,
+  colorMaterialFromProperty as readColorMaterial,
+  recordFromProperty as readRecord,
+  cartesian2FromProperty as readCartesian2,
+  nearFarFromProperty as readNearFar,
+} from '@/components/tools/services/tools-service/tools.service';
 import type { EntitiesGroup } from '@/components/tools/services/tools-service/tools.service';
 import {
   DrawingService,
   drawingToolsNames,
+  isDrawingToolName,
 } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 import type { DrawingToolName } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
+import { isMeasuringToolName } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
+import { isCameraToolName } from '@/components/tools/camera-view-tools/services/camera-view-tools-service/camera-view-tools.service';
 import { getMomentName, downloadBlob, uploadBlob } from '@global/lib/common-global.lib';
 import { DrawingsListService } from '@/components/tools/drawings-list/services/drawings-list-service/drawings-list.service';
 
@@ -24,7 +39,7 @@ export class CustomPropsFromKml {
   name: string | undefined;
   position: Cesium.Cartesian3 | undefined;
   show: boolean;
-  properties?: { [key: string]: any };
+  properties?: { [key: string]: unknown };
   label?: {
     show?: boolean;
     text?: string;
@@ -67,12 +82,12 @@ export class CustomPropsFromKml {
     show?: boolean;
     positions: Array<Cesium.Cartesian3>;
     width?: number;
-    material?: { color: Cesium.Color } | any; // иные типы material присваивать в пособработке (для конкретных инструментов)
+    material?: { color?: Cesium.Color }; // иные типы material присваивать в пособработке (для конкретных инструментов)
     clampToGround?: boolean;
   };
   polygon?: {
     show?: boolean;
-    material?: { color: Cesium.Color } | any;
+    material?: { color?: Cesium.Color };
     hierarchy?: Cesium.PolygonHierarchy;
     perPositionHeight?: boolean;
   };
@@ -81,7 +96,7 @@ export class CustomPropsFromKml {
     semiMinorAxis?: number;
     semiMajorAxis?: number;
     rotation?: number;
-    material?: { color: Cesium.Color } | any;
+    material?: { color?: Cesium.Color };
     outline?: boolean;
     outlineWidth?: number;
     outlineColor?: Cesium.Color;
@@ -93,12 +108,89 @@ export class CustomPropsFromKml {
     radii?: Cesium.Cartesian3;
     minimumCone?: number;
     maximumCone?: number;
-    material?: { color: Cesium.Color } | any;
+    material?: { color?: Cesium.Color };
     outline?: boolean;
     outlineWidth?: number;
     outlineColor?: Cesium.Color;
     heightReference?: number;
   };
+}
+
+function colorFromParts(value: unknown, alphaDefault = 1): Cesium.Color | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  if (!('red' in value) || !('green' in value) || !('blue' in value)) return undefined;
+  const { red, green, blue } = value;
+  if (typeof red !== 'number' || typeof green !== 'number' || typeof blue !== 'number') {
+    return undefined;
+  }
+  const alpha = 'alpha' in value && typeof value.alpha === 'number' ? value.alpha : alphaDefault;
+  return new Cesium.Color(red, green, blue, alpha);
+}
+
+function cartesian2FromParts(value: unknown): Cesium.Cartesian2 | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  if (!('x' in value) || !('y' in value)) return undefined;
+  const { x, y } = value;
+  if (typeof x !== 'number' || typeof y !== 'number') return undefined;
+  return new Cesium.Cartesian2(x, y);
+}
+
+function cartesian3FromParts(value: unknown): Cesium.Cartesian3 | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  if (!('x' in value) || !('y' in value) || !('z' in value)) return undefined;
+  const { x, y, z } = value;
+  if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number') return undefined;
+  return new Cesium.Cartesian3(x, y, z);
+}
+
+function nearFarFromParts(value: unknown): Cesium.NearFarScalar | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  if (!('near' in value) || !('nearValue' in value) || !('far' in value) || !('farValue' in value)) {
+    return undefined;
+  }
+  const { near, nearValue, far, farValue } = value;
+  if (
+    typeof near !== 'number' ||
+    typeof nearValue !== 'number' ||
+    typeof far !== 'number' ||
+    typeof farValue !== 'number'
+  ) {
+    return undefined;
+  }
+  return new Cesium.NearFarScalar(near, nearValue, far, farValue);
+}
+
+function readPolygonHierarchy(value: unknown): Cesium.PolygonHierarchy | undefined {
+  return value instanceof Cesium.PolygonHierarchy ? value : undefined;
+}
+
+function readDepth(value: unknown): number | 'Infinity' | undefined {
+  if (value === Infinity) return 'Infinity';
+  return typeof value === 'number' ? value : undefined;
+}
+
+function customPropsFromParsed(value: unknown): CustomPropsFromKml | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  if (!('toolName' in value) || !('id' in value)) return undefined;
+  if (typeof value.toolName !== 'string' || typeof value.id !== 'string') return undefined;
+  return Object.assign(new CustomPropsFromKml(), value);
+}
+
+function kmlExportToBlob(
+  result: Cesium.exportKmlResultKml | Cesium.exportKmlResultKmz,
+  kmz: boolean,
+  fnName: string,
+): Blob {
+  if (kmz) {
+    if (!('kmz' in result) || !result.kmz) {
+      throw new Error(`Invalid .kmz data in ${fnName} fn`);
+    }
+    return new Blob([result.kmz], { type: 'plain/text;charset=utf8' });
+  }
+  if (!('kml' in result) || !result.kml) {
+    throw new Error(`Invalid .kml data in ${fnName} fn`);
+  }
+  return new Blob([result.kml], { type: 'plain/text;charset=utf8' });
 }
 
 // Запровайден в drawings-list.ts
@@ -118,7 +210,7 @@ export class DrawingsListKmlService {
     if (dataSource) {
       this.drawLayer = dataSource;
     } else {
-      console.log(chalk.red("Data source hasn't found in DrawingsListService"));
+      console.info("Data source hasn't found in DrawingsListService");
     }
   }
 
@@ -130,7 +222,7 @@ export class DrawingsListKmlService {
       )?.[0],
   ): Promise<boolean> {
     if (layer === undefined || !(layer instanceof Cesium.CustomDataSource)) {
-      console.log(chalk.red('Layer is not valid or undefined in exportAllToKml fn'));
+      console.info('Layer is not valid or undefined in exportAllToKml fn');
       return false;
     }
 
@@ -177,7 +269,7 @@ export class DrawingsListKmlService {
       }
       if (!exportedCollection?.values?.length) {
         alert('Сущностей для экспорта не обнаружено');
-        console.log(chalk.blue('Nothing to export'));
+        console.info('Nothing to export');
         return false;
       }
 
@@ -187,13 +279,9 @@ export class DrawingsListKmlService {
       const trashIds: Array<string> = [];
       for (const entity of exportedCollection.values) {
         const toolBaseProps = this.getGroupIdAndToolName(entity?.id);
-        //@ts-ignore (конфликт - кастомное свойство toolName)
         if (!toolBaseProps || !entity?.toolName) {
-          //@ts-ignore (конфликт - кастомное свойство _children)
           if (entity?._children?.length) {
-            //@ts-ignore (конфликт - кастомное свойство _children)
-            trashEntities = trashEntities.concat(entity?._children);
-            // @ts-ignore (конфликт - кастомное свойство _children)
+            trashEntities = trashEntities.concat(entity._children);
             entity._children = []; // entity._children = undefined даст ошибку при Cesium.exportKml()
           }
         }
@@ -208,7 +296,6 @@ export class DrawingsListKmlService {
       modifiedExportedCollection = new Cesium.EntityCollection();
       for (const entity of exportedCollection.values) {
         const toolBaseProps = this.getGroupIdAndToolName(entity?.id);
-        // @ts-ignore (конфликт - кастомное свойство toolName)
         if (!toolBaseProps || !entity?.toolName) {
           // Добавление в экспорт без подготовки entity.description
           modifiedExportedCollection.add(entity);
@@ -216,11 +303,7 @@ export class DrawingsListKmlService {
         } else {
           // Пропуск "мусорных" сущностей (наличие toolName характеризует предшествующий импорт, как сущностей "Ока")
           if (trashIds.includes(entity?.id)) continue;
-          const updatedEntity = this.setEntityDescriptionForExport(
-            entity,
-            // @ts-ignore (конфликт - кастомное свойство toolName)
-            toolBaseProps?.toolName || entity?.toolName,
-          );
+          const updatedEntity = this.setEntityDescriptionForExport(entity, toolBaseProps.toolName);
           if (!updatedEntity) {
             modifiedExportedCollection.add(entity);
           } else {
@@ -237,40 +320,18 @@ export class DrawingsListKmlService {
         });
       let blobData: Blob;
       let momentName: string;
-      if (kmz) {
-        if (!(newExport as Cesium.exportKmlResultKmz)?.kmz) {
-          throw new Error('Invalid .kmz data in exportAllToKml fn');
-        }
-        blobData = new Blob([(newExport as Cesium.exportKmlResultKmz).kmz], {
-          type: 'plain/text;charset=utf8',
-        });
-        momentName = getMomentName('sight-export-all-layers', 'kmz');
-      } else {
-        if (!(newExport as Cesium.exportKmlResultKml)?.kml) {
-          throw new Error('Invalid .kml data in exportAllToKml fn');
-        }
-        blobData = new Blob([(newExport as Cesium.exportKmlResultKml).kml], {
-          type: 'plain/text;charset=utf8',
-        });
-        momentName = getMomentName('sight-export-all-layers', 'kml');
-      }
+      blobData = kmlExportToBlob(newExport, kmz, 'exportAllToKml');
+      momentName = getMomentName('sight-export-all-layers', kmz ? 'kmz' : 'kml');
       downloadBlob(momentName, blobData);
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return false;
-    } finally {
-      // Для сборщика мусора JS
-      if (exportedCollection) exportedCollection = null!;
-      if (validDrawingCollection) validDrawingCollection = null!;
-      if (compositeCollection) compositeCollection = null!;
-      if (modifiedExportedCollection) modifiedExportedCollection = null!;
     }
   }
 
   public async exportToolToKml(
-    toolName: string | DrawingToolName,
+    toolName: DrawingToolName,
     kmz: boolean = false,
     layer: Cesium.CustomDataSource | undefined = this?.drawLayer ||
       this?.$viewerService.viewer.dataSources?.getByName(
@@ -283,16 +344,14 @@ export class DrawingsListKmlService {
       if (layer === undefined || !(layer instanceof Cesium.CustomDataSource)) {
         throw new Error('Layer is not valid or undefined in exportToolToKml fn');
       }
-      // @ts-ignore (конфликт - кастомное свойство toolName)
-      if (!drawingToolsNames.includes(toolName)) {
+      if (!isDrawingToolName(toolName)) {
         alert(
           'Имя инструмента не определено. Сущности, будут экспортированы без привязки к функциональности ГИП "Око"',
         );
         return this.exportOversToKml(kmz); // без к/л преобразований
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return false;
     }
     let exportedCollection: Cesium.EntityCollection = new Cesium.EntityCollection();
@@ -300,7 +359,7 @@ export class DrawingsListKmlService {
       const allEntitiesOnLayer: Array<Cesium.Entity | undefined> = layer?.entities?.values;
       if (!allEntitiesOnLayer?.length) {
         alert('Сущностей для экспорта не обнаружено');
-        console.log(chalk.blue('Nothing to export'));
+        console.info('Nothing to export');
         return false;
       }
 
@@ -309,11 +368,8 @@ export class DrawingsListKmlService {
       let trashEntities: Array<Cesium.Entity> = [];
       const trashIds: Array<string> = [];
       for (const entity of allEntitiesOnLayer) {
-        //@ts-ignore (конфликт - кастомное свойство _children)
         if (entity?._children?.length) {
-          //@ts-ignore (конфликт - кастомное свойство _children)
-          trashEntities = trashEntities.concat(entity?._children);
-          // @ts-ignore (конфликт - кастомное свойство _children)
+          trashEntities = trashEntities.concat(entity._children);
           entity._children = [];
         }
       }
@@ -329,14 +385,12 @@ export class DrawingsListKmlService {
           continue;
         }
         if (
-          // @ts-ignore (конфликт - кастомное свойство toolName)
           entity?.toolName === toolName &&
           entity?.id.includes(toolName) &&
-          // @ts-ignore (конфликт - кастомное свойство toolName)
-          drawingToolsNames.includes(entity?.toolName)
+          entity.toolName !== undefined &&
+          isDrawingToolName(entity.toolName)
         ) {
-          //@ts-ignore (конфликт - кастомное свойство toolName)
-          const updatedEntity = this.setEntityDescriptionForExport(entity, entity?.toolName);
+          const updatedEntity = this.setEntityDescriptionForExport(entity, entity.toolName);
           if (!updatedEntity) {
             exportedCollection.add(entity);
           } else {
@@ -363,31 +417,13 @@ export class DrawingsListKmlService {
         });
       let blobData: Blob;
       let momentName: string;
-      if (kmz) {
-        if (!(newExport as Cesium.exportKmlResultKmz)?.kmz) {
-          throw new Error('Invalid .kmz data in exportToolToKml fn');
-        }
-        blobData = new Blob([(newExport as Cesium.exportKmlResultKmz).kmz], {
-          type: 'plain/text;charset=utf8',
-        });
-        momentName = getMomentName(`sight-export-${toolName}-layer`, 'kmz');
-      } else {
-        if (!(newExport as Cesium.exportKmlResultKml)?.kml) {
-          throw new Error('Invalid .kml data in exportToolToKml fn');
-        }
-        blobData = new Blob([(newExport as Cesium.exportKmlResultKml).kml], {
-          type: 'plain/text;charset=utf8',
-        });
-        momentName = getMomentName(`sight-export-${toolName}-layer`, 'kml');
-      }
+      blobData = kmlExportToBlob(newExport, kmz, 'exportToolToKml');
+      momentName = getMomentName(`sight-export-${toolName}-layer`, kmz ? 'kmz' : 'kml');
       downloadBlob(momentName, blobData);
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return false;
-    } finally {
-      if (exportedCollection) exportedCollection = null!;
     }
   }
 
@@ -401,15 +437,13 @@ export class DrawingsListKmlService {
         throw new Error('Invalid entity in setEntityDescriptionForExport fn');
       }
       if (entity?.description) {
-        console.log(
-          chalk.blue(
-            "Entity's description already exists and will be rewrite (by setEntityDescriptionForExport fn)",
-          ),
+        console.info(
+          "Entity's description already exists and will be rewrite (by setEntityDescriptionForExport fn)",
         );
         // return undefined;
       }
       if (!toolName || !drawingToolsNames.includes(toolName)) {
-        console.log(chalk.blue("Ivalid entity's toolName in setEntityDescriptionForExport fn"));
+        console.info("Ivalid entity's toolName in setEntityDescriptionForExport fn");
         return undefined;
       }
       // Общие для всех сущностей параметры
@@ -417,105 +451,100 @@ export class DrawingsListKmlService {
         toolName: toolName,
         id: entity.id,
         name: entity.name,
-        position: entity.position?.getValue(),
+        position: readCartesian3(entity.position?.getValue()),
         show: entity.show,
       };
-      if (entity.properties) customProps.properties = entity.properties.getValue();
+      if (entity.properties) customProps.properties = readRecord(entity.properties.getValue());
       if (entity.label) {
         customProps.label = {
-          show: entity.label.show?.getValue(),
-          text: entity.label.text?.getValue(),
-          showBackground: entity.label.showBackground?.getValue(),
-          backgroundColor: entity.label.backgroundColor?.getValue(),
-          font: entity.label.font?.getValue(),
-          translucencyByDistance: entity.label.translucencyByDistance?.getValue(),
-          style: entity.label.style?.getValue(),
-          pixelOffset: entity.label.pixelOffset?.getValue(),
-          eyeOffset: entity.label.eyeOffset?.getValue(),
-          horizontalOrigin: entity.label.horizontalOrigin?.getValue(),
-          verticalOrigin: entity.label.verticalOrigin?.getValue(),
-          disableDepthTestDistance:
-            entity.label.disableDepthTestDistance?.getValue() === Infinity
-              ? 'Infinity' // т.к. JSON.stringify(Infinity) === null
-              : entity.label.disableDepthTestDistance?.getValue(),
-          heightReference: entity.label.heightReference?.getValue(),
+          show: readBoolean(entity.label.show?.getValue()),
+          text: readString(entity.label.text?.getValue()),
+          showBackground: readBoolean(entity.label.showBackground?.getValue()),
+          backgroundColor: readColor(entity.label.backgroundColor?.getValue()),
+          font: readString(entity.label.font?.getValue()),
+          translucencyByDistance: readNearFar(entity.label.translucencyByDistance?.getValue()),
+          style: readNumber(entity.label.style?.getValue()),
+          pixelOffset: readCartesian2(entity.label.pixelOffset?.getValue()),
+          eyeOffset: readCartesian3(entity.label.eyeOffset?.getValue()),
+          horizontalOrigin: readNumber(entity.label.horizontalOrigin?.getValue()),
+          verticalOrigin: readNumber(entity.label.verticalOrigin?.getValue()),
+          // JSON.stringify(Infinity) === null
+          disableDepthTestDistance: readDepth(entity.label.disableDepthTestDistance?.getValue()),
+          heightReference: readNumber(entity.label.heightReference?.getValue()),
         };
       }
       if (entity.billboard) {
         customProps.billboard = {
-          show: entity.billboard.show?.getValue(),
-          image: entity.billboard.image?.getValue(),
-          height: entity.billboard.height?.getValue(),
-          width: entity.billboard.width?.getValue(),
-          color: entity.billboard.color?.getValue(),
-          pixelOffset: entity.billboard.pixelOffset?.getValue(),
-          eyeOffset: entity.billboard.eyeOffset?.getValue(),
-          scaleByDistance: entity.billboard.scaleByDistance?.getValue(),
-          horizontalOrigin: entity.billboard.horizontalOrigin?.getValue(),
-          verticalOrigin: entity.billboard.verticalOrigin?.getValue(),
-          disableDepthTestDistance:
-            entity.billboard.disableDepthTestDistance?.getValue() === Infinity
-              ? 'Infinity'
-              : entity.billboard.disableDepthTestDistance?.getValue(),
-          heightReference: entity.billboard.heightReference?.getValue(),
+          show: readBoolean(entity.billboard.show?.getValue()),
+          image: readString(entity.billboard.image?.getValue()),
+          height: readNumber(entity.billboard.height?.getValue()),
+          width: readNumber(entity.billboard.width?.getValue()),
+          color: readColor(entity.billboard.color?.getValue()),
+          pixelOffset: readCartesian2(entity.billboard.pixelOffset?.getValue()),
+          eyeOffset: readCartesian3(entity.billboard.eyeOffset?.getValue()),
+          scaleByDistance: readNearFar(entity.billboard.scaleByDistance?.getValue()),
+          horizontalOrigin: readNumber(entity.billboard.horizontalOrigin?.getValue()),
+          verticalOrigin: readNumber(entity.billboard.verticalOrigin?.getValue()),
+          disableDepthTestDistance: readDepth(
+            entity.billboard.disableDepthTestDistance?.getValue(),
+          ),
+          heightReference: readNumber(entity.billboard.heightReference?.getValue()),
         };
       }
       if (entity.point) {
         customProps.point = {
-          show: entity.point.show?.getValue(),
-          pixelSize: entity.point.pixelSize?.getValue(),
-          color: entity.point.color?.getValue(),
-          outlineWidth: entity.point.outlineWidth?.getValue(),
-          outlineColor: entity.point.outlineColor?.getValue(),
-          disableDepthTestDistance:
-            entity.point.disableDepthTestDistance?.getValue() === Infinity
-              ? 'Infinity'
-              : entity.point.disableDepthTestDistance?.getValue(),
-          heightReference: entity.point.heightReference?.getValue(),
+          show: readBoolean(entity.point.show?.getValue()),
+          pixelSize: readNumber(entity.point.pixelSize?.getValue()),
+          color: readColor(entity.point.color?.getValue()),
+          outlineWidth: readNumber(entity.point.outlineWidth?.getValue()),
+          outlineColor: readColor(entity.point.outlineColor?.getValue()),
+          disableDepthTestDistance: readDepth(entity.point.disableDepthTestDistance?.getValue()),
+          heightReference: readNumber(entity.point.heightReference?.getValue()),
         };
       }
       if (entity.polyline) {
         customProps.polyline = {
-          show: entity.polyline.show?.getValue(),
-          positions: entity.polyline.positions?.getValue(),
-          width: entity.polyline.width?.getValue(),
-          material: entity.polyline.material?.getValue(),
-          clampToGround: entity.polyline.clampToGround?.getValue(),
+          show: readBoolean(entity.polyline.show?.getValue()),
+          positions: readCartesian3List(entity.polyline.positions?.getValue()),
+          width: readNumber(entity.polyline.width?.getValue()),
+          material: readColorMaterial(entity.polyline.material?.getValue()),
+          clampToGround: readBoolean(entity.polyline.clampToGround?.getValue()),
         };
       }
       if (entity.polygon) {
+        const hierarchy = readPolygonHierarchy(entity.polygon.hierarchy?.getValue());
         customProps.polygon = {
-          show: entity.polygon.show?.getValue(),
-          material: entity.polygon.material?.getValue(),
-          hierarchy: entity.polygon.hierarchy?.getValue(),
-          perPositionHeight: entity.polygon.perPositionHeight?.getValue(),
+          show: readBoolean(entity.polygon.show?.getValue()),
+          material: readColorMaterial(entity.polygon.material?.getValue()),
+          hierarchy,
+          perPositionHeight: readBoolean(entity.polygon.perPositionHeight?.getValue()),
         };
       }
       if (entity.ellipse) {
         customProps.ellipse = {
-          show: entity.ellipse.show?.getValue(),
-          semiMinorAxis: entity.ellipse.semiMinorAxis?.getValue(),
-          semiMajorAxis: entity.ellipse.semiMajorAxis?.getValue(),
-          rotation: entity.ellipse.rotation?.getValue(),
-          material: entity.ellipse.material?.getValue(),
-          outline: entity.ellipse.outline?.getValue(),
-          outlineWidth: entity.ellipse.outlineWidth?.getValue(),
-          outlineColor: entity.ellipse.outlineColor?.getValue(),
-          height: entity.ellipse.height?.getValue(),
-          heightReference: entity.ellipse.heightReference?.getValue(),
+          show: readBoolean(entity.ellipse.show?.getValue()),
+          semiMinorAxis: readNumber(entity.ellipse.semiMinorAxis?.getValue()),
+          semiMajorAxis: readNumber(entity.ellipse.semiMajorAxis?.getValue()),
+          rotation: readNumber(entity.ellipse.rotation?.getValue()),
+          material: readColorMaterial(entity.ellipse.material?.getValue()),
+          outline: readBoolean(entity.ellipse.outline?.getValue()),
+          outlineWidth: readNumber(entity.ellipse.outlineWidth?.getValue()),
+          outlineColor: readColor(entity.ellipse.outlineColor?.getValue()),
+          height: readNumber(entity.ellipse.height?.getValue()),
+          heightReference: readNumber(entity.ellipse.heightReference?.getValue()),
         };
       }
       if (entity.ellipsoid) {
         customProps.ellipsoid = {
-          show: entity.ellipsoid.show?.getValue(),
-          radii: entity.ellipsoid.radii?.getValue(),
-          minimumCone: entity.ellipsoid.minimumCone?.getValue(),
-          maximumCone: entity.ellipsoid.maximumCone?.getValue(),
-          material: entity.ellipsoid.material?.getValue(),
-          outline: entity.ellipsoid.outline?.getValue(),
-          outlineWidth: entity.ellipsoid.outlineWidth?.getValue(),
-          outlineColor: entity.ellipsoid.outlineColor?.getValue(),
-          heightReference: entity.ellipsoid.heightReference?.getValue(),
+          show: readBoolean(entity.ellipsoid.show?.getValue()),
+          radii: readCartesian3(entity.ellipsoid.radii?.getValue()),
+          minimumCone: readNumber(entity.ellipsoid.minimumCone?.getValue()),
+          maximumCone: readNumber(entity.ellipsoid.maximumCone?.getValue()),
+          material: readColorMaterial(entity.ellipsoid.material?.getValue()),
+          outline: readBoolean(entity.ellipsoid.outline?.getValue()),
+          outlineWidth: readNumber(entity.ellipsoid.outlineWidth?.getValue()),
+          outlineColor: readColor(entity.ellipsoid.outlineColor?.getValue()),
+          heightReference: readNumber(entity.ellipsoid.heightReference?.getValue()),
         };
       }
 
@@ -537,8 +566,7 @@ export class DrawingsListKmlService {
       // console.log(entity.description.getValue());
       return entity;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return undefined;
     }
   }
@@ -555,8 +583,7 @@ export class DrawingsListKmlService {
         throw new Error('Layer is not valid or undefined in exportOversToKml fn');
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return false;
     }
     let exportedCollection: Cesium.EntityCollection = new Cesium.EntityCollection();
@@ -568,7 +595,6 @@ export class DrawingsListKmlService {
       }
       for (const entity of allEntitiesOnLayer) {
         // Пропуск сущностей "Ока" (они экспортируются адресно в собственном меню, либо в this.exportToKml())
-        // @ts-ignore (конфликт - кастомное свойство toolName)
         if (entity?.toolName) {
           continue;
         } else {
@@ -582,7 +608,7 @@ export class DrawingsListKmlService {
           if (isToolEntity === true) {
             continue;
           } else {
-            exportedCollection.add(entity!);
+            if (entity) exportedCollection.add(entity);
           }
         }
       }
@@ -596,31 +622,13 @@ export class DrawingsListKmlService {
         });
       let blobData: Blob;
       let momentName: string;
-      if (kmz) {
-        if (!(newExport as Cesium.exportKmlResultKmz)?.kmz) {
-          throw new Error('Invalid .kmz data in exportOversToKml fn');
-        }
-        blobData = new Blob([(newExport as Cesium.exportKmlResultKmz).kmz], {
-          type: 'plain/text;charset=utf8',
-        });
-        momentName = getMomentName(`sight-export-overs-layer`, 'kmz');
-      } else {
-        if (!(newExport as Cesium.exportKmlResultKml)?.kml) {
-          throw new Error('Invalid .kml data in exportOversToKml fn');
-        }
-        blobData = new Blob([(newExport as Cesium.exportKmlResultKml).kml], {
-          type: 'plain/text;charset=utf8',
-        });
-        momentName = getMomentName(`sight-export-overs-layer`, 'kml');
-      }
+      blobData = kmlExportToBlob(newExport, kmz, 'exportOversToKml');
+      momentName = getMomentName('sight-export-overs-layer', kmz ? 'kmz' : 'kml');
       downloadBlob(momentName, blobData);
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return false;
-    } finally {
-      if (exportedCollection) exportedCollection = null!;
     }
   }
 
@@ -641,7 +649,10 @@ export class DrawingsListKmlService {
       ) {
         throw new Error('RouteLayer is not defined in importAllFromKml fn');
       }
-      const inputEl = event.target as HTMLInputElement;
+      const inputEl = event.target;
+      if (!(inputEl instanceof HTMLInputElement)) {
+        throw new Error('Import input is not an HTMLInputElement in importAllFromKml fn');
+      }
       const file = uploadBlob(event);
       const reader = new FileReader();
       reader.onload = async () => {
@@ -664,12 +675,12 @@ export class DrawingsListKmlService {
               if (parsedEntities) {
                 this.sortAndDrawKmlEntities(parsedEntities);
               } else {
-                console.log(chalk.red('Error on parsing entities in importAllFromKml fn'));
+                console.info('Error on parsing entities in importAllFromKml fn');
                 // Уже может быть частично мутирован (при к/л положительных результатах перебора)
                 this.sortAndDrawKmlEntities(clearedEntities);
               }
             } else {
-              console.log(chalk.red('Error on clearing entities in importAllFromKml fn'));
+              console.info('Error on clearing entities in importAllFromKml fn');
               this.sortAndDrawKmlEntities(newDataSource.entities.values);
             }
           } else {
@@ -680,8 +691,7 @@ export class DrawingsListKmlService {
           }
           // console.log(this.$drawingService.drawLineEntitiesList());
         } catch (error: unknown) {
-          console.log(chalk.red(error));
-          if (error instanceof Error) console.log(error.stack);
+          reportError(error);
         } finally {
           inputEl.value = '';
           if (newDataSource && newDataSource instanceof Cesium.KmlDataSource) {
@@ -692,8 +702,7 @@ export class DrawingsListKmlService {
       reader.readAsDataURL(file);
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return false;
     }
   }
@@ -708,11 +717,8 @@ export class DrawingsListKmlService {
       }
       let entitiesToRemove: Array<Cesium.Entity> = [];
       for (const entity of entities) {
-        // @ts-ignore (конфликт - кастомное свойство _children)
         if (entity?._children?.length) {
-          // @ts-ignore (конфликт - кастомное свойство _children)
           entitiesToRemove = entitiesToRemove.concat(entity._children);
-          // @ts-ignore (конфликт - кастомное свойство _children)
           entity._children = [];
         }
       }
@@ -725,8 +731,7 @@ export class DrawingsListKmlService {
       }
       return entities;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return undefined;
     }
   }
@@ -748,20 +753,18 @@ export class DrawingsListKmlService {
       for (const entity of entities) {
         // Проверка на принадлежность к "Око"
         const toolBaseProps = this.getGroupIdAndToolName(entity?.id);
-        if (!toolBaseProps || !drawingToolsNames.includes(toolBaseProps.toolName)) continue;
+        if (!toolBaseProps) continue;
 
         // При экспорте в .kml свойство entity.description "зашивается" в html-строку (для стандартного Cesium Infobox)
-        const htmlString = entity?.description?.getValue();
-        if (htmlString === '') {
-          console.log(chalk.blue('Entity without description'));
+        const htmlString = readString(entity?.description?.getValue());
+        if (!htmlString) {
+          console.info('Entity without description');
           continue;
         }
         const doc = this.htmlParser?.parseFromString(htmlString, 'text/html');
         if (!doc) {
-          console.log(
-            chalk.blue(
-              `Invalid value of .kml-entity's description tag in prepareKmlEntities fn: ${htmlString}`,
-            ),
+          console.info(
+            `Invalid value of .kml-entity's description tag in prepareKmlEntities fn: ${htmlString}`,
           );
           continue;
         }
@@ -769,90 +772,79 @@ export class DrawingsListKmlService {
           '.cesium-infoBox-description-lighter',
         )?.textContent;
         if (!description) {
-          console.log(chalk.blue(`Invalid JSON to parse in prepareKmlEntities fn: ${description}`));
+          console.info(`Invalid JSON to parse in prepareKmlEntities fn: ${description}`);
           continue;
         } else if (typeof description === 'string') {
-          const parsedProps = JSON.parse(description);
-          const customProps = jsonNullToUndefined(parsedProps) as CustomPropsFromKml;
+          let parsedProps: unknown;
+          try {
+            parsedProps = JSON.parse(description);
+          } catch (error: unknown) {
+            reportError(error);
+            continue;
+          }
+          const customProps = customPropsFromParsed(jsonNullToUndefined(parsedProps));
           if (!customProps) {
-            console.log(
-              chalk.blue(`Invalid parsed customProps in prepareKmlEntities fn: ${customProps}`),
-            );
+            console.info(`Invalid parsed customProps in prepareKmlEntities fn: ${customProps}`);
             continue;
           }
           // console.log('New parsed props: ', customProps);
           // ------------------------------------------------------------------------ //
-          // @ts-ignore (конфликт - кастомное свойство toolName)
-          entity.toolName = customProps?.toolName; // резервное восстановление toolName
+          const restoredToolName = customProps.toolName;
+          if (
+            restoredToolName &&
+            (isDrawingToolName(restoredToolName) ||
+              isMeasuringToolName(restoredToolName) ||
+              isCameraToolName(restoredToolName))
+          ) {
+            entity.toolName = restoredToolName;
+          }
           if (!entity.id) entity.id = customProps.id;
           entity.name = this.sanitizeImportedKmlString(customProps.name);
-          if (customProps.position)
-            entity.position = new Cesium.ConstantPositionProperty(
-              new Cesium.Cartesian3(
-                customProps?.position?.x || 0.0,
-                customProps?.position?.y || 0.0,
-                customProps?.position?.z || 0.0,
-              ),
-            );
-          entity.show = customProps.show;
+          const position = cartesian3FromParts(customProps.position);
+          if (position) entity.position = new Cesium.ConstantPositionProperty(position);
+          if (typeof customProps.show === 'boolean') entity.show = customProps.show;
           // ------------------------------------------------------------------------ //
           if (customProps.properties !== undefined)
             entity.properties = new Cesium.PropertyBag(customProps.properties);
           // ------------------------------------------------------------------------ //
           if (customProps.label) {
-            if (!entity.label) entity.label = new Cesium.LabelGraphics();
-            if (customProps.label.show !== undefined)
-              entity.label!.show = new Cesium.ConstantProperty(customProps.label.show);
-            if (customProps.label.text !== undefined)
-              entity.label!.text = new Cesium.ConstantProperty(customProps.label.text);
-            if (customProps.label.showBackground !== undefined)
-              entity.label!.showBackground = new Cesium.ConstantProperty(
+            const label = entity.label ?? new Cesium.LabelGraphics();
+            entity.label = label;
+            if (typeof customProps.label.show === 'boolean')
+              label.show = new Cesium.ConstantProperty(customProps.label.show);
+            if (typeof customProps.label.text === 'string')
+              label.text = new Cesium.ConstantProperty(customProps.label.text);
+            if (typeof customProps.label.showBackground === 'boolean')
+              label.showBackground = new Cesium.ConstantProperty(
                 customProps.label.showBackground,
               );
-            if (customProps.label.backgroundColor !== undefined)
-              entity.label!.backgroundColor = new Cesium.ConstantProperty(
-                new Cesium.Color(
-                  customProps.label.backgroundColor.red,
-                  customProps.label.backgroundColor.green,
-                  customProps.label.backgroundColor.blue,
-                  customProps.label.backgroundColor.alpha ?? 1,
-                ),
-              );
-            if (customProps.label.font !== undefined)
-              entity.label!.font = new Cesium.ConstantProperty(customProps.label.font);
-            if (customProps.label.translucencyByDistance !== undefined)
-              entity.label!.translucencyByDistance = new Cesium.ConstantProperty(
-                new Cesium.NearFarScalar(
-                  customProps.label.translucencyByDistance.near,
-                  customProps.label.translucencyByDistance.nearValue,
-                  customProps.label.translucencyByDistance.far,
-                  customProps.label.translucencyByDistance.farValue,
-                ),
-              );
-            if (customProps.label.pixelOffset !== undefined)
-              entity.label!.pixelOffset = new Cesium.ConstantProperty(
-                new Cesium.Cartesian2(
-                  customProps.label.pixelOffset?.x || 0.0,
-                  customProps.label.pixelOffset?.y || 0.0,
-                ),
-              );
-            if (customProps.label.eyeOffset !== undefined)
-              entity.label!.eyeOffset = new Cesium.ConstantProperty(
-                new Cesium.Cartesian3(
-                  customProps.label.eyeOffset?.x || 0.0,
-                  customProps.label.eyeOffset?.y || 0.0,
-                  customProps.label.eyeOffset?.z || 0.0,
-                ),
-              );
-            if (customProps.label.style !== undefined)
-              entity.label!.style = new Cesium.ConstantProperty(customProps.label.style);
-            if (customProps.label.horizontalOrigin !== undefined) {
-              entity.label!.horizontalOrigin = new Cesium.ConstantProperty(
+            const labelBackground = colorFromParts(customProps.label.backgroundColor);
+            if (labelBackground) {
+              label.backgroundColor = new Cesium.ConstantProperty(labelBackground);
+            }
+            if (typeof customProps.label.font === 'string')
+              label.font = new Cesium.ConstantProperty(customProps.label.font);
+            const labelDistance = nearFarFromParts(customProps.label.translucencyByDistance);
+            if (labelDistance) {
+              label.translucencyByDistance = new Cesium.ConstantProperty(labelDistance);
+            }
+            const labelPixelOffset = cartesian2FromParts(customProps.label.pixelOffset);
+            if (labelPixelOffset) {
+              label.pixelOffset = new Cesium.ConstantProperty(labelPixelOffset);
+            }
+            const labelEyeOffset = cartesian3FromParts(customProps.label.eyeOffset);
+            if (labelEyeOffset) {
+              label.eyeOffset = new Cesium.ConstantProperty(labelEyeOffset);
+            }
+            if (typeof customProps.label.style === 'number')
+              label.style = new Cesium.ConstantProperty(customProps.label.style);
+            if (typeof customProps.label.horizontalOrigin === 'number') {
+              label.horizontalOrigin = new Cesium.ConstantProperty(
                 customProps.label.horizontalOrigin,
               );
             }
-            if (customProps.label.verticalOrigin !== undefined)
-              entity.label!.verticalOrigin = new Cesium.ConstantProperty(
+            if (typeof customProps.label.verticalOrigin === 'number')
+              label.verticalOrigin = new Cesium.ConstantProperty(
                 customProps.label.verticalOrigin,
               );
             if (
@@ -861,73 +853,57 @@ export class DrawingsListKmlService {
               typeof customProps.label.disableDepthTestDistance === 'number'
             ) {
               if (customProps.label.disableDepthTestDistance === 'Infinity') {
-                entity.label!.disableDepthTestDistance = new Cesium.ConstantProperty(
+                label.disableDepthTestDistance = new Cesium.ConstantProperty(
                   Number.POSITIVE_INFINITY,
                 );
               } else {
-                entity.label!.disableDepthTestDistance = new Cesium.ConstantProperty(
+                label.disableDepthTestDistance = new Cesium.ConstantProperty(
                   customProps.label.disableDepthTestDistance,
                 );
               }
             }
-            if (customProps.label.heightReference !== undefined)
-              entity.label!.heightReference = new Cesium.ConstantProperty(
+            if (typeof customProps.label.heightReference === 'number')
+              label.heightReference = new Cesium.ConstantProperty(
                 customProps.label.heightReference,
               );
           }
           // ------------------------------------------------------------------------ //
           if (customProps.billboard) {
-            if (!entity.billboard) entity.billboard = new Cesium.BillboardGraphics();
-            if (customProps.billboard.show !== undefined)
-              entity.billboard!.show = new Cesium.ConstantProperty(customProps.billboard.show);
+            const billboard = entity.billboard ?? new Cesium.BillboardGraphics();
+            entity.billboard = billboard;
+            if (typeof customProps.billboard.show === 'boolean')
+              billboard.show = new Cesium.ConstantProperty(customProps.billboard.show);
             if (customProps.billboard.image !== undefined) {
               const image = this.sanitizeImportedKmlString(customProps.billboard.image);
               if (image)
-                entity.billboard!.image = new Cesium.ConstantProperty(image);
+                billboard.image = new Cesium.ConstantProperty(image);
             }
-            if (customProps.billboard.height !== undefined)
-              entity.billboard!.height = new Cesium.ConstantProperty(customProps.billboard.height);
-            if (customProps.billboard.width !== undefined)
-              entity.billboard!.width = new Cesium.ConstantProperty(customProps.billboard.width);
-            if (customProps.billboard.color !== undefined)
-              entity.billboard!.color = new Cesium.ConstantProperty(
-                new Cesium.Color(
-                  customProps.billboard.color.red,
-                  customProps.billboard.color.green,
-                  customProps.billboard.color.blue,
-                  customProps.billboard.color.alpha ?? 1,
-                ),
-              );
-            if (customProps.billboard.scaleByDistance !== undefined)
-              entity.billboard!.scaleByDistance = new Cesium.ConstantProperty(
-                new Cesium.NearFarScalar(
-                  customProps.billboard.scaleByDistance.near,
-                  customProps.billboard.scaleByDistance.nearValue,
-                  customProps.billboard.scaleByDistance.far,
-                  customProps.billboard.scaleByDistance.farValue,
-                ),
-              );
-            if (customProps.billboard.pixelOffset !== undefined)
-              entity.billboard!.pixelOffset = new Cesium.ConstantProperty(
-                new Cesium.Cartesian2(
-                  customProps.billboard.pixelOffset?.x || 0.0,
-                  customProps.billboard.pixelOffset?.y || 0.0,
-                ),
-              );
-            if (customProps.billboard.eyeOffset !== undefined)
-              entity.billboard!.eyeOffset = new Cesium.ConstantProperty(
-                new Cesium.Cartesian3(
-                  customProps.billboard.eyeOffset?.x || 0.0,
-                  customProps.billboard.eyeOffset?.y || 0.0,
-                  customProps.billboard.eyeOffset?.z || 0.0,
-                ),
-              );
-            if (customProps.billboard.horizontalOrigin !== undefined)
-              entity.billboard!.horizontalOrigin = new Cesium.ConstantProperty(
+            if (typeof customProps.billboard.height === 'number')
+              billboard.height = new Cesium.ConstantProperty(customProps.billboard.height);
+            if (typeof customProps.billboard.width === 'number')
+              billboard.width = new Cesium.ConstantProperty(customProps.billboard.width);
+            const billboardColor = colorFromParts(customProps.billboard.color);
+            if (billboardColor) {
+              billboard.color = new Cesium.ConstantProperty(billboardColor);
+            }
+            const billboardDistance = nearFarFromParts(customProps.billboard.scaleByDistance);
+            if (billboardDistance) {
+              billboard.scaleByDistance = new Cesium.ConstantProperty(billboardDistance);
+            }
+            const billboardPixelOffset = cartesian2FromParts(customProps.billboard.pixelOffset);
+            if (billboardPixelOffset) {
+              billboard.pixelOffset = new Cesium.ConstantProperty(billboardPixelOffset);
+            }
+            const billboardEyeOffset = cartesian3FromParts(customProps.billboard.eyeOffset);
+            if (billboardEyeOffset) {
+              billboard.eyeOffset = new Cesium.ConstantProperty(billboardEyeOffset);
+            }
+            if (typeof customProps.billboard.horizontalOrigin === 'number')
+              billboard.horizontalOrigin = new Cesium.ConstantProperty(
                 customProps.billboard.horizontalOrigin,
               );
-            if (customProps.billboard.verticalOrigin !== undefined)
-              entity.billboard!.verticalOrigin = new Cesium.ConstantProperty(
+            if (typeof customProps.billboard.verticalOrigin === 'number')
+              billboard.verticalOrigin = new Cesium.ConstantProperty(
                 customProps.billboard.verticalOrigin,
               );
             if (
@@ -936,119 +912,98 @@ export class DrawingsListKmlService {
               typeof customProps.billboard.disableDepthTestDistance === 'number'
             ) {
               if (customProps.billboard.disableDepthTestDistance === 'Infinity') {
-                entity.billboard!.disableDepthTestDistance = new Cesium.ConstantProperty(
+                billboard.disableDepthTestDistance = new Cesium.ConstantProperty(
                   Number.POSITIVE_INFINITY,
                 );
               } else {
-                entity.billboard!.disableDepthTestDistance = new Cesium.ConstantProperty(
+                billboard.disableDepthTestDistance = new Cesium.ConstantProperty(
                   customProps.billboard.disableDepthTestDistance,
                 );
               }
             }
-            if (customProps.billboard.heightReference !== undefined)
-              entity.billboard!.heightReference = entity.billboard!.heightReference =
-                new Cesium.ConstantProperty(customProps.billboard.heightReference);
+            if (typeof customProps.billboard.heightReference === 'number')
+              billboard.heightReference = new Cesium.ConstantProperty(
+                customProps.billboard.heightReference,
+              );
           }
           // ------------------------------------------------------------------------ //
           if (customProps.point) {
-            if (!entity.point) entity.point = new Cesium.PointGraphics();
-            if (customProps.point.show !== undefined)
-              entity.point!.show = new Cesium.ConstantProperty(customProps.point.show);
-            if (customProps.point.pixelSize !== undefined)
-              entity.point!.pixelSize = new Cesium.ConstantProperty(customProps.point.pixelSize);
-            if (customProps.point.color !== undefined)
-              entity.point!.color = new Cesium.ConstantProperty(
-                new Cesium.Color(
-                  customProps.point.color.red,
-                  customProps.point.color.green,
-                  customProps.point.color.blue,
-                  customProps.point.color.alpha ?? 1,
-                ),
-              );
-            if (customProps.point.outlineWidth !== undefined)
-              entity.point!.outlineWidth = new Cesium.ConstantProperty(
+            const point = entity.point ?? new Cesium.PointGraphics();
+            entity.point = point;
+            if (typeof customProps.point.show === 'boolean')
+              point.show = new Cesium.ConstantProperty(customProps.point.show);
+            if (typeof customProps.point.pixelSize === 'number')
+              point.pixelSize = new Cesium.ConstantProperty(customProps.point.pixelSize);
+            const pointColor = colorFromParts(customProps.point.color);
+            if (pointColor) point.color = new Cesium.ConstantProperty(pointColor);
+            if (typeof customProps.point.outlineWidth === 'number')
+              point.outlineWidth = new Cesium.ConstantProperty(
                 customProps.point.outlineWidth,
               );
-            if (customProps.point.outlineColor !== undefined)
-              entity.point!.outlineColor = new Cesium.ConstantProperty(
-                new Cesium.Color(
-                  customProps.point.outlineColor.red,
-                  customProps.point.outlineColor.green,
-                  customProps.point.outlineColor.blue,
-                  customProps.point.outlineColor.alpha ?? 1,
-                ),
-              );
+            const pointOutline = colorFromParts(customProps.point.outlineColor);
+            if (pointOutline) point.outlineColor = new Cesium.ConstantProperty(pointOutline);
             if (
               customProps.point.disableDepthTestDistance === 'Infinity' ||
               customProps.point.disableDepthTestDistance === undefined ||
               typeof customProps.point.disableDepthTestDistance === 'number'
             ) {
               if (customProps.point.disableDepthTestDistance === 'Infinity') {
-                entity.point!.disableDepthTestDistance = new Cesium.ConstantProperty(
+                point.disableDepthTestDistance = new Cesium.ConstantProperty(
                   Number.POSITIVE_INFINITY,
                 );
               } else {
-                entity.point!.disableDepthTestDistance = new Cesium.ConstantProperty(
+                point.disableDepthTestDistance = new Cesium.ConstantProperty(
                   customProps.point.disableDepthTestDistance,
                 );
               }
             }
-            if (customProps.point.heightReference !== undefined)
-              entity.point!.heightReference = new Cesium.ConstantProperty(
+            if (typeof customProps.point.heightReference === 'number')
+              point.heightReference = new Cesium.ConstantProperty(
                 customProps.point.heightReference,
               );
           }
           // ------------------------------------------------------------------------ //
           if (customProps.polyline) {
-            if (!entity.polyline) entity.polyline = new Cesium.PolylineGraphics();
-            if (customProps.polyline.show !== undefined)
-              entity.polyline!.show = new Cesium.ConstantProperty(customProps.polyline.show);
+            const polyline = entity.polyline ?? new Cesium.PolylineGraphics();
+            entity.polyline = polyline;
+            if (typeof customProps.polyline.show === 'boolean')
+              polyline.show = new Cesium.ConstantProperty(customProps.polyline.show);
             if (
               customProps.polyline.positions !== undefined &&
               customProps.polyline.positions?.length
             ) {
               const cartesianArr: Array<Cesium.Cartesian3> = [];
               for (const item of customProps.polyline.positions) {
-                cartesianArr.push(new Cesium.Cartesian3(item.x, item.y, item.z));
+                const point = cartesian3FromParts(item);
+                if (point) cartesianArr.push(point);
               }
               if (cartesianArr.length)
-                entity.polyline!.positions = new Cesium.ConstantProperty(cartesianArr);
+                polyline.positions = new Cesium.ConstantProperty(cartesianArr);
             }
-            if (customProps.polyline.width !== undefined)
-              entity.polyline!.width = new Cesium.ConstantProperty(customProps.polyline.width);
+            if (typeof customProps.polyline.width === 'number')
+              polyline.width = new Cesium.ConstantProperty(customProps.polyline.width);
             if (customProps.polyline.material !== undefined) {
-              if (customProps.polyline.material.color) {
+              const polylineColor = colorFromParts(customProps.polyline.material.color);
+              if (polylineColor) {
                 // просто цвет (иначе внести правки, характерные для конкретного инструмента, ниже, после определения стандартных свойств)
-                entity.polyline!.material = new Cesium.ColorMaterialProperty(
-                  new Cesium.Color(
-                    customProps.polyline.material.color.red,
-                    customProps.polyline.material.color.green,
-                    customProps.polyline.material.color.blue,
-                    customProps.polyline.material.color.alpha ?? 1,
-                  ),
-                );
+                polyline.material = new Cesium.ColorMaterialProperty(polylineColor);
               }
             }
-            if (customProps.polyline.clampToGround !== undefined)
-              entity.polyline!.clampToGround = new Cesium.ConstantProperty(
+            if (typeof customProps.polyline.clampToGround === 'boolean')
+              polyline.clampToGround = new Cesium.ConstantProperty(
                 customProps.polyline.clampToGround,
               );
           }
           // ------------------------------------------------------------------------ //
           if (customProps.polygon) {
-            if (!entity.polygon) entity.polygon = new Cesium.PolygonGraphics();
-            if (customProps.polygon.show !== undefined)
-              entity.polygon!.show = new Cesium.ConstantProperty(customProps.polygon.show);
+            const polygon = entity.polygon ?? new Cesium.PolygonGraphics();
+            entity.polygon = polygon;
+            if (typeof customProps.polygon.show === 'boolean')
+              polygon.show = new Cesium.ConstantProperty(customProps.polygon.show);
             if (customProps.polygon.material !== undefined) {
-              if (customProps.polygon.material.color) {
-                entity.polygon!.material = new Cesium.ColorMaterialProperty(
-                  new Cesium.Color(
-                    customProps.polygon.material.color.red,
-                    customProps.polygon.material.color.green,
-                    customProps.polygon.material.color.blue,
-                    customProps.polygon.material.color.alpha ?? 0.1,
-                  ),
-                );
+              const polygonColor = colorFromParts(customProps.polygon.material.color, 0.1);
+              if (polygonColor) {
+                polygon.material = new Cesium.ColorMaterialProperty(polygonColor);
               }
             }
             if (
@@ -1057,121 +1012,91 @@ export class DrawingsListKmlService {
             ) {
               const cartesianArr: Array<Cesium.Cartesian3> = [];
               for (const item of customProps.polygon.hierarchy.positions) {
-                cartesianArr.push(new Cesium.Cartesian3(item.x, item.y, item.z));
+                const point = cartesian3FromParts(item);
+                if (point) cartesianArr.push(point);
               }
               if (cartesianArr.length)
-                entity.polygon!.hierarchy = new Cesium.ConstantProperty(
+                polygon.hierarchy = new Cesium.ConstantProperty(
                   new Cesium.PolygonHierarchy(cartesianArr),
                 );
             }
-            if (customProps.polygon.perPositionHeight !== undefined)
-              entity.polygon!.perPositionHeight = new Cesium.ConstantProperty(
+            if (typeof customProps.polygon.perPositionHeight === 'boolean')
+              polygon.perPositionHeight = new Cesium.ConstantProperty(
                 customProps.polygon.perPositionHeight,
               );
           }
           // ------------------------------------------------------------------------ //
           if (customProps.ellipse) {
-            if (!entity.ellipse) entity.ellipse = new Cesium.EllipseGraphics();
-            if (customProps.ellipse.show !== undefined)
-              entity.ellipse!.show = new Cesium.ConstantProperty(customProps.ellipse.show);
-            if (customProps.ellipse.semiMinorAxis !== undefined)
-              entity.ellipse!.semiMinorAxis = new Cesium.ConstantProperty(
+            const ellipse = entity.ellipse ?? new Cesium.EllipseGraphics();
+            entity.ellipse = ellipse;
+            if (typeof customProps.ellipse.show === 'boolean')
+              ellipse.show = new Cesium.ConstantProperty(customProps.ellipse.show);
+            if (typeof customProps.ellipse.semiMinorAxis === 'number')
+              ellipse.semiMinorAxis = new Cesium.ConstantProperty(
                 customProps.ellipse.semiMinorAxis,
               );
-            if (customProps.ellipse.semiMajorAxis !== undefined)
-              entity.ellipse!.semiMajorAxis = new Cesium.ConstantProperty(
+            if (typeof customProps.ellipse.semiMajorAxis === 'number')
+              ellipse.semiMajorAxis = new Cesium.ConstantProperty(
                 customProps.ellipse.semiMajorAxis,
               );
-            if (customProps.ellipse.rotation !== undefined)
-              entity.ellipse!.rotation = new Cesium.ConstantProperty(customProps.ellipse.rotation);
-            if (customProps.ellipse.material !== undefined) {
-              if (customProps.ellipse.material.color) {
-                entity.ellipse!.material = new Cesium.ColorMaterialProperty(
-                  new Cesium.Color(
-                    customProps.ellipse.material.color.red,
-                    customProps.ellipse.material.color.green,
-                    customProps.ellipse.material.color.blue,
-                    customProps.ellipse.material.color.alpha ?? 1,
-                  ),
-                );
-              }
+            if (typeof customProps.ellipse.rotation === 'number')
+              ellipse.rotation = new Cesium.ConstantProperty(customProps.ellipse.rotation);
+            const ellipseColor = colorFromParts(customProps.ellipse.material?.color);
+            if (ellipseColor) {
+              ellipse.material = new Cesium.ColorMaterialProperty(ellipseColor);
             }
-            if (customProps.ellipse.outline !== undefined)
-              entity.ellipse!.outline = new Cesium.ConstantProperty(customProps.ellipse.outline);
-            if (customProps.ellipse.outlineWidth !== undefined)
-              entity.ellipse!.outlineWidth = new Cesium.ConstantProperty(
+            if (typeof customProps.ellipse.outline === 'boolean')
+              ellipse.outline = new Cesium.ConstantProperty(customProps.ellipse.outline);
+            if (typeof customProps.ellipse.outlineWidth === 'number')
+              ellipse.outlineWidth = new Cesium.ConstantProperty(
                 customProps.ellipse.outlineWidth,
               );
-            if (customProps.ellipse.outlineColor !== undefined)
-              entity.ellipse!.outlineColor = new Cesium.ConstantProperty(
-                new Cesium.Color(
-                  customProps.ellipse.outlineColor.red,
-                  customProps.ellipse.outlineColor.green,
-                  customProps.ellipse.outlineColor.blue,
-                  customProps.ellipse.outlineColor.alpha ?? 1,
-                ),
-              );
-            if (customProps.ellipse.height !== undefined)
-              entity.ellipse!.height = new Cesium.ConstantProperty(customProps.ellipse.height);
-            if (customProps.ellipse.heightReference !== undefined)
-              entity.ellipse!.heightReference = new Cesium.ConstantProperty(
+            const ellipseOutline = colorFromParts(customProps.ellipse.outlineColor);
+            if (ellipseOutline) {
+              ellipse.outlineColor = new Cesium.ConstantProperty(ellipseOutline);
+            }
+            if (typeof customProps.ellipse.height === 'number')
+              ellipse.height = new Cesium.ConstantProperty(customProps.ellipse.height);
+            if (typeof customProps.ellipse.heightReference === 'number')
+              ellipse.heightReference = new Cesium.ConstantProperty(
                 customProps.ellipse.heightReference,
               );
           }
           // ------------------------------------------------------------------------ //
           if (customProps.ellipsoid) {
-            if (!entity.ellipsoid) entity.ellipsoid = new Cesium.EllipsoidGraphics();
-            if (customProps.ellipsoid.show !== undefined)
-              entity.ellipsoid!.radii = new Cesium.ConstantProperty(customProps.ellipsoid.show);
-            if (customProps.ellipsoid.radii !== undefined) {
-              entity.ellipsoid!.radii = new Cesium.ConstantProperty(
-                new Cesium.Cartesian3(
-                  customProps.ellipsoid.radii.x,
-                  customProps.ellipsoid.radii.y,
-                  customProps.ellipsoid.radii.z,
-                ),
-              );
-            }
-            if (customProps.ellipsoid.minimumCone !== undefined)
-              entity.ellipsoid!.minimumCone = new Cesium.ConstantProperty(
+            const ellipsoid = entity.ellipsoid ?? new Cesium.EllipsoidGraphics();
+            entity.ellipsoid = ellipsoid;
+            if (typeof customProps.ellipsoid.show === 'boolean')
+              ellipsoid.show = new Cesium.ConstantProperty(customProps.ellipsoid.show);
+            const radii = cartesian3FromParts(customProps.ellipsoid.radii);
+            if (radii) ellipsoid.radii = new Cesium.ConstantProperty(radii);
+            if (typeof customProps.ellipsoid.minimumCone === 'number')
+              ellipsoid.minimumCone = new Cesium.ConstantProperty(
                 customProps.ellipsoid.minimumCone,
               );
-            if (customProps.ellipsoid.maximumCone !== undefined)
-              entity.ellipsoid!.maximumCone = new Cesium.ConstantProperty(
+            if (typeof customProps.ellipsoid.maximumCone === 'number')
+              ellipsoid.maximumCone = new Cesium.ConstantProperty(
                 customProps.ellipsoid.maximumCone,
               );
-            if (customProps.ellipsoid.material !== undefined) {
-              if (customProps.ellipsoid.material.color) {
-                // просто цвет (иначе внести правки, характерные для конкретного инструмента, ниже, после определения стандартных свойств)
-                entity.ellipsoid!.material = new Cesium.ColorMaterialProperty(
-                  new Cesium.Color(
-                    customProps.ellipsoid.material.color.red,
-                    customProps.ellipsoid.material.color.green,
-                    customProps.ellipsoid.material.color.blue,
-                    customProps.ellipsoid.material.color.alpha ?? 1,
-                  ),
-                );
-              }
+            const ellipsoidColor = colorFromParts(customProps.ellipsoid.material?.color);
+            if (ellipsoidColor) {
+              // просто цвет (иначе внести правки, характерные для конкретного инструмента, ниже, после определения стандартных свойств)
+              ellipsoid.material = new Cesium.ColorMaterialProperty(ellipsoidColor);
             }
-            if (customProps.ellipsoid.outline !== undefined)
-              entity.ellipsoid!.outline = new Cesium.ConstantProperty(
+            if (typeof customProps.ellipsoid.outline === 'boolean')
+              ellipsoid.outline = new Cesium.ConstantProperty(
                 customProps.ellipsoid.outline,
               );
-            if (customProps.ellipsoid.outlineWidth !== undefined)
-              entity.ellipsoid!.outlineWidth = new Cesium.ConstantProperty(
+            if (typeof customProps.ellipsoid.outlineWidth === 'number')
+              ellipsoid.outlineWidth = new Cesium.ConstantProperty(
                 customProps.ellipsoid.outlineWidth,
               );
-            if (customProps.ellipsoid.outlineColor !== undefined)
-              entity.ellipsoid!.outlineColor = new Cesium.ConstantProperty(
-                new Cesium.Color(
-                  customProps.ellipsoid.outlineColor.red,
-                  customProps.ellipsoid.outlineColor.green,
-                  customProps.ellipsoid.outlineColor.blue,
-                  customProps.ellipsoid.outlineColor.alpha ?? 1,
-                ),
-              );
-            if (customProps.ellipsoid.heightReference !== undefined)
-              entity.ellipsoid!.heightReference = new Cesium.ConstantProperty(
+            const ellipsoidOutline = colorFromParts(customProps.ellipsoid.outlineColor);
+            if (ellipsoidOutline) {
+              ellipsoid.outlineColor = new Cesium.ConstantProperty(ellipsoidOutline);
+            }
+            if (typeof customProps.ellipsoid.heightReference === 'number')
+              ellipsoid.heightReference = new Cesium.ConstantProperty(
                 customProps.ellipsoid.heightReference,
               );
           }
@@ -1179,9 +1104,8 @@ export class DrawingsListKmlService {
 
           // Правки для конкретных типов инструментов
           if (
-            // @ts-ignore (конфликт - кастомное свойство toolName)
-            drawingToolsNames.includes(entity?.toolName) &&
-            // @ts-ignore (конфликт - кастомное свойство toolName)
+            entity.toolName !== undefined &&
+            isDrawingToolName(entity.toolName) &&
             entity.toolName !== 'drawMark' &&
             entity.point !== undefined
           ) {
@@ -1212,8 +1136,7 @@ export class DrawingsListKmlService {
       }
       return entities;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return undefined;
     }
   }
@@ -1244,21 +1167,18 @@ export class DrawingsListKmlService {
 
         const groupId = toolBaseProps.groupId;
         const toolName = toolBaseProps.toolName;
-        // @ts-ignore (конфликт - кастомное свойство toolName)
         entity.toolName = toolName; // возврат удаленного при экспорте свойства
         const collectionIndex = newStoresList.findIndex((store) => store?.toolName === toolName);
         if (collectionIndex === -1) {
           // вновь созданный временный стор
           newStoresList.push({
-            toolName: toolName as DrawingToolName,
+            toolName: toolName,
             collection: [{ groupId: groupId, entitiesList: [entity] }],
           });
         } else {
           if (!newStoresList[collectionIndex]?.collection) {
-            console.log(
-              chalk.red(
-                `None collection property in "${newStoresList[collectionIndex]?.toolName}" store in sortAndDrawKmlEntities fn`,
-              ),
+            console.info(
+              `None collection property in "${newStoresList[collectionIndex]?.toolName}" store in sortAndDrawKmlEntities fn`,
             );
             continue;
           }
@@ -1278,14 +1198,12 @@ export class DrawingsListKmlService {
         }
       }
 
-      const isActiveObjsInStores: { [key: string]: boolean } = {}; // обеспечивает требуемый автовыбор в списке при импорте (!!! синхронизировано с плавающими окнами инструментов!!! - в свойстве _validPickedEntity)
+      const isActiveObjsInStores: Partial<Record<DrawingToolName, boolean>> = {}; // обеспечивает требуемый автовыбор в списке при импорте (!!! синхронизировано с плавающими окнами инструментов!!! - в свойстве _validPickedEntity)
       // Добавление в существующие сторы и отрисовка
       if (newStoresList.length) {
         for (const store of newStoresList) {
           if (!store?.collection || !store?.toolName) {
-            console.log(
-              chalk.red("Invalid newStoresList item's forming in sortAndDrawKmlEntities fn"),
-            );
+            console.info("Invalid newStoresList item's forming in sortAndDrawKmlEntities fn");
             continue;
           }
           const storeName = store.toolName;
@@ -1328,9 +1246,7 @@ export class DrawingsListKmlService {
               group.defaultEntity,
             );
             if (!pushedInStore) {
-              console.log(
-                chalk.red(`Pushing in store "${storeName}" failed in sortAndDrawKmlEntities fn`),
-              );
+              console.info(`Pushing in store "${storeName}" failed in sortAndDrawKmlEntities fn`);
               continue;
             }
 
@@ -1363,8 +1279,8 @@ export class DrawingsListKmlService {
           if (!group) continue;
           group.defaultEntity = this.setEntitiesGroupDefaultEntity(group);
           this.$drawingService.pushGroupWithoutTemporalWithDrawing(
-            group!.entitiesList,
-            group!.groupId,
+            group.entitiesList,
+            group.groupId,
             undefined, // Отсутствие toolName определит объект в this.$drawingService.overEntitiesList
             group.defaultEntity,
           );
@@ -1372,8 +1288,7 @@ export class DrawingsListKmlService {
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return false;
     }
   }
@@ -1387,18 +1302,14 @@ export class DrawingsListKmlService {
       const newIdArr: string[] = entityId.split('-');
 
       // Отбраковка в over-список
-      if (newIdArr.length < 2 || !drawingToolsNames.includes(newIdArr[1] as any)) {
+      const maybeToolName = newIdArr[1];
+      if (newIdArr.length < 2 || !maybeToolName || !isDrawingToolName(maybeToolName)) {
         return undefined;
       }
       const groupId = newIdArr[0];
-      const toolName = newIdArr[1];
-      if (!drawingToolsNames.includes(toolName as DrawingToolName)) {
-        return undefined;
-      }
-      return { groupId: groupId, toolName: toolName as DrawingToolName };
+      return { groupId: groupId, toolName: maybeToolName };
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return undefined;
     }
   }
@@ -1445,8 +1356,7 @@ export class DrawingsListKmlService {
       return defaultEntity;
       // ...другие действия, необходимые для конкретного инструмента
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return undefined;
     }
   }

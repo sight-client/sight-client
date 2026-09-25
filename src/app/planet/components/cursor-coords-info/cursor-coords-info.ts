@@ -20,6 +20,7 @@ import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
 import type { CRS } from '@/common/lib/coord-sistems.lib';
 import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
+import { finiteCssPx } from '@global/lib/common-global.lib';
 
 @Component({
   selector: 'cursor-coords-info',
@@ -67,18 +68,13 @@ export class CursorCoordsInfo {
   // Подписка на движение поля с координатами вместе с курсором мыши
   declare private mouseMoveSubscription: Subscription;
   private getMouseMoveSubscription(): Subscription {
-    try {
-      const cesiumContainer: Element = this.$viewerService.viewer.container;
+    const cesiumContainer: Element = this.$viewerService.viewer.container;
       if (!cesiumContainer)
         throw new Error('Cesium container is not defined. Mouse move subscription was failed!');
       const mouseMove$: Observable<Event> = fromEvent(cesiumContainer, 'mousemove');
       return mouseMove$.subscribe((event) => {
-        this.setCoordsWindowPosition(event as MouseEvent);
+        if (event instanceof MouseEvent) this.setCoordsWindowPosition(event);
       });
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
   }
 
   protected outOfScreen = signal<boolean>(false);
@@ -87,21 +83,19 @@ export class CursorCoordsInfo {
   protected top: string = 'calc(50% + 14px)';
   private maxFieldWidth: number = 0;
   private setCoordsWindowPosition(event: MouseEvent): void {
-    try {
-      if (!this.maxFieldWidth) {
-        let fieldMaxWidth: number = 110;
-        const field: Element | undefined = document.getElementsByClassName(
-          'cursor-coords-cursor-field',
-        )?.[0];
-        if (field) {
-          const newFeldMaxWidth = +getComputedStyle(field)
-            ?.getPropertyValue('--cursor-field-max-width')
-            ?.slice(0, -2);
-          if (isFinite(newFeldMaxWidth) && newFeldMaxWidth > fieldMaxWidth)
-            fieldMaxWidth = newFeldMaxWidth;
+    if (!this.maxFieldWidth) {
+      let fieldMaxWidth: number = 110;
+      const field = document.getElementsByClassName('cursor-coords-cursor-field').item(0);
+      if (field instanceof HTMLElement) {
+        const newFeldMaxWidth = finiteCssPx(
+          getComputedStyle(field).getPropertyValue('--cursor-field-max-width'),
+        );
+        if (newFeldMaxWidth > fieldMaxWidth) {
+          fieldMaxWidth = newFeldMaxWidth;
         }
-        this.maxFieldWidth = fieldMaxWidth;
       }
+      this.maxFieldWidth = fieldMaxWidth;
+    }
 
       this.left = `${event.pageX + 6}px`;
       this.top = `${event.pageY + 14}px`;
@@ -116,10 +110,6 @@ export class CursorCoordsInfo {
       } else {
         if (this.outOfScreen()) this.outOfScreen.set(false);
       }
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
   }
 
   ngOnDestroy() {
@@ -156,7 +146,8 @@ export class CursorCoordsInfo {
     const box = document.querySelector('.camera-height-container');
     if (!(box instanceof HTMLElement)) return 0;
     const cs = getComputedStyle(box);
-    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const padX =
+      finiteCssPx(cs.paddingLeft) + finiteCssPx(cs.paddingRight);
     const childrenW = [...box.children]
       .filter((el) => getComputedStyle(el).display !== 'none')
       .reduce((sum, el) => sum + el.getBoundingClientRect().width, 0);
@@ -183,7 +174,7 @@ export class CursorCoordsInfo {
     const svg = main.querySelector('.cursor-coords-cursor-field-display-option svg:last-child');
     const mainRect = main.getBoundingClientRect();
     const svgRight = svg instanceof SVGElement ? svg.getBoundingClientRect().right : mainRect.right;
-    const padRight = parseFloat(getComputedStyle(main).paddingRight) || 0;
+    const padRight = finiteCssPx(getComputedStyle(main).paddingRight);
     const needed = Math.ceil(
       Math.max(mainRect.width, main.scrollWidth, svgRight - mainRect.left + padRight),
     );
@@ -191,9 +182,7 @@ export class CursorCoordsInfo {
     main.style.maxWidth = prevMax;
     if (!needed) return;
     const currentCoords = Math.max(
-      ...targets.map(
-        (n) => parseFloat(n.style.getPropertyValue('--phone-coords-content-width')) || 0,
-      ),
+      ...targets.map((n) => finiteCssPx(n.style.getPropertyValue('--phone-coords-content-width'))),
     );
     const coordsW = Math.max(needed, currentCoords);
     const stackW = Math.ceil(Math.max(this.heightPanelNaturalWidth(), coordsW));

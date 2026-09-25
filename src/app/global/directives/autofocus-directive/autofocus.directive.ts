@@ -4,9 +4,9 @@ import { Directive, ElementRef, OnInit, Input } from '@angular/core';
   selector: '[autofocusDirective]',
 })
 export class AutofocusDirective implements OnInit {
-  constructor(private el: ElementRef) {}
+  constructor(private el: ElementRef<HTMLElement>) {}
   // Дополнительный входной параметр для управления фокусом
-  @Input() set appAutoFocus(condition: any) {
+  @Input() set appAutoFocus(condition: boolean | undefined) {
     if (condition) {
       this.focusElement();
     }

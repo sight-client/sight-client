@@ -1,2 +1,2 @@
-// Type assertion (как "any"-тип) для библиотек без типизации
+// Ambient module for a library that ships without its own types.
 declare module '@znemz/cesium-navigation';

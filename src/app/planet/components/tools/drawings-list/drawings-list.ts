@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,7 +20,6 @@ import { FormsModule } from '@angular/forms';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 // import {
-//   getUserNameGlobal,
 //   UserDataService,
 // } from '@global/services/user-data-service/user-data.service';
 
@@ -60,7 +58,7 @@ export class DrawingsList implements OnInit {
 
   selectCollection: number | undefined = undefined;
   dropDownList: boolean = false;
-  listCollections: any = [];
+  listCollections: unknown[] = [];
   nameCollectionInp: string = '';
   collectionIdFromDb: number | undefined = undefined;
 
@@ -70,7 +68,7 @@ export class DrawingsList implements OnInit {
     if (dataSource) {
       this.drawLayer = dataSource;
     } else {
-      console.log(chalk.red("Data source hasn't found in DrawingsListService"));
+      console.info("Data source hasn't found in DrawingsListService");
     }
   }
 

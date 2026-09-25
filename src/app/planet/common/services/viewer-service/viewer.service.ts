@@ -1,3 +1,4 @@
+import { reportError } from '@global/lib/report-error.lib';
 /* "viewer" - достаточно объемный объект, поэтому создавать из него "WritableSignal" нецелесообразно затратно. 
 Кроме того, "WritableSignal" оповещает о своем изменении только при замене своего значения, 
 что в случае с переменной объекта является потерей старой ссылки, что равнозначно пересозданию. 
@@ -10,7 +11,7 @@
 /* В случае необходимости использования сигнала объекта в качестве отслеживаемого дублирующего свойства, 
 а также при нежелании полностью переписывать такой объект в методе "WritableSignal.set()", 
 целесообразно использовать метод "WritableSignal.update()". Пример с объектом и двумя свойствами под изменение: 
-$viewerService.viewer.test.update((previousState: WritableSignal<any>) => {
+$viewerService.viewer.test.update((previousState: WritableSignal<unknown>) => {
    return {
      ...previousState, testKeyOne: newValOne, testKeyTwo: newValTwo
    }
@@ -19,7 +20,6 @@ $viewerService.viewer.test.update((previousState: WritableSignal<any>) => {
 
 import { computed, effect, Injectable, signal, WritableSignal } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import * as MeasuresLib from '@/components/tools/lib/basic-measure-calculations.lib';
 import * as Humanify from '@/common/lib/humanify.lib';
 
@@ -32,10 +32,21 @@ export interface CustomViewer extends Cesium.Viewer {
   forcedPickedEntityId?: WritableSignal<string | undefined>;
   clampToGround?: boolean;
   dropError?: Cesium.Event;
-  // test?: WritableSignal<any>;
+  // test?: WritableSignal<unknown>;
 }
 
-export type SceneModeLiterals = '3D' | '2D' | 'Columbus';
+export const sceneModeLiterals = Object.freeze(['3D', '2D', 'Columbus'] as const);
+export type SceneModeLiterals = (typeof sceneModeLiterals)[number];
+
+export function isSceneModeLiteral(value: string): value is SceneModeLiterals {
+  return sceneModeLiterals.some((mode) => mode === value);
+}
+
+const sceneModeFromLiteral: Record<SceneModeLiterals, Cesium.SceneMode> = {
+  '3D': Cesium.SceneMode.SCENE3D,
+  '2D': Cesium.SceneMode.SCENE2D,
+  Columbus: Cesium.SceneMode.COLUMBUS_VIEW,
+};
 
 // Применение сервиса - на уровне planet.ts
 @Injectable()
@@ -48,16 +59,12 @@ export class ViewerService {
       }
     });
     // ----------------------------------------------------------- //
-    const sceneModeDescription: SceneModeLiterals | unknown = localStorage.getItem('sceneMode');
-    if (sceneModeDescription === '3D') {
-      this._nowSceneMode.set(Cesium.SceneMode.SCENE3D);
-    } else if (sceneModeDescription === '2D') {
-      this._nowSceneMode.set(Cesium.SceneMode.SCENE2D);
-    } else if (sceneModeDescription === 'Columbus') {
-      this._nowSceneMode.set(Cesium.SceneMode.COLUMBUS_VIEW);
-    } else {
-      this._nowSceneMode.set(Cesium.SceneMode.SCENE3D);
-    }
+    const storedSceneMode = localStorage.getItem('sceneMode');
+    this._nowSceneMode.set(
+      storedSceneMode !== null && isSceneModeLiteral(storedSceneMode)
+        ? sceneModeFromLiteral[storedSceneMode]
+        : Cesium.SceneMode.SCENE3D,
+    );
   }
   // Реактивные свойства для нового viewer
   // Сигналы, которые viewer не позволяет использовать в своем объекте
@@ -124,8 +131,9 @@ export class ViewerService {
 
   // viewer получает первое значение из run-viewer.directive.ts однократно при первом рендеринге planet.html
   public getNewViewer(container: Element | string) {
-    try {
-      this.viewer = new Cesium.Viewer(container, {
+    const viewerOptions: Cesium.Viewer.ConstructorOptions & {
+        imageryProvider?: Cesium.ImageryProvider;
+      } = {
         /* Виджет для воспроизведения анимации */
         animation: false,
         /* Стандартный виджет для выбора слоев. Используется, как основа, в нашем customBaselLayerPicker. */
@@ -177,7 +185,6 @@ export class ViewerService {
         Данная опция отсутствует в нынешней документации для Cesium.Viewer.ConstructorOptions (есть в Cesium.Viewer.Scene).
         Однако, установка начальной подложки по конструктору (с помощью baseLayer - см. ниже) в настоящем контексте дает 
          заметную глазу задержку смены провайдера на первичный (например, OSM). Указаны стандартные установки GridImageryProvider: */
-        //@ts-ignore (не по конструктору, но пока оптимальо)
         imageryProvider: new Cesium.GridImageryProvider({
           // tilingScheme: new Cesium.GeographicTilingScheme(),
           // ellipsoid: Cesium.Ellipsoid.WGS84,
@@ -194,7 +201,8 @@ export class ViewerService {
         // baseLayer: new Cesium.ImageryLayer(
         //   new Cesium.GridImageryProvider(),
         // ),
-      });
+      };
+      this.viewer = new Cesium.Viewer(container, viewerOptions);
 
       // Контрольная проверка
       if (!Object.keys(this.viewer)) throw new Error("at getNewViewer(): viewer wasn't create");
@@ -218,9 +226,8 @@ export class ViewerService {
       });
       if (this.viewer?.dropError) {
         this.viewer.dropError.addEventListener((_dropHandler__viewerArg, source, error) => {
-          // console.log(error);
-          // window.alert(error);
-          console.log('Error processing ' + source + ':' + error);
+          console.info('Error processing ' + source);
+          reportError(error);
           window.alert('Error processing ' + source + ':' + error);
         });
       }
@@ -232,7 +239,7 @@ export class ViewerService {
           heading: 6.283185307179586,
           pitch: -1.5707963267948966, // 90 degrees
           roll: 0,
-        } as Cesium.HeadingPitchRollValues,
+        },
       });
 
       /* Уменьшает количество усеченных полигонов. Включение позволит увеличить производительность. */
@@ -262,7 +269,10 @@ export class ViewerService {
       this.viewer.scene.globe.depthTestAgainstTerrain = false;
 
       /* Скрыть лого Цесиума (левый нижний угол) */
-      (this.viewer.cesiumWidget.creditContainer as HTMLElement).style.display = 'none';
+      const creditContainer = this.viewer.cesiumWidget.creditContainer;
+      if (creditContainer instanceof HTMLElement) {
+        creditContainer.style.display = 'none';
+      }
 
       // Свечение бликов
       this.viewer.scene.postProcessStages.bloom.enabled = false;
@@ -279,7 +289,7 @@ export class ViewerService {
       // // viewer.extend(Cesium.viewerCesiumInspectorMixin, {});
 
       // При включении полигоны, являющиеся примитивами, просвечиваются через земной шар.
-      // const oldPrimitiveUpdate: Function = Cesium.Primitive.prototype.update;
+      // const oldPrimitiveUpdate = Cesium.Primitive.prototype.update;
       // Cesium.Primitive.prototype.update = function (frameState?: Cesium.Scene): void {
       //   if (frameState) {
       //     // this.appearance._renderState.depthTest.enabled = false;
@@ -290,7 +300,10 @@ export class ViewerService {
 
       /* Пользовательский хук (с cesium-форума), чтобы полилинии и примитивы рисовались всегда поверх */
       // override Cesium.PolylineCollection.prototype.update for depthTest polylines and polygons
-      const oldPolylineUpdate: Function = Cesium.PolylineCollection.prototype.update;
+      const oldPolylineUpdate = Cesium.PolylineCollection.prototype.update as (
+        this: Cesium.PolylineCollection,
+        frameState?: Cesium.Scene,
+      ) => void;
       Cesium.PolylineCollection.prototype.update = function newUpdate(
         // Информация о состоянии текущего кадра
         frameState?: Cesium.Scene,
@@ -305,7 +318,10 @@ export class ViewerService {
           }
         }
       };
-      const oldPrimitiveUpdate: Function = Cesium.Primitive.prototype.update;
+      const oldPrimitiveUpdate = Cesium.Primitive.prototype.update as (
+        this: Cesium.Primitive,
+        frameState?: Cesium.Scene,
+      ) => void;
       Cesium.Primitive.prototype.update = function (frameState?: Cesium.Scene): void {
         if (frameState) {
           // this.appearance._renderState.depthTest.enabled = false;
@@ -346,9 +362,6 @@ export class ViewerService {
 
       // Предотвращение ухода камеры под подложку при использовании znenz navigation mixin (3d, в том числе рельеф, контролирует свойство viewer.scene.screenSpaceCameraController.enableCollisionDetection)
       this.viewer.scene.camera.changed.addEventListener(this.controlCameraView);
-    } catch (error: unknown) {
-      throw error;
-    }
   }
 
   private controlCameraView = () => {
@@ -359,7 +372,7 @@ export class ViewerService {
       // console.log(camHeading, cameraPitch, camRoll);
       // Принудительный контроль высоты камеры по параметру "pitch" (> 0.12 - уход под подложку при отсутствии рельефа)
       const cameraCoords = this.viewer.scene.camera.positionCartographic;
-      const camHeight: number = Number(cameraCoords.height);
+      const camHeight = cameraCoords.height;
       if (this.viewer.scene.camera.pitch > 0.12) {
         this.cameraBlokcerHandler(camHeight, 0, 0.12);
       }
@@ -376,7 +389,7 @@ export class ViewerService {
       //   if (camHeight < 1) this.cameraBlokcerHandler(1000, 0.1);
       // }
     } catch (error: unknown) {
-      console.log(error);
+      reportError(error);
     }
   };
 
@@ -405,7 +418,7 @@ export class ViewerService {
         duration: duration,
       });
     } catch (error: unknown) {
-      console.log(error);
+      reportError(error);
     }
   }
 
@@ -414,7 +427,7 @@ export class ViewerService {
   public setCameraFlyingAroundFlag(newVal: boolean): void {
     if (typeof newVal === 'boolean') {
       this.cameraIsFlyingAround.set(newVal);
-    } else console.log('Invalid newVal in setCameraFlyingAroundFlag');
+    } else console.info('Invalid newVal in setCameraFlyingAroundFlag');
   }
 
   /* Альтернатива глобальному лисенеру 2хЛКМ */
@@ -422,8 +435,7 @@ export class ViewerService {
   public async flyToEntityWhithItPicking(
     cartesian2FromClick: Cesium.ScreenSpaceEventHandler.PositionedEvent,
   ): Promise<void> {
-    try {
-      if (this.cameraIsFlyingAround() === true) {
+    if (this.cameraIsFlyingAround() === true) {
         this.setCameraFlyingAroundFlag(false);
       }
       const targetEntity: Cesium.Entity | undefined =
@@ -433,9 +445,23 @@ export class ViewerService {
         // throw new Error('at flyToEntityWhithItPicking(): targetEntity is undefined');
       }
       await this.flyTo(targetEntity);
-    } catch (error: unknown) {
-      throw error;
-    }
+  }
+
+  private isDegreeRectangle(
+    value:
+      | number[]
+      | Cesium.Entity
+      | Cesium.EntityCollection
+      | Cesium.DataSource
+      | Cesium.Entity[]
+      | Cesium.Cesium3DTileset
+      | undefined,
+  ): value is number[] {
+    return (
+      Array.isArray(value) &&
+      value.length >= 4 &&
+      value.every((item) => typeof item === 'number')
+    );
   }
 
   public async flyTo(
@@ -449,22 +475,19 @@ export class ViewerService {
       | undefined,
     whole?: boolean,
   ): Promise<void> {
-    try {
-      if (!target) return;
+    if (!target) return;
 
       // Сбрасываем флаг вращения камеры, если он активен
       if (this.cameraIsFlyingAround?.() === true) {
         this.setCameraFlyingAroundFlag(false);
       }
 
-      // Прямоугольник (Массив чисел)
-      // Проверяем, что это массив и его первый элемент — число
-      if (Array.isArray(target) && typeof target[0] === 'number') {
-        const rect = target as number[]; // Явное приведение для безопасности компилятора
+      // Прямоугольник: [west, south, east, north] в градусах
+      if (this.isDegreeRectangle(target)) {
         this.viewer.camera.flyTo({
           destination: Cesium.Rectangle.fromCartographicArray([
-            Cesium.Cartographic.fromDegrees(rect[0], rect[1]),
-            Cesium.Cartographic.fromDegrees(rect[2], rect[3]),
+            Cesium.Cartographic.fromDegrees(target[0], target[1]),
+            Cesium.Cartographic.fromDegrees(target[2], target[3]),
           ]),
           duration: 2,
         });
@@ -479,7 +502,7 @@ export class ViewerService {
         }
 
         const targetCartesian3 = target.position.getValue(this.viewer.clock.currentTime);
-        if (!targetCartesian3) {
+        if (!(targetCartesian3 instanceof Cesium.Cartesian3)) {
           await this.viewer.flyTo(target);
           return;
         }
@@ -521,21 +544,21 @@ export class ViewerService {
         return;
       }
 
-      // Коллекции (EntityCollection, DataSource, Array) и 3DTileset
-      // Исключаем number[] из оставшихся типов, чтобы viewer.flyTo принял аргумент без ошибок
-      if (!Array.isArray(target) || (target.length > 0 && target[0] instanceof Cesium.Entity)) {
-        await this.viewer.flyTo(
-          target as
-            | Cesium.Entity
-            | Cesium.EntityCollection
-            | Cesium.DataSource
-            | Cesium.Entity[]
-            | Cesium.Cesium3DTileset,
-        );
+      if (
+        target instanceof Cesium.EntityCollection ||
+        target instanceof Cesium.DataSource ||
+        target instanceof Cesium.Cesium3DTileset
+      ) {
+        await this.viewer.flyTo(target);
+        return;
       }
-    } catch (error: unknown) {
-      throw error;
-    }
+      if (
+        Array.isArray(target) &&
+        target.length > 0 &&
+        target.every((item): item is Cesium.Entity => item instanceof Cesium.Entity)
+      ) {
+        await this.viewer.flyTo(target);
+      }
   }
 
   // Используются, например, в скрвисах инструментов работы с картой (для действий по ЛКМ)
@@ -556,8 +579,7 @@ export class ViewerService {
   public setNewPickedEntityByClickOnScene(
     cartesian2PositionFromClick: Cesium.ScreenSpaceEventHandler.PositionedEvent,
   ): Cesium.Entity | undefined {
-    try {
-      if (this._entityPickingBlock() === true) return;
+    if (this._entityPickingBlock() === true) return;
       const newPickedEntity: Cesium.Entity | undefined = this.pickEntityByClickOnScene(
         cartesian2PositionFromClick.position,
       );
@@ -567,12 +589,8 @@ export class ViewerService {
         }
         this.setForcedPickedEntity(newPickedEntity);
         this._forcedEntityPickingEffectFlag.set(!this._forcedEntityPickingEffectFlag());
-        console.log(newPickedEntity);
         return newPickedEntity;
       } else return undefined;
-    } catch (error: unknown) {
-      throw error;
-    }
   }
 
   // Если сущность уже была записана в сигнал forcedPickedEntity, он не оповестит наблюдателей об отработки хэндлера для ЛКМ.
@@ -584,50 +602,56 @@ export class ViewerService {
 
   // Такжк используется в drawing.service.ts
   public pickEntityByClickOnScene(position: Cesium.Cartesian2): Cesium.Entity | undefined {
-    try {
-      const picked: any | undefined = this.viewer.scene.pick(position);
-      if (Cesium.defined(picked)) {
-        // const entity: Cesium.Entity = Cesium.defaultValue(picked.id, picked.primitive.id); // deprecated
-        const entity: Cesium.Entity = picked?.id ? picked.id : picked.primitive?.id;
-        if (entity && entity instanceof Cesium.Entity) {
-          return entity;
-        }
-      }
-      return;
-    } catch (error: unknown) {
-      throw error;
-    }
+    return this.entityFromPick(this.viewer.scene.pick(position));
   }
 
-  private tileCache = new Map();
+  private entityFromPick(picked: unknown): Cesium.Entity | undefined {
+    if (!Cesium.defined(picked) || typeof picked !== 'object' || picked === null) return undefined;
+    if ('id' in picked && picked.id instanceof Cesium.Entity) return picked.id;
+    if (
+      'primitive' in picked &&
+      typeof picked.primitive === 'object' &&
+      picked.primitive !== null &&
+      'id' in picked.primitive &&
+      picked.primitive.id instanceof Cesium.Entity
+    ) {
+      return picked.primitive.id;
+    }
+    return undefined;
+  }
+
+  private tileCache = new Map<string, Promise<Cesium.TerrainData> | 'NOT_FOUND'>();
   // async/await применена по причине возврата Promise из методов Cesium
   public async getHeight(cartographic: Cesium.Cartographic): Promise<number> {
     const provider = this.viewer.terrainProvider;
     // Проверка, что провайдер готов и имеет данные о доступности
     if (!(provider instanceof Cesium.CesiumTerrainProvider)) return 0;
-    let level;
-    if (provider.availability) {
-      // Вычисляет макс. уровень для конкретной долготы/широты
-      level = provider.availability.computeMaximumLevelAtPosition(cartographic);
-    } else {
-      // Фолбек, если метаданные еще не подтянулись
-      level = 10;
-    }
+    const rawLevel = provider.availability
+      ? provider.availability.computeMaximumLevelAtPosition(cartographic)
+      : 10;
+    if (typeof rawLevel !== 'number' || !Number.isFinite(rawLevel) || rawLevel < 0) return 0;
+    const level = rawLevel;
     const tilingScheme = provider.tilingScheme;
     const tileXY = tilingScheme.positionToTileXY(cartographic, level);
+    if (!tileXY) return 0;
     const cacheKey = `${level}-${tileXY.x}-${tileXY.y}`;
     // ПРОВЕРКА КЕША
     if (this.tileCache.has(cacheKey)) {
       const cached = this.tileCache.get(cacheKey);
-      if (cached === 'NOT_FOUND') return 0;
+      if (cached === 'NOT_FOUND' || cached === undefined) return 0;
       try {
         const terrainData = await cached;
+        if (!terrainData) return 0;
         return this.interpolate(terrainData, tilingScheme, tileXY, cartographic, level);
       } catch (error: unknown) {
         return 0;
       }
     }
     const promise = provider.requestTileGeometry(tileXY.x, tileXY.y, level);
+    if (!promise) {
+      this.tileCache.set(cacheKey, 'NOT_FOUND');
+      return 0;
+    }
     this.tileCache.set(cacheKey, promise);
     try {
       const terrainData = await promise;
@@ -652,7 +676,12 @@ export class ViewerService {
     level: number,
   ): number {
     const rect = tilingScheme.tileXYToRectangle(tileXY.x, tileXY.y, level);
-    return terrainData.interpolateHeight(rect, cartographic.longitude, cartographic.latitude);
+    const height = terrainData.interpolateHeight(
+      rect,
+      cartographic.longitude,
+      cartographic.latitude,
+    );
+    return typeof height === 'number' && Number.isFinite(height) ? height : 0;
   }
 
   public readonly distanceSegmentLengthM: number = 100;
@@ -662,8 +691,6 @@ export class ViewerService {
     distanceSegmentLengthM?: number,
     withHumanify?: boolean,
   ): Promise<string | number> {
-    // console.log(positions);
-    // console.trace();
     let distance: number = 0;
     // if (!detailed) console.log('!detailed');
     // else if (detailed && !this.viewer.terrainProvider.availability)
@@ -733,7 +760,7 @@ export class ViewerService {
       if (withHumanify) return Humanify.distanceM(distance);
       else return distance;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       if (withHumanify) return Humanify.distanceM(distance);
       else return distance;
     } finally {
@@ -750,13 +777,9 @@ export class ViewerService {
   // and then zoom to level 16 you'll see the point under surface.
 
   public setTerrainProvider(terrainProvider: Cesium.TerrainProvider): void {
-    try {
-      if (terrainProvider) this.viewer.terrainProvider = terrainProvider;
-      // Новый рельеф, чистим кеш
-      this.tileCache = new Map();
-    } catch (error: unknown) {
-      throw error;
-    }
+    if (terrainProvider) this.viewer.terrainProvider = terrainProvider;
+    // Новый рельеф, чистим кеш
+    this.tileCache = new Map<string, Promise<Cesium.TerrainData> | 'NOT_FOUND'>();
   }
 
   public setImageryProvider(
@@ -764,25 +787,17 @@ export class ViewerService {
     id?: number,
     alpha?: number,
   ): void {
-    try {
-      if (imageryProvider) {
+    if (imageryProvider) {
         // const layer = new Cesium.ImageryLayer(imageryProvider, {
         //   alpha: alpha,
         // });
         // this.viewer.imageryLayers.add(layer, id);
         this.viewer.imageryLayers.addImageryProvider(imageryProvider);
       }
-    } catch (error: unknown) {
-      throw error;
-    }
   }
 
   public removeImageryProvider(id: number): void {
-    try {
-      const layer = this.viewer.imageryLayers.get(id);
-      this.viewer.imageryLayers.remove(layer);
-    } catch (error: unknown) {
-      throw error;
-    }
+    const layer = this.viewer.imageryLayers.get(id);
+    this.viewer.imageryLayers.remove(layer);
   }
 }

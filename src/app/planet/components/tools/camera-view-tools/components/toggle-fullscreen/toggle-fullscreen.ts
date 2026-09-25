@@ -1,23 +1,16 @@
 import {
-  Component,
   ChangeDetectionStrategy,
-  signal,
+  Component,
   computed,
-  ElementRef,
-  OnInit,
   OnDestroy,
+  OnInit,
+  signal,
 } from '@angular/core';
-import chalk from 'chalk';
 import * as Cesium from 'cesium';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
-import {
-  setStartBtnVisibility,
-  getBtnVisibilityObserver,
-} from '@/components/tools/lib/buttons-subgroups-visibility';
 
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
 
@@ -32,7 +25,6 @@ const EXIT_FULLSCREEN_PATH =
   imports: [MatButtonModule, MatIconModule, MatTooltipModule],
   template: `
     <button
-      [style.display]="buttonVisibility() ? 'block' : 'none'"
       [matTooltip]="buttonTooltip()"
       [attr.aria-label]="buttonTooltip()"
       matTooltipShowDelay="1000"
@@ -54,8 +46,8 @@ const EXIT_FULLSCREEN_PATH =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ToggleFullscreen implements OnInit, OnDestroy {
-  protected readonly toolName: string = 'toggleFullscreen';
-  protected readonly rusToolName: string = 'На весь экран';
+  protected readonly toolName = 'toggleFullscreen' as const;
+  protected readonly rusToolName = 'На весь экран' as const;
   protected readonly isFullscreen = signal(false);
   protected readonly buttonTooltip = computed(() =>
     this.isFullscreen() ? 'Выйти из полноэкранного режима' : this.rusToolName,
@@ -65,44 +57,19 @@ export class ToggleFullscreen implements OnInit, OnDestroy {
   );
   private fullscreenChangeEventName: string | undefined;
 
-  constructor(
-    protected $toolsService: ToolsService,
-    // -------------------------- Управление видимостью кнопки (входящей в группу инструментов) (start) -------------------------- //
-    private el: ElementRef<HTMLElement>,
-  ) {}
-
-  // Управление видимостью кнопки (входящей в группу инструментов)
-  protected buttonVisibility = signal<boolean>(false);
-  private observer: MutationObserver | undefined;
+  constructor(protected $toolsService: ToolsService) {}
 
   ngOnInit() {
-    try {
-      // Определение стартового значения флага видимости кнопки
-      if (setStartBtnVisibility(this.el, this.buttonVisibility)) {
-        // Отслеживание изменения кастомного атрибута хоста для выставления флага видимости кнопки
-        this.observer = getBtnVisibilityObserver(this.el, this.buttonVisibility);
-        if (this.observer !== undefined) {
-          this.observer.observe(this.el.nativeElement, {
-            attributes: true,
-          });
-        } else throw new Error('getBtnVisibilityObserver fn has failed');
-      } else throw new Error('setStartBtnVisibility fn has failed');
-    } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
-    }
     this.syncFullscreenState();
     this.fullscreenChangeEventName = Cesium.Fullscreen.changeEventName || 'fullscreenchange';
     document.addEventListener(this.fullscreenChangeEventName, this.syncFullscreenState);
   }
 
   ngOnDestroy() {
-    this.observer?.disconnect();
     if (this.fullscreenChangeEventName) {
       document.removeEventListener(this.fullscreenChangeEventName, this.syncFullscreenState);
     }
   }
-  // -------------------------- Управление видимостью кнопки (входящей в группу инструментов) (end) -------------------------- //
 
   private syncFullscreenState = (): void => {
     this.isFullscreen.set(Boolean(document.fullscreenElement) || Cesium.Fullscreen.fullscreen);

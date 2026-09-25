@@ -47,8 +47,9 @@ describe('basic-measure-calculations.lib', () => {
   it('transformCartesianArrayToWGS84Array converts one point to WGS84 degrees', () => {
     const point = Cesium.Cartesian3.fromDegrees(37.62, 55.76, 100);
     const [wgs] = transformCartesianArrayToWGS84Array([point]);
-    expect(wgs!.lng).toBeCloseTo(37.62, 2);
-    expect(wgs!.lat).toBeCloseTo(55.76, 2);
+    if (!wgs) throw new Error('Expected one WGS84 point');
+    expect(wgs.lng).toBeCloseTo(37.62, 2);
+    expect(wgs.lat).toBeCloseTo(55.76, 2);
   });
 
   it('calculatePosDistances humanifies zero for empty positions', () => {

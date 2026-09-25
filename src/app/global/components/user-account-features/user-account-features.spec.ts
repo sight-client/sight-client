@@ -24,7 +24,7 @@ describe('UserAccountFeatures', () => {
             registrationResult: signal(undefined),
             clearAuthResults: () => {},
             clearRegFormValuesReserv: () => {},
-            getLogoutSubscription: () => ({ unsubscribe() {} }),
+            logout: () => ({ subscribe() {} }),
           },
         },
       ],

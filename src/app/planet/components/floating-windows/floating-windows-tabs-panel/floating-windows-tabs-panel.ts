@@ -7,15 +7,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { FloatingWindowsService } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
 import type { WindowName } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
 import {
-  drawingToolsNames,
   getRusDrawingToolName,
+  isDrawingToolName,
 } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
-import type { DrawingToolName } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 import {
-  measuringToolsNames,
   getRusMeasuringToolName,
+  isMeasuringToolName,
 } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
-import type { MeasuringToolName } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
 
 @Component({
   selector: 'floating-windows-tabs-panel',
@@ -28,9 +26,9 @@ export class FloatingWindowTabsPanel {
   constructor(protected $floatingWindowsService: FloatingWindowsService) {}
 
   protected normalizeName(name: WindowName) {
-    if (drawingToolsNames.includes(name as DrawingToolName)) {
+    if (isDrawingToolName(name)) {
       return getRusDrawingToolName(name);
-    } else if (measuringToolsNames.includes(name as MeasuringToolName)) {
+    } else if (isMeasuringToolName(name)) {
       return getRusMeasuringToolName(name);
     } else if (name === 'terrainAnalysis') {
       return 'Анализ рельефа';
@@ -38,7 +36,7 @@ export class FloatingWindowTabsPanel {
   }
 
   protected willClose(name: WindowName): boolean {
-    if (measuringToolsNames.includes(name as MeasuringToolName) || name === 'terrainAnalysis') {
+    if (isMeasuringToolName(name) || name === 'terrainAnalysis') {
       return true;
     } else return false;
   }

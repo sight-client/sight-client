@@ -77,6 +77,28 @@ describe('CursorCoordsService on desktop', () => {
     service = TestBed.inject(CursorCoordsService);
   });
 
+  it('updates the canvas center when the window resizes', () => {
+    const canvas = document.createElement('canvas');
+    let width = 400;
+    let height = 200;
+    Object.defineProperty(canvas, 'scrollWidth', { configurable: true, get: () => width });
+    Object.defineProperty(canvas, 'scrollHeight', { configurable: true, get: () => height });
+    const viewerService = TestBed.inject(ViewerService) as unknown as {
+      viewer: { scene: { canvas: HTMLCanvasElement } };
+    };
+    viewerService.viewer = { scene: { canvas } };
+
+    service.bindCanvasResize();
+    width = 800;
+    height = 600;
+    window.dispatchEvent(new Event('resize'));
+
+    const internals = service as unknown as { canvasCenterX: number; canvasCenterY: number };
+    expect(internals.canvasCenterX).toBe(400);
+    expect(internals.canvasCenterY).toBe(300);
+    service.ngOnDestroy();
+  });
+
   it('getCursorXY without a canvas returns undefined', () => {
     expect(service.getCursorXY()).toBeUndefined();
   });

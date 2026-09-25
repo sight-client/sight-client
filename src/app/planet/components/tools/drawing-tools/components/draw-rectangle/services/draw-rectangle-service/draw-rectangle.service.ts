@@ -1,12 +1,15 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, computed, effect, linkedSignal, signal, untracked } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import {
   ToolsService,
+  cartesianFromProperty,
   getRectangle,
+  stringFromProperty,
+  booleanFromProperty,
 } from '@/components/tools/services/tools-service/tools.service';
 import {
   DrawingService,
@@ -57,7 +60,7 @@ export class DrawRectangleService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -76,7 +79,7 @@ export class DrawRectangleService {
       if (this._isActive() && this.counter > 0) this.counter--;
       this.$drawingService.cancelDrawingTool(); // общая функция отмены сценария любого из инструментов работы с картой
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     } finally {
       this._drawingHasStarted.set(false);
       this.isActive.set(false);
@@ -121,7 +124,7 @@ export class DrawRectangleService {
         this.cancelThisTool();
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       this.cancelThisTool();
     }
   }
@@ -219,7 +222,7 @@ export class DrawRectangleService {
             }
           } else {
             mouseEntity = await this.$toolsService.getMouseEntity(true);
-            startPos = mouseEntity?.position?.getValue();
+            startPos = cartesianFromProperty(mouseEntity?.position?.getValue());
           }
           if (startPos === undefined) {
             // throw new Error('Start position is undefined in drawRectangleAreaDrawingGraphics()');
@@ -255,7 +258,7 @@ export class DrawRectangleService {
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -283,7 +286,7 @@ export class DrawRectangleService {
             }
           } else {
             mouseEntity = await this.$toolsService.getMouseEntity(true);
-            movePos = mouseEntity?.position?.getValue();
+            movePos = cartesianFromProperty(mouseEntity?.position?.getValue());
           }
           if (movePos === undefined) return;
 
@@ -295,14 +298,14 @@ export class DrawRectangleService {
             if (
               this.$toolsService.isMobile &&
               polygonEntity?.label &&
-              polygonEntity.label.text?.getValue() !== labelTextGagTwo
+              stringFromProperty(polygonEntity.label.text?.getValue()) !== labelTextGagTwo
             ) {
               polygonEntity.label.text = new Cesium.ConstantProperty(labelTextGagTwo);
             }
             if (
               this.$toolsService.isMobile &&
               polygonEntity?.point &&
-              polygonEntity.point.show?.getValue() === true
+              booleanFromProperty(polygonEntity.point.show?.getValue()) === true
             ) {
               polygonEntity.point.show = new Cesium.ConstantProperty(false);
             }
@@ -323,7 +326,7 @@ export class DrawRectangleService {
           } else return;
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -351,7 +354,7 @@ export class DrawRectangleService {
           }
           const startRect = getRectangle(startPos, startPos.clone());
           if (Cesium.Cartesian3.equals(polylinePositions[1], startRect[1])) {
-            console.log(chalk.blue('End & start positions are equal'));
+            console.info('End & start positions are equal');
             this.cancelThisTool();
             return;
           }
@@ -369,7 +372,7 @@ export class DrawRectangleService {
             //       endPos = await this.$toolsService.getDetailedPosition(endPos);
             //     }
             //   }
-            if (polygonEntity?.label && polygonEntity.label.text?.getValue() !== labelTextMain) {
+            if (polygonEntity?.label && stringFromProperty(polygonEntity.label.text?.getValue()) !== labelTextMain) {
               polygonEntity.label.text = new Cesium.ConstantProperty(labelTextMain);
             }
             // } else {
@@ -382,7 +385,7 @@ export class DrawRectangleService {
           //   return;
           // }
           // if (Cesium.Cartesian3.equals(startPos, endPos)) {
-          //   console.log(chalk.blue('End & start positions are equal'));
+          //   console.info('End & start positions are equal');
           //   this.cancelThisTool();
           //   return;
           // }
@@ -409,7 +412,7 @@ export class DrawRectangleService {
           } else this.cancelThisTool();
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -418,7 +421,7 @@ export class DrawRectangleService {
       return true;
     } catch (error: unknown) {
       this.cancelThisTool();
-      console.log(chalk.red(error));
+      reportError(error);
       alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
       return false;
     }

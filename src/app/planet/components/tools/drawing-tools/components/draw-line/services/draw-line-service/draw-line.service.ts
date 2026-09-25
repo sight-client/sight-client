@@ -1,10 +1,16 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, computed, effect, linkedSignal, signal, untracked } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  cartesianFromProperty,
+  stringFromProperty,
+  booleanFromProperty,
+  recordFromProperty,
+} from '@/components/tools/services/tools-service/tools.service';
 import {
   DrawingService,
   getRusDrawingToolName,
@@ -38,7 +44,7 @@ export class DrawLineService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -55,7 +61,7 @@ export class DrawLineService {
       if (this._isActive() && this.counter > 0) this.counter--;
       this.$drawingService.cancelDrawingTool(); // общая функция отмены сценария любого из инструментов работы с картой
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     } finally {
       this._drawingHasStarted.set(false);
       this.isActive.set(false);
@@ -120,7 +126,7 @@ export class DrawLineService {
         this.cancelThisTool();
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       this.cancelThisTool();
     }
   }
@@ -190,7 +196,7 @@ export class DrawLineService {
             }
           } else {
             mouseEntity = await this.$toolsService.getMouseEntity(true);
-            nowPos = mouseEntity?.position?.getValue();
+            nowPos = cartesianFromProperty(mouseEntity?.position?.getValue());
           }
           if (nowPos === undefined) {
             // throw new Error('Position arg is undefined in drawLineDrawingGraphics()');
@@ -203,7 +209,7 @@ export class DrawLineService {
             // Последующие точки
           } else {
             if (Cesium.Cartesian3.equals(nowPos, polylinePositions[polylinePositions.length - 1])) {
-              console.log(chalk.blue('Next & start positions are equal'));
+              console.info('Next & start positions are equal');
               return;
             }
             if (!this.$toolsService.isMobile) {
@@ -279,10 +285,10 @@ export class DrawLineService {
           }
           if (this.$toolsService.isMobile && lineEntity && polylinePositions.length > 1) {
             if (lineEntity?.label) {
-              if (lineEntity.label.text?.getValue() !== labelTextGag) {
+              if (stringFromProperty(lineEntity.label.text?.getValue()) !== labelTextGag) {
                 lineEntity.label.text = new Cesium.ConstantProperty(labelTextGag);
               }
-              if (lineEntity.label.show?.getValue() === false) {
+              if (booleanFromProperty(lineEntity.label.show?.getValue()) === false) {
                 lineEntity.label.show = new Cesium.ConstantProperty(true);
               }
             }
@@ -293,7 +299,7 @@ export class DrawLineService {
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -306,7 +312,7 @@ export class DrawLineService {
           if (polylinePositions.length < 2) return;
           if (!this.$toolsService.isMobile) {
             const mouseEntity: Cesium.Entity = await this.$toolsService.getMouseEntity(true);
-            const movePos: Cesium.Cartesian3 | undefined = mouseEntity?.position?.getValue();
+            const movePos = cartesianFromProperty(mouseEntity?.position?.getValue());
             if (movePos === undefined) return;
             polylinePositions.pop(); // стирание предыдущей позиции из mousemove ИЛИ "заглушки" из предшествующих кликов
             polylinePositions.push(movePos); // добавление актуальной позиции по mousemove; даст эффект рисования карандашом, если не стирать предыдущую позицию
@@ -314,7 +320,7 @@ export class DrawLineService {
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -340,7 +346,7 @@ export class DrawLineService {
                 polylinePositions[polylinePositions.length - 1],
               )
             ) {
-              console.log(chalk.blue('End & start positions are equal'));
+              console.info('End & start positions are equal');
               this.cancelThisTool();
               return;
             }
@@ -356,7 +362,7 @@ export class DrawLineService {
             //     return;
             //   }
             //   if (Cesium.Cartesian3.equals(polylinePositions[0], endPos)) {
-            //     console.log(chalk.blue('End & start positions are equal'));
+            //     console.info('End & start positions are equal');
             //     this.cancelThisTool();
             //     return;
             //   }
@@ -422,30 +428,32 @@ export class DrawLineService {
               }
             }
             if (pointsQuantity !== polylinePositions.length) {
-              console.log(
-                chalk.red(
-                  'WARNING:',
-                  `pointsQuantity (${pointsQuantity}) !== polylinePositions.length (${polylinePositions.length})`,
-                ),
+              console.info(
+                'WARNING:',
+                `pointsQuantity (${pointsQuantity}) !== polylinePositions.length (${polylinePositions.length})`,
               );
             }
 
             if (lineEntity && polylinePositions.length > 1) {
               if (lineEntity?.label) {
-                if (lineEntity.label.text?.getValue() !== labelText) {
+                if (stringFromProperty(lineEntity.label.text?.getValue()) !== labelText) {
                   lineEntity.label.text = new Cesium.ConstantProperty(labelText);
                 }
-                if (lineEntity.label.show?.getValue() === false) {
+                if (booleanFromProperty(lineEntity.label.show?.getValue()) === false) {
                   lineEntity.label.show = new Cesium.ConstantProperty(true);
                 }
               }
             }
+            const lineProperties = lineEntity?.properties;
+            const lineProps = recordFromProperty(lineProperties?.getValue());
             if (
               lineEntity &&
+              lineProperties &&
               optForLine.properties &&
-              lineEntity.properties?.getValue().lineColor
+              lineProps &&
+              lineProps['lineColor']
             ) {
-              lineEntity.properties['lineColor'] = {
+              lineProperties['lineColor'] = {
                 lineColor: undefined,
               };
             }
@@ -465,8 +473,7 @@ export class DrawLineService {
           } else this.cancelThisTool();
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
-          if (error instanceof Error) console.log(error.stack);
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -476,8 +483,7 @@ export class DrawLineService {
       return true;
     } catch (error: unknown) {
       this.cancelThisTool();
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
       return false;
     }

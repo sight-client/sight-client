@@ -1,3 +1,4 @@
+import { reportError } from '@global/lib/report-error.lib';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,7 +8,6 @@ import {
   OnInit,
   OnDestroy,
 } from '@angular/core';
-import chalk from 'chalk';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -49,8 +49,8 @@ import type { EntitiesGroup } from '@/components/tools/services/tools-service/to
 export class DrawingsListEntityInfo implements OnInit, OnDestroy {
   @Input() objInCollection: EntitiesGroup;
   @Input() forcedName?: string;
-  @Input() callback?: Function;
-  @Input() callbackArgs?: Array<any>;
+  @Input() callback?: (...args: readonly unknown[]) => void;
+  @Input() callbackArgs?: readonly unknown[];
 
   @Output() counterChangeEmitter = new EventEmitter<number>();
   ngOnInit() {
@@ -78,23 +78,25 @@ export class DrawingsListEntityInfo implements OnInit, OnDestroy {
         return `last entity id: ${objInCollection.groupId}`;
       return 'description error';
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return 'description error';
     }
   }
 
-  protected clickCallback(callback?: Function, callbackArgs?: Array<any>): boolean {
+  protected clickCallback(
+    callback?: (...args: readonly unknown[]) => void,
+    callbackArgs?: readonly unknown[],
+  ): boolean {
     try {
       // Всплытие события клика не перехватывать! (используется в родителе для обновления newPickedEntity)
       if (callback && typeof callback === 'function') {
         if (callbackArgs && callbackArgs?.length) {
-          console.log('callbackArgs :>> ', callbackArgs);
           callback(...callbackArgs);
         } else callback();
         return true;
       } else return false;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }

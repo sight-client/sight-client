@@ -1,11 +1,11 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { effect, Injectable, signal, untracked, WritableSignal } from '@angular/core';
-import chalk from 'chalk';
 
 import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { DrawingsListService } from '@/components/tools/drawings-list/services/drawings-list-service/drawings-list.service';
-import { measuringToolsNames } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
-import type { MeasuringToolName } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
+import { isMeasuringToolName } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
+import { finiteCssPx } from '@global/lib/common-global.lib';
 
 export type WindowName = string;
 
@@ -33,7 +33,6 @@ export class FloatingWindowsService {
         if (this.$viewerService.forcedEntityPickingEffectFlag() !== undefined) {
           untracked(() => {
             const forcedPickedToolName =
-              // @ts-ignore (конфликт - кастомное свойство toolName)
               this.$viewerService?.viewer?.forcedPickedEntity?.()?.toolName;
             if (!forcedPickedToolName) return;
             if (
@@ -47,7 +46,7 @@ export class FloatingWindowsService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -77,10 +76,11 @@ export class FloatingWindowsService {
         if (phone) {
           // 15 + height − overlap (btn×7/96) + --tool-chevron-thickness + 8px
           const rootStyle = getComputedStyle(document.documentElement);
-          const btn =
-            parseFloat(rootStyle.getPropertyValue('--regular-btn-size')) || 44;
-          const thickness =
-            parseFloat(rootStyle.getPropertyValue('--tool-chevron-thickness')) || btn / 2;
+          const btn = finiteCssPx(rootStyle.getPropertyValue('--regular-btn-size'), 44);
+          const thickness = finiteCssPx(
+            rootStyle.getPropertyValue('--tool-chevron-thickness'),
+            btn / 2,
+          );
           newTop = Math.round(15 + btn - (btn * 7) / 96 + thickness + 8);
         } else if (narrow && laptop) {
           newTop = 50;
@@ -90,11 +90,9 @@ export class FloatingWindowsService {
           newTop = 33 + this._windowHeaderHeight;
         }
         if (mainArrLength !== 0) {
-          if (this._floatingWindowsList()[mainArrLength - 1]?.top !== undefined) {
-            if (this._floatingWindowsList()?.[mainArrLength - 1]?.top) {
-              newTop =
-                this._floatingWindowsList()[mainArrLength - 1]!.top + this._windowHeaderHeight;
-            }
+          const previousWindow = this._floatingWindowsList()[mainArrLength - 1];
+          if (previousWindow?.top) {
+            newTop = previousWindow.top + this._windowHeaderHeight;
           }
         }
         if (newTop > window.innerHeight - 300) {
@@ -124,7 +122,7 @@ export class FloatingWindowsService {
         // }
       });
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     }
   }
   // Используется в сервисах инструментов правой панели и пр.
@@ -144,7 +142,7 @@ export class FloatingWindowsService {
         }
       });
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     }
   }
 
@@ -157,15 +155,16 @@ export class FloatingWindowsService {
     try {
       event.stopPropagation();
       if (index === undefined) {
-        console.log(chalk.red('Index is undefined in collapseWindow fn'));
+        console.info('Index is undefined in collapseWindow fn');
         return false;
       }
-      if (this._floatingWindowsList()[index]?.collapsed() === false) {
-        this._floatingWindowsList()[index]!.collapsed.set(true);
+      const windowItem = this._floatingWindowsList()[index];
+      if (windowItem?.collapsed() === false) {
+        windowItem.collapsed.set(true);
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -174,21 +173,22 @@ export class FloatingWindowsService {
     try {
       if (event) event.stopPropagation();
       if (index === undefined) {
-        console.log(chalk.red('Index is undefined in expandWindow fn'));
+        console.info('Index is undefined in expandWindow fn');
         return false;
       }
-      if (this._floatingWindowsList()[index]?.collapsed() === true) {
-        this._floatingWindowsList()[index]!.collapsed.set(false);
+      const windowItem = this._floatingWindowsList()[index];
+      if (windowItem?.collapsed() === true) {
+        windowItem.collapsed.set(false);
       }
-      if (this._floatingWindowsList()[index]?.hidden() === true) {
-        this._floatingWindowsList()[index]!.hidden.set(false);
+      if (windowItem?.hidden() === true) {
+        windowItem.hidden.set(false);
       }
-      if (this._floatingWindowsList()[index]?.windowName) {
-        this.setActiveWindow(this._floatingWindowsList()[index]!.windowName);
+      if (windowItem?.windowName) {
+        this.setActiveWindow(windowItem.windowName);
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -197,29 +197,26 @@ export class FloatingWindowsService {
     try {
       if (event) event.stopPropagation();
       if (index === undefined) {
-        console.log(chalk.red('Index is undefined in hideWindow fn'));
+        console.info('Index is undefined in hideWindow fn');
         return false;
       }
-      if (
-        measuringToolsNames?.length &&
-        measuringToolsNames.includes(
-          this._floatingWindowsList()[index]?.windowName as MeasuringToolName,
-        )
-      ) {
-        console.log('measuring tool has hiden');
+      const hiddenName = this._floatingWindowsList()[index]?.windowName;
+      if (hiddenName && isMeasuringToolName(hiddenName)) {
+        console.info('measuring tool has hiden');
       }
-      if (this._floatingWindowsList()[index]?.hidden() === false) {
-        this._floatingWindowsList()[index]!.hidden.set(true);
+      const windowItem = this._floatingWindowsList()[index];
+      if (windowItem?.hidden() === false) {
+        windowItem.hidden.set(true);
       }
-      if (this._floatingWindowsList()[index]?.collapsed() === true) {
-        this._floatingWindowsList()[index]!.collapsed.set(false);
+      if (windowItem?.collapsed() === true) {
+        windowItem.collapsed.set(false);
       }
       if (this?.$drawingsListService !== undefined) {
         this.checkActiveInDrawingsList(undefined, index);
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -231,26 +228,24 @@ export class FloatingWindowsService {
       const index = this._floatingWindowsList().findIndex(
         (item) => item?.windowName === windowName,
       );
-      if (index !== -1) {
-        if (this._floatingWindowsList()[index]?.hidden() === false) {
-          this._floatingWindowsList()[index]!.hidden.set(true);
+      const windowItem = this._floatingWindowsList()[index];
+      if (index !== -1 && windowItem) {
+        if (windowItem.hidden() === false) {
+          windowItem.hidden.set(true);
         }
-        if (this._floatingWindowsList()[index]?.collapsed() === true) {
-          this._floatingWindowsList()[index]!.collapsed.set(false);
+        if (windowItem.collapsed() === true) {
+          windowItem.collapsed.set(false);
         }
         if (this?.$drawingsListService !== undefined) {
           this.checkActiveInDrawingsList(windowName, undefined);
         }
         return true;
       } else {
-        console.log(
-          chalk.red(`Floating window "${windowName}" has not found in hideWindowByToolName fn`),
-        );
-        console.trace();
+        console.info(`Floating window "${windowName}" has not found in hideWindowByToolName fn`);
         return false;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -259,13 +254,11 @@ export class FloatingWindowsService {
   private checkActiveInDrawingsList(windowName?: WindowName, index?: number): boolean {
     try {
       if (this?.$drawingsListService === undefined) {
-        console.log(chalk.red('DrawingsListService is undefined in checkActiveInDrawingsList fn'));
+        console.info('DrawingsListService is undefined in checkActiveInDrawingsList fn');
         return false;
       }
       if (!windowName && index === undefined) {
-        console.log(
-          chalk.red("WindowName and it's index are undefined in checkActiveInDrawingsList fn"),
-        );
+        console.info("WindowName and it's index are undefined in checkActiveInDrawingsList fn");
         return false;
       }
       if (windowName) {
@@ -285,13 +278,13 @@ export class FloatingWindowsService {
             }
           }
         } else {
-          console.log(chalk.red('Invalid index in checkActiveInDrawingsList fn'));
+          console.info('Invalid index in checkActiveInDrawingsList fn');
           return false;
         }
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -312,26 +305,25 @@ export class FloatingWindowsService {
       const index = this._floatingWindowsList().findIndex(
         (item) => item?.windowName === windowName,
       );
-      if (index !== -1) {
-        if (this._floatingWindowsList()[index]?.collapsed() === true) {
-          this._floatingWindowsList()[index]!.collapsed.set(false);
+      const windowItem = this._floatingWindowsList()[index];
+      if (index !== -1 && windowItem) {
+        if (windowItem.collapsed() === true) {
+          windowItem.collapsed.set(false);
         }
-        if (this._floatingWindowsList()[index]?.hidden() === true) {
-          this._floatingWindowsList()[index]!.hidden.set(false);
+        if (windowItem.hidden() === true) {
+          windowItem.hidden.set(false);
         }
-        if (this._floatingWindowsList()[index]?.isActive() === false) {
-          this._floatingWindowsList()[index]?.isActive.set(true);
+        if (windowItem.isActive() === false) {
+          windowItem.isActive.set(true);
           this.clearOthersIsActiveFlags(windowName);
         }
         return true;
       } else {
-        console.log(
-          chalk.red(`Floating window "${windowName}" has not found in setActiveWindow fn`),
-        );
+        console.info(`Floating window "${windowName}" has not found in setActiveWindow fn`);
         return false;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -343,7 +335,7 @@ export class FloatingWindowsService {
       });
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -357,26 +349,25 @@ export class FloatingWindowsService {
       } else {
         index = this._floatingWindowsList().findIndex((item) => item?.windowName === windowName);
       }
-      if (index !== -1) {
-        if (this._floatingWindowsList()[index]?.collapsed() === true) {
-          this._floatingWindowsList()[index]!.collapsed.set(false);
+      const windowItem = this._floatingWindowsList()[index];
+      if (index !== -1 && windowItem) {
+        if (windowItem.collapsed() === true) {
+          windowItem.collapsed.set(false);
         }
-        if (this._floatingWindowsList()[index]?.hidden() === true) {
-          this._floatingWindowsList()[index]!.hidden.set(false);
+        if (windowItem.hidden() === true) {
+          windowItem.hidden.set(false);
         }
-        if (this._floatingWindowsList()[index]?.isActive() === false) {
-          this._floatingWindowsList()[index]?.isActive.set(true);
+        if (windowItem.isActive() === false) {
+          windowItem.isActive.set(true);
           this.clearOthersIsActiveFlags(windowName);
         }
         return true;
       } else {
-        console.log(
-          chalk.red(`Floating window "${windowName}" has not found in setActiveWindow fn`),
-        );
+        console.info(`Floating window "${windowName}" has not found in setActiveWindow fn`);
         return false;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -390,7 +381,7 @@ export class FloatingWindowsService {
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -410,7 +401,7 @@ export class FloatingWindowsService {
         return true;
       } else return false;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }

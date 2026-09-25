@@ -9,24 +9,26 @@ function buttonEl(): HTMLButtonElement {
   return document.createElement('button');
 }
 
-function divRef(children: HTMLElement[]): ElementRef {
+function divRef(children: HTMLElement[]): ElementRef<HTMLElement> {
   const div = document.createElement('div');
   for (const child of children) {
     div.appendChild(child);
   }
-  return { nativeElement: div } as ElementRef;
+  return { nativeElement: div };
 }
 
 describe('buttons-subgroups-visibility', () => {
   describe('setNormalButtonsVisibility', () => {
-    it('sets button-visibility on default firstChild and hidden children', () => {
+    it('shows the default host and hides the auxiliary hosts', () => {
       const defaultER = divRef([buttonEl()]);
       const hiddenER = divRef([buttonEl(), buttonEl()]);
 
       expect(setNormalButtonsVisibility(defaultER, hiddenER)).toBe(true);
-      expect(defaultER.nativeElement.firstChild?.getAttribute('button-visibility')).toBe('true');
+      expect(defaultER.nativeElement.firstChild instanceof HTMLElement).toBe(true);
+      expect((defaultER.nativeElement.firstChild as HTMLElement).style.display).toBe('block');
       for (const child of Array.from(hiddenER.nativeElement.children)) {
-        expect((child as HTMLElement).getAttribute('button-visibility')).toBe('false');
+        expect(child instanceof HTMLElement).toBe(true);
+        if (child instanceof HTMLElement) expect(child.style.display).toBe('none');
       }
     });
 
@@ -39,19 +41,21 @@ describe('buttons-subgroups-visibility', () => {
   });
 
   describe('toggleAuxillarySubgroupVisibility', () => {
-    it('toggles button-visibility between true and false', () => {
+    it('toggles auxiliary host display between block and none', () => {
       const defaultER = divRef([buttonEl()]);
       const hiddenER = divRef([buttonEl(), buttonEl()]);
       setNormalButtonsVisibility(defaultER, hiddenER);
 
       expect(toggleAuxillarySubgroupVisibility(hiddenER)).toBe(true);
       for (const child of Array.from(hiddenER.nativeElement.children)) {
-        expect((child as HTMLElement).getAttribute('button-visibility')).toBe('true');
+        expect(child instanceof HTMLElement).toBe(true);
+        if (child instanceof HTMLElement) expect(child.style.display).toBe('block');
       }
 
       expect(toggleAuxillarySubgroupVisibility(hiddenER)).toBe(true);
       for (const child of Array.from(hiddenER.nativeElement.children)) {
-        expect((child as HTMLElement).getAttribute('button-visibility')).toBe('false');
+        expect(child instanceof HTMLElement).toBe(true);
+        if (child instanceof HTMLElement) expect(child.style.display).toBe('none');
       }
     });
   });

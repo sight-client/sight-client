@@ -26,6 +26,7 @@
 ### Task 1: FloatingWindowsService stack
 
 **Files:**
+
 - Modify: `src/app/planet/components/floating-windows/services/floating-windows-service/floating-windows.service.spec.ts`
 - Modify: `floating-window.spec.ts`, `floating-windows-container.spec.ts`, `floating-windows-tabs-panel.spec.ts`, `tools-floating-windows.spec.ts` — create + bind to service signals if the template shows titles
 
@@ -37,7 +38,7 @@
 it('adds a window keyed by toolName and can hide it', () => {
   const service = TestBed.inject(FloatingWindowsService);
   service.addWindowItem('drawMark');
-  const items = service /* read the actual signal name, e.g. windowsList() */;
+  const items = service; /* read the actual signal name, e.g. windowsList() */
   expect(items.some((w) => w.windowName === 'drawMark' || w === 'drawMark')).toBe(true);
   service.hideWindowByToolName('drawMark', new MouseEvent('click'));
   // assert hidden/collapsed signal on that item is true (read actual field names)
@@ -56,6 +57,7 @@ Use a real `MouseEvent` so `event.preventDefault` in production does not throw.
 ### Task 2: DrawingsListService list operations
 
 **Files:**
+
 - Modify: `src/app/planet/components/tools/drawings-list/services/drawings-list-service/drawings-list.service.spec.ts`
 - Modify: `src/app/planet/components/tools/drawings-list/drawings-list.spec.ts` (create)
 - Modify: `drawings-list-entity-info.spec.ts` (create + displayed name if `@Input`)
@@ -72,6 +74,7 @@ Characterize: rename of an entity in a stub group if there is a public method; f
 ### Task 3: KML export/import sanitization
 
 **Files:**
+
 - Modify: `src/app/planet/components/tools/drawings-list/services/drawings-list-kml-service/drawings-list-kml.service.spec.ts`
 
 - [ ] **Step 1: Fixtures**
@@ -89,6 +92,7 @@ Do not execute KML. Do not network.
 ### Task 4: ODS report export/import
 
 **Files:**
+
 - Modify: `src/app/planet/components/tools/drawings-list/services/drawings-list-report-service/drawings-list-report.service.spec.ts`
 
 Public API: `provideReport()`. Import path uses private `getPseudoEntitiesFromReport` via `provideReport` / file input — if only private, characterize through the public import method (read the file for the public name; likely a change handler on drawings-list).

@@ -169,6 +169,7 @@ describe('MainSight', () => {
     async function setupSidenavTest(
       isMobile: boolean,
       tabletLayout: ReturnType<typeof signal<boolean>>,
+      wideMobile: ReturnType<typeof signal<boolean>> = signal(false),
     ) {
       await TestBed.resetTestingModule();
       await TestBed.configureTestingModule({
@@ -181,6 +182,7 @@ describe('MainSight', () => {
               isMobile,
               checkMobile: () => isMobile,
               phoneLayout: signal(false),
+              wideMobile,
               tabletLayout,
               laptopLayout: signal(false),
               narrowChromeLayout: signal(false),
@@ -207,8 +209,15 @@ describe('MainSight', () => {
       expect(sidenav.opened).toBe(false);
     });
 
-    it('uses side when tabletLayout is false even if isMobile is true', async () => {
-      await setupSidenavTest(true, signal(false));
+    it('uses overlay for a phone that is not wideMobile', async () => {
+      await setupSidenavTest(true, signal(false), signal(false));
+      const sidenav = sidenavInstance();
+      expect(sidenav.mode).toBe('over');
+      expect(sidenav.opened).toBe(false);
+    });
+
+    it('uses side when wideMobile is true', async () => {
+      await setupSidenavTest(true, signal(false), signal(true));
       const sidenav = sidenavInstance();
       expect(sidenav.mode).toBe('side');
       expect(sidenav.opened).toBe(true);
@@ -227,14 +236,17 @@ describe('MainSight', () => {
         clientX: x + index,
         clientY: y,
       }));
-      return { touches } as unknown as TouchEvent;
+      return { touches, stopPropagation() {} } as unknown as TouchEvent;
     }
 
-    it('shows an edge catcher only while the overlay sidenav is closed', async () => {
+    it('shows the edge catcher for tablet and phone layouts, not for a wide desktop', async () => {
       await setupSidenavTest(false, signal(true));
       expect(fixture.debugElement.query(By.css('.sight-main-sidenav-edge-swipe'))).toBeTruthy();
 
       await setupSidenavTest(true, signal(false));
+      expect(fixture.debugElement.query(By.css('.sight-main-sidenav-edge-swipe'))).toBeTruthy();
+
+      await setupSidenavTest(false, signal(false));
       expect(fixture.debugElement.query(By.css('.sight-main-sidenav-edge-swipe'))).toBeNull();
     });
 
@@ -246,7 +258,7 @@ describe('MainSight', () => {
       host.onSidenavEdgeTouchMove(touchEvent(64, 208), sidenav);
       expect(sidenav.opened).toBe(true);
       fixture.detectChanges();
-      expect(fixture.debugElement.query(By.css('.sight-main-sidenav-edge-swipe'))).toBeNull();
+      expect(fixture.debugElement.query(By.css('.sight-main-sidenav-edge-swipe'))).toBeTruthy();
     });
 
     it('does not open the sidenav on a vertical move or a second finger', async () => {

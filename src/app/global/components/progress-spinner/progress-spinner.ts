@@ -73,10 +73,9 @@ export class ProgressSpinner {
   //   try {
   //     const mouseMove$: Observable<Event> = fromEvent(window, 'mousemove').pipe(throttleTime(10));
   //     return mouseMove$.subscribe((event) => {
-  //       this.setCoordsWindowPosition(event as MouseEvent);
+  //       if (event instanceof MouseEvent) this.setCoordsWindowPosition(event);
   //     });
-  //   } catch (error: any) {
-  //     error.cause = 'red';
+  //   } catch (error: unknown) {
   //     throw error;
   //   }
   // }
@@ -86,9 +85,8 @@ export class ProgressSpinner {
   //   try {
   //     this.mouseX.set(event.clientX);
   //     this.mouseY.set(event.clientY);
-  //     console.log(this.mouseX(), this.mouseY());
-  //   } catch (error: any) {
-  //     error.cause = 'red';
+  //     console.info(this.mouseX(), this.mouseY());
+  //   } catch (error: unknown) {
   //     throw error;
   //   }
   // }

@@ -1,5 +1,6 @@
 import {
   downloadBlob,
+  finiteCssPx,
   getMomentDate,
   getMomentName,
   jsonNullToUndefined,
@@ -41,5 +42,12 @@ describe('common-global.lib', () => {
     const name = getMomentName('sight', 'ods');
     expect(name).toContain('sight-');
     expect(name).toContain('.sight.ods');
+  });
+
+  it('finiteCssPx reads a px length and falls back when the value is not finite', () => {
+    expect(finiteCssPx('44px')).toBe(44);
+    expect(finiteCssPx(' 12.5 ')).toBe(12.5);
+    expect(finiteCssPx('', 8)).toBe(8);
+    expect(finiteCssPx('auto', 10)).toBe(10);
   });
 });

@@ -1,32 +1,23 @@
 import { ErrorHandler, Injectable } from '@angular/core';
-import chalk from 'chalk';
 
 @Injectable()
 export class GlobalErrorHandlerService implements ErrorHandler {
-  handleError(error: any): void {
-    if (error?.cause === 'red') {
-      console.log(chalk.red(error.stack));
-      return;
-    } else if (error?.cause === 'yellow') {
-      console.log(chalk.yellow(error.stack));
-      return;
-    } else if (error?.cause === 'green') {
-      console.log(chalk.green(error.stack));
-      return;
-    } else if (error?.cause === 'blue') {
-      console.log(chalk.blue(error.stack));
-      return;
-    }
-    console.log(error);
-    // Для ошибок валидации входных данных сетевых запросов с бэка
-    if (error?.error?.message) {
-      console.log(error.error.message);
+  handleError(error: unknown): void {
+    console.error(error);
+    const validationMessage = readValidationMessage(error);
+    if (validationMessage !== undefined) {
+      console.error(validationMessage);
     }
   }
 }
 
-// красный (red) - для критических ошибок кода,
-// желтые (yellow) - для кастомных ошибок по вине сервера,
-// зеленый (green) - для описания положительных результатов,
-// синий (blue) - для информационных сообщений,
-// фиолетовый (magenta) - запасной.
+function readValidationMessage(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null || !('error' in error)) {
+    return undefined;
+  }
+  const body = error.error;
+  if (typeof body !== 'object' || body === null || !('message' in body)) {
+    return undefined;
+  }
+  return typeof body.message === 'string' ? body.message : undefined;
+}

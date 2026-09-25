@@ -1,6 +1,6 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { computed, effect, Injectable, signal, untracked, WritableSignal } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
@@ -28,8 +28,12 @@ export const drawingToolsNames = Object.freeze([
 ] as const);
 export type DrawingToolName = (typeof drawingToolsNames)[number];
 
+export function isDrawingToolName(name: string): name is DrawingToolName {
+  return drawingToolsNames.some((toolName) => toolName === name);
+}
+
 // Пополнять при добавлении новых инструментов (ТОЛЬКО ДЛЯ ИНСТРУМЕНТОВ, ДОБАВЛЯЮЩИХ СУЩНОСТИ В МЕСТНЫЕ СТОРЫ)
-export function getRusDrawingToolName(toolName: DrawingToolName | string) {
+export function getRusDrawingToolName(toolName: DrawingToolName) {
   switch (toolName) {
     case 'drawMark':
       return 'Метка';
@@ -41,10 +45,6 @@ export function getRusDrawingToolName(toolName: DrawingToolName | string) {
       return 'Окружность';
     case 'drawPolygon':
       return 'Многоугольник';
-    // case 'newTool':
-    //   return 'Новый инструмент';
-    default:
-      return toolName;
   }
 }
 
@@ -56,29 +56,27 @@ export const drawingToolsNamesRus = Object.freeze([
   getRusDrawingToolName('drawPolygon'),
 ] as const);
 export type DrawingToolNameRus = (typeof drawingToolsNamesRus)[number];
+
+export function isDrawingToolNameRus(name: string): name is DrawingToolNameRus {
+  return drawingToolsNamesRus.some((toolNameRus) => toolNameRus === name);
+}
+
 // Пополнять при добавлении новых инструментов (ТОЛЬКО ДЛЯ ИНСТРУМЕНТОВ, ДОБАВЛЯЮЩИХ СУЩНОСТИ В МЕСТНЫЕ СТОРЫ)
-export function getOriginDrawingToolName(toolNameRus: DrawingToolNameRus | string) {
-  switch (toolNameRus) {
-    case getRusDrawingToolName('drawMark'):
-      return 'drawMark';
-    case getRusDrawingToolName('drawLine'):
-      return 'drawLine';
-    case getRusDrawingToolName('drawRectangle'):
-      return 'drawRectangle';
-    case getRusDrawingToolName('drawCircle'):
-      return 'drawCircle';
-    case getRusDrawingToolName('drawPolygon'):
-      return 'drawPolygon';
-    default:
-      return toolNameRus;
+export function getOriginDrawingToolName(toolNameRus: DrawingToolNameRus): DrawingToolName {
+  const toolName = drawingToolsNames.find(
+    (name) => getRusDrawingToolName(name) === toolNameRus,
+  );
+  if (toolName === undefined) {
+    throw new Error(`Unknown drawing tool label: ${toolNameRus}`);
   }
+  return toolName;
 }
 
 // ---------------------------------------------------------- Блок базовых установок ---------------------------------------------- //
 // Запровайден в planet.ts
 @Injectable()
 export class DrawingService {
-  declare public findEntityPathInStore;
+  declare public findEntityPathInStore: ToolsService['findEntityPathInStore'];
   declare public readonly drawingToolsLayerName: DataSourceName;
   declare public readonly drawRouteLayerName: DataSourceName;
 
@@ -139,18 +137,14 @@ export class DrawingService {
             );
         });
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
 
   public cancelDrawingTool(): void {
-    try {
-      this.removeTemporalEntities();
-      this.$toolsService.clearCommonHandler();
-    } catch (error: unknown) {
-      throw error;
-    }
+    this.removeTemporalEntities();
+    this.$toolsService.clearCommonHandler();
   }
 
   // -------------------------------------------------- Блок размещения сторов инструментов --------------------------------------- //
@@ -273,9 +267,7 @@ export class DrawingService {
     try {
       if (!entitiesStore().length) return false;
       if (groupId === undefined) {
-        console.log(
-          chalk.blue('Entities group to delete is not defined (by removeEntitiesByGroupId fn)'),
-        );
+        console.info('Entities group to delete is not defined (by removeEntitiesByGroupId fn)');
         return false;
       }
       // Массив id для последующего удаления из dataSource
@@ -283,19 +275,18 @@ export class DrawingService {
       const entitiesGroupIndex = entitiesStore().findIndex((groupObj) =>
         groupObj?.groupId.startsWith(groupId),
       );
-      if (entitiesGroupIndex !== -1 && entitiesStore()[entitiesGroupIndex]?.entitiesList) {
-        for (const entity of entitiesStore()[entitiesGroupIndex]!.entitiesList) {
-          idsArr.push(entity!.id);
+      const entitiesGroup = entitiesStore()[entitiesGroupIndex];
+      if (entitiesGroupIndex !== -1 && entitiesGroup?.entitiesList) {
+        for (const entity of entitiesGroup.entitiesList) {
+          if (entity) idsArr.push(entity.id);
         }
         entitiesStore.update((arr) => {
           arr.splice(entitiesGroupIndex, 1);
           return [...arr];
         });
       } else {
-        console.log(
-          chalk.blue(
-            "Entities group to delete haven't found in entitiesStore (by removeEntitiesByGroupId fn)",
-          ),
+        console.info(
+          "Entities group to delete haven't found in entitiesStore (by removeEntitiesByGroupId fn)",
         );
         return false;
       }
@@ -306,12 +297,12 @@ export class DrawingService {
           dataSource.entities.removeById(id);
         }
       } else {
-        console.log(chalk.blue('dataSource is undefined (by removeEntitiesByGroupId fn)'));
+        console.info('dataSource is undefined (by removeEntitiesByGroupId fn)');
         return false;
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -334,9 +325,7 @@ export class DrawingService {
           return [...arr];
         });
       } else {
-        console.log(
-          chalk.blue("Entity Id hasn't found in entitiesStore (by removeOneEntityByGroupId fn)"),
-        );
+        console.info("Entity Id hasn't found in entitiesStore (by removeOneEntityByGroupId fn)");
         return false;
       }
       const dataSource: Cesium.DataSource | undefined =
@@ -344,11 +333,11 @@ export class DrawingService {
       if (dataSource) {
         return dataSource.entities.removeById(entityId);
       } else {
-        console.log(chalk.blue('dataSource is undefined (by removeOneEntityByGroupId fn)'));
+        console.info('dataSource is undefined (by removeOneEntityByGroupId fn)');
         return false;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -357,33 +346,32 @@ export class DrawingService {
 
   // Очистка всех групп сущностей определенного инструмента (например, по СКМ на кнопках) с холста и из стора
   public allToolEntitiesCleaning(
-    toolName: DrawingToolName | string,
+    toolName: DrawingToolName,
     dataSourceName: string = this.drawingToolsLayerName,
   ): boolean {
     try {
       if (!toolName) throw new Error('toolName is undefined in allToolEntitiesCleaning fn');
-      if (!drawingToolsNames.includes(toolName as any)) return true;
-      if (!this._allEntitiesListsLinks[toolName as DrawingToolName])
+      if (!isDrawingToolName(toolName)) return true;
+      if (!this._allEntitiesListsLinks[toolName])
         throw new Error('targetStore is undefined in allToolEntitiesCleaning fn');
       const targetStore: WritableSignal<Array<EntitiesGroup | undefined>> =
-        this._allEntitiesListsLinks[toolName as DrawingToolName];
+        this._allEntitiesListsLinks[toolName];
       if (!targetStore().length) {
-        console.log(chalk.blue('targetStore is already empty (by allToolEntitiesCleaning fn)'));
-        console.trace();
+        console.info('targetStore is already empty (by allToolEntitiesCleaning fn)');
         return false;
       }
       const idsArr: string[] = [];
       for (const item of targetStore()) {
         if (item?.entitiesList.length) {
           for (const entity of item.entitiesList) {
-            idsArr.push(entity!.id);
+            if (entity) idsArr.push(entity.id);
           }
         }
       }
       if (idsArr.length) {
         targetStore.update(() => []);
       } else {
-        console.log(chalk.blue('Nothing to erase in targetStore (by allToolEntitiesCleaning fn)'));
+        console.info('Nothing to erase in targetStore (by allToolEntitiesCleaning fn)');
         return false;
       }
       const dataSource: Cesium.DataSource | undefined =
@@ -393,12 +381,12 @@ export class DrawingService {
           dataSource.entities.removeById(id);
         }
       } else {
-        console.log(chalk.blue('dataSource is undefined (by allToolEntitiesCleaning fn)'));
+        console.info('dataSource is undefined (by allToolEntitiesCleaning fn)');
         return false;
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -407,21 +395,21 @@ export class DrawingService {
     try {
       const targetStore: WritableSignal<Array<EntitiesGroup | undefined>> = this._overEntitiesList;
       if (!targetStore().length) {
-        console.log(chalk.blue('targetStore is already empty (by allOversEntitiesCleaning fn)'));
+        console.info('targetStore is already empty (by allOversEntitiesCleaning fn)');
         return false;
       }
       const idsArr: string[] = [];
       for (const item of targetStore()) {
         if (item?.entitiesList.length) {
           for (const entity of item.entitiesList) {
-            idsArr.push(entity!.id);
+            if (entity) idsArr.push(entity.id);
           }
         }
       }
       if (idsArr.length) {
         targetStore.update(() => []);
       } else {
-        console.log(chalk.blue('Nothing to erase in targetStore (by allOversEntitiesCleaning fn)'));
+        console.info('Nothing to erase in targetStore (by allOversEntitiesCleaning fn)');
         return false;
       }
       const dataSource: Cesium.DataSource | undefined =
@@ -431,12 +419,12 @@ export class DrawingService {
           dataSource.entities.removeById(id);
         }
       } else {
-        console.log(chalk.blue('dataSource is undefined (by allOversEntitiesCleaning fn)'));
+        console.info('dataSource is undefined (by allOversEntitiesCleaning fn)');
         return false;
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -451,7 +439,7 @@ export class DrawingService {
       if (dataSource) {
         dataSource.entities.removeAll();
       } else {
-        console.log(chalk.blue('dataSource is undefined (by clearDrawingsDataSource fn)'));
+        console.info('dataSource is undefined (by clearDrawingsDataSource fn)');
         return false;
       }
       const listsArr: Array<WritableSignal<Array<EntitiesGroup | undefined>>> = Object.values(
@@ -461,8 +449,8 @@ export class DrawingService {
         if (item !== this._routeEntityList) item.update(() => []);
       });
       return true;
-    } catch (error) {
-      console.log(chalk.red(error));
+    } catch (error: unknown) {
+      reportError(error);
       return false;
     }
   }
@@ -474,13 +462,13 @@ export class DrawingService {
       if (dataSource) {
         dataSource.entities.removeAll();
       } else {
-        console.log(chalk.blue('dataSource is undefined (by clearRouteDataSources fn)'));
+        console.info('dataSource is undefined (by clearRouteDataSources fn)');
         return false;
       }
       this._routeEntityList.update(() => []);
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -499,16 +487,17 @@ export class DrawingService {
       const index = targetList().findIndex((item) => item?.groupId === groupIdChank);
       if (index !== -1) {
         targetList.update((arr) => {
-          arr[index]!.defaultEntity = defaultEntity || undefined;
+          const group = arr[index];
+          if (group) group.defaultEntity = defaultEntity || undefined;
           return [...arr];
         });
       } else {
-        console.log(chalk.blue("groupId hasn't found in changeDefaultEntityInGroup fn"));
+        console.info("groupId hasn't found in changeDefaultEntityInGroup fn");
         return false;
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -542,7 +531,7 @@ export class DrawingService {
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -576,7 +565,7 @@ export class DrawingService {
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -598,10 +587,8 @@ export class DrawingService {
           if (!entity?.id) continue;
           const index = layer.entities.values.findIndex((item) => item.id === entity.id);
           if (index !== -1) {
-            console.log(
-              chalk.blue(
-                'Entity already exists on draw layer and will be loose (in pushGroupWithoutTemporalWithDrawing fn)',
-              ),
+            console.info(
+              'Entity already exists on draw layer and will be loose (in pushGroupWithoutTemporalWithDrawing fn)',
             );
             continue;
           }
@@ -611,10 +598,8 @@ export class DrawingService {
         validEntities = entities;
       }
       if (!validEntities.length) {
-        console.log(
-          chalk.blue(
-            `No valid entities on pushing "${toolName}" entities in store (in pushGroupWithoutTemporalWithDrawing fn)`,
-          ),
+        console.info(
+          `No valid entities on pushing "${toolName}" entities in store (in pushGroupWithoutTemporalWithDrawing fn)`,
         );
         return false;
       }
@@ -623,20 +608,20 @@ export class DrawingService {
         this.pushGroupWithoutTemporal(validEntities, groupIdChank, toolName, defaultEntity) === true
       ) {
         for (const entity of validEntities) {
-          this.addNewEntityToDrawLayer(entity!);
+          if (entity) this.addNewEntityToDrawLayer(entity);
         }
 
         return true;
       } else {
         //   console.log(
-        //     chalk.red(
+        //     (
         //       `Pushing "${toolName}" entities in store failed in pushGroupWithoutTemporalWithDrawing fn`,
         //     ),
         //   );
         return false;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -656,11 +641,11 @@ export class DrawingService {
           this._temporalEntitiesList.set([]);
         }
       } else {
-        console.log('_temporalEntitiesList() is empty in clearTemporalEntitiesList fn');
+        console.info('_temporalEntitiesList() is empty in clearTemporalEntitiesList fn');
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -679,7 +664,7 @@ export class DrawingService {
         }
       } else {
         for (const entity of this._temporalEntitiesList()) {
-          idsArr.push(entity!.id);
+          if (entity) idsArr.push(entity.id);
         }
       }
       const hasDeletedFromStore = this.clearTemporalEntitiesList(groupId);
@@ -692,46 +677,38 @@ export class DrawingService {
           }
           return true;
         } else {
-          console.log(chalk.blue('dataSource is undefined (by removeTemporalEntities fn)'));
+          console.info('dataSource is undefined (by removeTemporalEntities fn)');
           return false;
         }
       } else {
-        console.log(
-          chalk.blue('Temporal store clearing has failed (by removeTemporalEntities fn)'),
-        );
+        console.info('Temporal store clearing has failed (by removeTemporalEntities fn)');
         return false;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
 
   // -------------------------------------------------- Блок добавления сущности на холст ----------------------------------------- //
 
-  // Для main-функций  инструментов рисования
+  // Для main-функций инструментов рисования.
+  // Ошибка здесь уходит наверх: вызывающий инструмент отменяет сценарий сам, а не глушит её console.log.
   public addNewEntityToDrawLayer(entity: Cesium.Entity): boolean {
-    try {
-      const dataSource: Cesium.DataSource | undefined =
+    const dataSource: Cesium.DataSource | undefined =
         this?.$viewerService.viewer.dataSources?.getByName(this.drawingToolsLayerName)?.[0];
       if (dataSource) {
         dataSource.entities.add(entity);
         return true;
       } else {
-        console.log(chalk.red("Data source hasn't found in addNewEntityToDrawLayer fn"));
+        console.info("Data source hasn't found in addNewEntityToDrawLayer fn");
         return false;
       }
-    } catch (error: unknown) {
-      // В данном common-сервисе В PUBLIC-МЕТОДАХ выбрасываются именно ошибка, а не console.log.
-      // Обработки таких ошибок необходимы непосредственно в компонентах, его использующих, по причине возможного наличия дополнительной логики отмены сценариев.
-      throw error;
-    }
   }
   // Для main-функции инструмента "Маршрут"
   public addNewEntityToDrawRoute(entity: Cesium.Entity): boolean {
-    try {
-      if (!entity || !(entity instanceof Cesium.Entity)) {
-        console.log(chalk.red('Invalid entity in addNewEntityToDrawRoute fn'));
+    if (!entity || !(entity instanceof Cesium.Entity)) {
+        console.info('Invalid entity in addNewEntityToDrawRoute fn');
         return false;
       }
       const dataSource: Cesium.DataSource | undefined =
@@ -742,12 +719,9 @@ export class DrawingService {
         dataSource.entities.add(entity);
         return true;
       } else {
-        console.log(chalk.red("Data source hasn't found in addNewEntityToDrawRoute fn"));
+        console.info("Data source hasn't found in addNewEntityToDrawRoute fn");
         return false;
       }
-    } catch (error: unknown) {
-      throw error;
-    }
   }
 
   // ------------------------------------------------ Блок изменений параметров сущностей ----------------------------------------- //
@@ -755,20 +729,19 @@ export class DrawingService {
   // Замена лисенеров (Cesium.CallbackProperty) на константы (для экономии производительности)
   private setEntityConstantsTimeouts: { [entityId: string]: number } = {};
   public setEntityConstants(validId: string | undefined): void {
-    try {
-      const entityId = validId; // контрольная копия
+    const entityId = validId; // контрольная копия
       if (!entityId || typeof entityId !== 'string') {
         throw new Error("Invalid entity's ID in setEntityConstants fn");
       }
       if (this.setEntityConstantsTimeouts?.[entityId]) {
         clearTimeout(this.setEntityConstantsTimeouts[entityId]);
       }
-      const toolName: string = entityId.split('-')[1];
-      if (drawingToolsNames.includes(toolName as DrawingToolName)) {
+      const toolName = entityId.split('-')[1];
+      if (toolName && isDrawingToolName(toolName)) {
         this.setEntityConstantsTimeouts[entityId] = setTimeout(
           (id: string) => {
             this.$toolsService.setConstantsForStoreEntities(
-              this.allEntitiesListsLinks[toolName as DrawingToolName],
+              this.allEntitiesListsLinks[toolName],
               id,
             );
           },
@@ -776,8 +749,5 @@ export class DrawingService {
           entityId, // закрепление контекста
         );
       } else throw new Error("Invalid entity's tool's name in setEntityConstants fn");
-    } catch (error: unknown) {
-      throw error;
-    }
   }
 }

@@ -1,9 +1,13 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { computed, effect, Injectable, linkedSignal, untracked } from '@angular/core';
-import chalk from 'chalk';
 import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  cartesian3ListFromProperty,
+  numberFromProperty,
+} from '@/components/tools/services/tools-service/tools.service';
 import { FloatingWindowsService } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
 import { MeasureService } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
 import type { MeasuringToolName } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
@@ -38,7 +42,7 @@ export class CalculateCircleFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
     // Deprecated (на текущий момент для мерителей поддерживается только единоразовый сценарий использования)
@@ -57,7 +61,7 @@ export class CalculateCircleFloatingWindowService {
     //       });
     //     }
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
     // Удаление сущностей инструмента с холста при уделении его плавающего окна
@@ -78,7 +82,7 @@ export class CalculateCircleFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -104,12 +108,11 @@ export class CalculateCircleFloatingWindowService {
     const selectedEntity = this.$viewerService.viewer?.newPickedEntity?.();
     let targetEntity: Cesium.Entity | undefined = undefined;
     untracked(() => {
-      // @ts-ignore (конфликт - кастомное свойство toolName)
       if (selectedEntity?.toolName !== this.toolName) return;
       if (!this.$calculateCircleService.calculateCircleList().length) return;
       const indexGroup = this.$calculateCircleService
         .calculateCircleList()
-        .findIndex((group) => selectedEntity.id.startsWith(group!.groupId));
+        .findIndex((group) => !!group && selectedEntity.id.startsWith(group.groupId));
       if (indexGroup === -1) return;
       const group = this.$calculateCircleService.calculateCircleList()[indexGroup];
       if (group?.defaultEntity) {
@@ -117,7 +120,7 @@ export class CalculateCircleFloatingWindowService {
       } else {
         if (!group?.entitiesList.length) return;
         const indexEntity = group?.entitiesList.findIndex((entity) =>
-          entity!.id.includes('-ellipse-'),
+          !!entity && entity.id.includes('-ellipse-'),
         );
         if (indexEntity === -1) return;
         targetEntity = group.entitiesList[indexEntity];
@@ -138,14 +141,12 @@ export class CalculateCircleFloatingWindowService {
   }
   // Для указания радиуса
   private _validAuxiliaryEntity = computed<Cesium.Entity | undefined>(() => {
-    if (this._validPickedEnttity()) {
+    const picked = this._validPickedEnttity();
+    if (picked) {
       let targetEntity: Cesium.Entity | undefined = undefined;
       untracked(() => {
         const store = this.$measureService.calculateCircleList;
-        const indexGroup = this.$toolsService.findEntityPathInStore(
-          this.validPickedEnttity()!.id,
-          store,
-        ).indexGroup;
+        const indexGroup = this.$toolsService.findEntityPathInStore(picked.id, store).indexGroup;
         if (indexGroup === -1 || indexGroup === undefined) return;
         const indexRadius = store()[indexGroup]?.entitiesList.findIndex((entity) =>
           entity?.id.includes('-line-'),
@@ -165,26 +166,31 @@ export class CalculateCircleFloatingWindowService {
     let radius: number = 0;
     if (this._validAuxiliaryEntity() !== undefined) {
       untracked(() => {
-        const semiMinorAxis: number | undefined =
-          this._validPickedEnttity()?.ellipse?.semiMinorAxis?.getValue();
-        const semiMajorAxis: number | undefined =
-          this._validPickedEnttity()?.ellipse?.semiMajorAxis?.getValue();
+        const semiMinorAxis = numberFromProperty(
+          this._validPickedEnttity()?.ellipse?.semiMinorAxis?.getValue(),
+        );
+        const semiMajorAxis = numberFromProperty(
+          this._validPickedEnttity()?.ellipse?.semiMajorAxis?.getValue(),
+        );
         // Проверка на окружность
-        if (semiMinorAxis !== undefined && semiMinorAxis === semiMajorAxis) {
-          const radiusPolylinePositions: Array<Cesium.Cartesian3> =
-            this._validAuxiliaryEntity()!.polyline?.positions?.getValue();
+        if (
+          semiMinorAxis !== undefined &&
+          semiMajorAxis !== undefined &&
+          semiMinorAxis === semiMajorAxis
+        ) {
+          const radiusPolylinePositions = cartesian3ListFromProperty(
+            this._validAuxiliaryEntity()?.polyline?.positions?.getValue(),
+          );
           if (
-            radiusPolylinePositions?.length ||
-            !(radiusPolylinePositions[0] instanceof Cesium.Cartesian3)
+            radiusPolylinePositions?.length &&
+            radiusPolylinePositions[0] instanceof Cesium.Cartesian3
           ) {
             radius = MeasuresLib.calculatePosDistancesWhithoutHumanify(radiusPolylinePositions);
           } else {
-            console.log(
-              chalk.red('Invalid radiusPolylinePositions array in validAuxiliaryEntity signal'),
-            );
+            console.info('Invalid radiusPolylinePositions array in validAuxiliaryEntity signal');
           }
         } else {
-          console.log(chalk.red('Invalid ellipse in validAuxiliaryEntity signal'));
+          console.info('Invalid ellipse in validAuxiliaryEntity signal');
         }
       });
     }
@@ -272,22 +278,26 @@ export class CalculateCircleFloatingWindowService {
   // Deprecated
   // public changeCircleEntitiesColor(newColor: string) {
   //   try {
+  //     const picked = this.validPickedEnttity();
+  //     if (!picked) return false;
   //     const store = this.$measureService.calculateCircleList;
   //     let indexGroup, indexValidEntity;
   //     [indexGroup, indexValidEntity] = this.$toolsService.findEntityPathInStore(
-  //       this.validPickedEnttity()!.id,
+  //       picked.id,
   //       this.$measureService.calculateCircleList,
   //     );
   //     if (indexGroup === undefined || indexValidEntity === undefined)
   //       throw new Error("Entity's path search error in changeCircleEntityColor fn");
   //     store.update((oldStore) => {
-  //       oldStore[indexGroup]!.entitiesList[indexValidEntity]!.polyline!.material =
+  //       const entity = oldStore[indexGroup]?.entitiesList[indexValidEntity];
+  //       if (entity?.polyline) entity.polyline.material =
   //         new Cesium.ColorMaterialProperty(Cesium.Color.fromCssColorString(newColor)); // .withAlpha даст ошибку несовместимости с html input hex color
-  //       const indexRadius = oldStore[indexGroup]!.entitiesList.findIndex((entity) =>
+  //       const indexRadius = oldStore[indexGroup]?.entitiesList.findIndex((entity) =>
   //         entity?.id.includes('-line-'),
   //       );
   //       if (indexRadius !== -1) {
-  //         oldStore[indexGroup]!.entitiesList[indexRadius]!.polyline!.material =
+  //         const radiusEntity = oldStore[indexGroup]?.entitiesList[indexRadius];
+  //         if (radiusEntity?.polyline) radiusEntity.polyline.material =
   //           new Cesium.ColorMaterialProperty(Cesium.Color.fromCssColorString(newColor)); // .withAlpha даст ошибку несовместимости с html input hex color
   //       }
   //       const newStore = [...oldStore];
@@ -295,7 +305,7 @@ export class CalculateCircleFloatingWindowService {
   //     });
   //     return true;
   //   } catch (error: unknown) {
-  //     console.log(chalk.red(error));
+  //     reportError(error);
   //     return false;
   //   }
   // }

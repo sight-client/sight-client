@@ -1,21 +1,8 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  signal,
-  ElementRef,
-  OnInit,
-  OnDestroy,
-} from '@angular/core';
-import chalk from 'chalk';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
-import {
-  setStartBtnVisibility,
-  getBtnVisibilityObserver,
-} from '@/components/tools/lib/buttons-subgroups-visibility';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
@@ -26,7 +13,6 @@ import { ToolsService } from '@/components/tools/services/tools-service/tools.se
   imports: [MatButtonModule, MatIconModule, MatTooltipModule],
   template: `
     <button
-      [style.display]="buttonVisibility() ? 'block' : 'none'"
       [matTooltip]="rusToolName"
       matTooltipShowDelay="1000"
       matTooltipPosition="left"
@@ -49,41 +35,15 @@ import { ToolsService } from '@/components/tools/services/tools-service/tools.se
   styleUrls: ['../../../tools-panel.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TakeScreenshot implements OnInit, OnDestroy {
-  protected readonly toolName: string = 'takeScreenshot';
-  protected readonly rusToolName: string = 'Снимок экрана';
+export class TakeScreenshot {
+  protected readonly toolName = 'takeScreenshot' as const;
+  protected readonly rusToolName = 'Снимок экрана' as const;
   constructor(
     private $viewerService: ViewerService,
     protected $toolsService: ToolsService,
-    // -------------------------- Управление видимостью кнопки (входящей в группу инструментов) (start) -------------------------- //
-    private el: ElementRef<HTMLElement>,
   ) {}
 
   // Управление видимостью кнопки (входящей в группу инструментов)
-  protected buttonVisibility = signal<boolean>(false);
-  private observer: MutationObserver | undefined;
-
-  ngOnInit() {
-    try {
-      // Определение стартового значения флага видимости кнопки
-      if (setStartBtnVisibility(this.el, this.buttonVisibility)) {
-        // Отслеживание изменения кастомного атрибута хоста для выставления флага видимости кнопки
-        this.observer = getBtnVisibilityObserver(this.el, this.buttonVisibility);
-        if (this.observer !== undefined) {
-          this.observer.observe(this.el.nativeElement, {
-            attributes: true,
-          });
-        } else throw new Error('getBtnVisibilityObserver fn has failed');
-      } else throw new Error('setStartBtnVisibility fn has failed');
-    } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
-    }
-  }
-
-  ngOnDestroy() {
-    this.observer?.disconnect();
-  }
   // -------------------------- Управление видимостью кнопки (входящей в группу инструментов) (end) -------------------------- //
   private takingScreenshotTimout: number;
   protected buttonHandler(event: MouseEvent) {
@@ -95,6 +55,7 @@ export class TakeScreenshot implements OnInit, OnDestroy {
         // this.$viewerService.viewer.resolutionScale = 3.0;
         this.$viewerService.viewer.render();
         this.$viewerService.viewer.canvas.toBlob((blob) => {
+          if (!blob) return;
           const localDate = new Date();
           const timeZoneOffset = localDate.getTimezoneOffset();
           /* Необходима, т.к. .toISOString() работает только с UTC+0 */
@@ -103,7 +64,7 @@ export class TakeScreenshot implements OnInit, OnDestroy {
           const time = localDate.toLocaleTimeString('it-IT');
           /* Имитация браузерной загрузки содержимого по ссылке */
           const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob as Blob);
+          a.href = URL.createObjectURL(blob);
           document.body.appendChild(a);
           a.download = `screenshot-sight-${trueTodayDate}-${time}`;
           a.click();

@@ -86,4 +86,11 @@ describe('CoordSystems SK-42 m zone', () => {
     expect(Math.abs(wgs.longitude)).toBeLessThan(180);
     expect(Math.abs(wgs.latitude)).toBeLessThan(90);
   });
+
+  it('fromWGS84Cartographic keeps source when lon/lat are not finite', () => {
+    const source = { longitude: Number.POSITIVE_INFINITY, latitude: 55.7558, height: 0 };
+    const out = CoordSystems.fromWGS84Cartographic('СК-42 °', source);
+    expect(out.longitude).toBe(source.longitude);
+    expect(out.latitude).toBe(source.latitude);
+  });
 });

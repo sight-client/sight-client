@@ -23,6 +23,7 @@
 ### Task 1: GitHub Actions unit tests
 
 **Files:**
+
 - Create: `.github/workflows/unit-tests.yml`
 - Modify: `.gitignore` (stop ignoring `package-lock.json`)
 - Modify: `.cursor/superpowers/specs/2026-09-17-sight-github-pages-design.md`
@@ -36,6 +37,7 @@
 ### Task 2: KML javascript: name (TDD)
 
 **Files:**
+
 - Modify: `drawings-list-kml.service.spec.ts` (flip parked test)
 - Modify: `drawings-list-kml.service.ts`
 - Modify: `.cursor/superpowers/specs/2026-09-17-sight-map-tools-design.md`

@@ -1,5 +1,5 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, computed, linkedSignal, untracked, effect } from '@angular/core';
-import chalk from 'chalk';
 import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
@@ -30,7 +30,7 @@ export class DrawMarkFloatingWindowService {
                 this.$drawingService.drawMarkEntitiesList()?.[0]?.defaultEntity ||
                 this.$drawingService.drawMarkEntitiesList()?.[0]?.entitiesList?.[0];
               if (!firstEntity || !(firstEntity instanceof Cesium.Entity)) {
-                console.log(chalk.red('Invalid entity has added'));
+                console.info('Invalid entity has added');
                 return;
               } else {
                 this._validPickedEnttity.set(firstEntity);
@@ -44,7 +44,7 @@ export class DrawMarkFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
     effect(() => {
@@ -61,7 +61,7 @@ export class DrawMarkFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -69,7 +69,6 @@ export class DrawMarkFloatingWindowService {
   declare public readonly toolName: DrawingToolName;
   // Notice: newPickedEntity также обновляется при каждом успешном окончании сценария использования инструмента (заложено в функциях drawing.service.ts)
   private newPickedEntity = computed<Cesium.Entity | undefined>(() => {
-    // @ts-ignore (конфликт - кастомное свойство toolName)
     if (this.$viewerService.viewer?.newPickedEntity?.()?.toolName === this.toolName) {
       return this.$viewerService.viewer?.newPickedEntity?.();
     } else return undefined;
@@ -93,7 +92,7 @@ export class DrawMarkFloatingWindowService {
   }
   // Переобновление сущности с новыми свойствами
   // $drawMarkService нужно знать изменения
-  public changesEntity(entity: any) {
+  public changesEntity(entity: Cesium.Entity | undefined) {
     this.$viewerService.setNewPickedEntity(entity);
   }
   // --------------------- Блок стандартных для окон инструментов методов и состояний (end) ----------------------- //

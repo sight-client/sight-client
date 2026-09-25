@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { FloatingWindowsService } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
@@ -38,7 +38,7 @@ import { CalculatePolygonFloatingWindowService } from '@/components/tools/measur
 // import { FlyAroundFloatingWindowService } from '@/components/tools/camera-view-tools/components/fly-around/components/fly-around-floating-window/services/fly-around-floating-window-service/fly-around-floating-window.service';
 
 type FloatingWindowItem = {
-  type: any; // типы импортируемых компонентов плавающих окон
+  type: Type<unknown>;
   name: string;
 };
 @Component({
@@ -69,12 +69,12 @@ type FloatingWindowItem = {
 })
 export class ToolsFloatingWindows {
   declare protected floatingWindowsComponents: Array<FloatingWindowItem>;
-  protected getFloatingWindowComponentType(windowName: string | undefined) {
-    if (windowName === undefined) return undefined;
+  protected getFloatingWindowComponentType(windowName: string | undefined): Type<unknown> | null {
+    if (windowName === undefined) return null;
     const floatingWindowItem = this.floatingWindowsComponents.find(
       (item) => item.name === windowName,
     );
-    return floatingWindowItem?.type;
+    return floatingWindowItem?.type ?? null;
   }
   // Нужен только для корректной работы leave animation (на "обертке" компонента под @if)
   protected checkFloatingWindow(windowName: string | undefined) {

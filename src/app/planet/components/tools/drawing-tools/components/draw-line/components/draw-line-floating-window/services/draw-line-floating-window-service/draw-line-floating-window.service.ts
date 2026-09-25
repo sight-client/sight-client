@@ -1,5 +1,5 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { computed, effect, Injectable, linkedSignal, untracked } from '@angular/core';
-import chalk from 'chalk';
 import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
@@ -31,7 +31,7 @@ export class DrawLineFloatingWindowService {
                 this.$drawingService.drawLineEntitiesList()?.[0]?.defaultEntity ||
                 this.$drawingService.drawLineEntitiesList()?.[0]?.entitiesList?.[0];
               if (!firstEntity || !(firstEntity instanceof Cesium.Entity)) {
-                console.log(chalk.red('Invalid entity has added'));
+                console.info('Invalid entity has added');
                 return;
               } else {
                 this._validPickedEnttity.set(firstEntity);
@@ -45,7 +45,7 @@ export class DrawLineFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
     // // Добавление или показ окна по активации (кнопке) инструмента (до построения первой сущности) по причине наличия опций построения
@@ -66,7 +66,7 @@ export class DrawLineFloatingWindowService {
     //       });
     //     }
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
     // // Показ (без добавления) окна по построению первой сущности
@@ -83,7 +83,7 @@ export class DrawLineFloatingWindowService {
     //       });
     //     }
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
     // // Удаление окна вместе с последней относящейся к нему сущностью
@@ -96,7 +96,7 @@ export class DrawLineFloatingWindowService {
     //       });
     //     }
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
     // Сокрытие (без удаления) окна при удалении активной (отображаемой в нем) сущности
@@ -114,7 +114,7 @@ export class DrawLineFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -126,12 +126,11 @@ export class DrawLineFloatingWindowService {
     const selectedEntity = this.$viewerService.viewer?.newPickedEntity?.();
     let targetEntity: Cesium.Entity | undefined = undefined;
     untracked(() => {
-      // @ts-ignore (конфликт - кастомное свойство toolName)
       if (selectedEntity?.toolName !== this.toolName) return;
       if (!this.$drawLineService.drawLineEntitiesList().length) return;
       const indexGroup = this.$drawLineService
         .drawLineEntitiesList()
-        .findIndex((group) => selectedEntity.id.startsWith(group!.groupId));
+        .findIndex((group) => !!group && selectedEntity.id.startsWith(group.groupId));
       if (indexGroup === -1) return;
       const group = this.$drawLineService.drawLineEntitiesList()[indexGroup];
       if (group?.defaultEntity) {
@@ -139,7 +138,7 @@ export class DrawLineFloatingWindowService {
       } else {
         if (!group?.entitiesList.length) return;
         const indexEntity = group?.entitiesList.findIndex((entity) =>
-          entity!.id.includes('-line-'),
+          !!entity && entity.id.includes('-line-'),
         );
         if (indexEntity === -1) return;
         targetEntity = group.entitiesList[indexEntity];

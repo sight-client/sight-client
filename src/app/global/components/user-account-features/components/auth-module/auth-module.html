@@ -96,6 +96,9 @@
               Вход
             </button>
           </mat-dialog-actions>
+          @if (typeof $userDataService.loginResult() === 'string') {
+            <p>{{ $userDataService.loginResult() }}</p>
+          }
         </form>
       </mat-card>
     }
@@ -277,6 +280,9 @@
               Отправить
             </button>
           </div>
+          @if (typeof $userDataService.registrationResult() === 'string') {
+            <p>{{ $userDataService.registrationResult() }}</p>
+          }
         </form>
       </mat-card>
     }

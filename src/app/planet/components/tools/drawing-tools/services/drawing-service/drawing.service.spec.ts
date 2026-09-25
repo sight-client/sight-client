@@ -10,6 +10,8 @@ import {
   drawingToolsNames,
   getOriginDrawingToolName,
   getRusDrawingToolName,
+  isDrawingToolName,
+  isDrawingToolNameRus,
 } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 import { MeasureService } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
 import { CameraViewToolsService } from '@/components/tools/camera-view-tools/services/camera-view-tools-service/camera-view-tools.service';
@@ -192,6 +194,12 @@ describe('drawing tool name mapping', () => {
     expect(getRusDrawingToolName('drawCircle')).toBe('Окружность');
     expect(getRusDrawingToolName('drawPolygon')).toBe('Многоугольник');
     expect(getOriginDrawingToolName('Метка')).toBe('drawMark');
-    expect(getRusDrawingToolName('unknownTool')).toBe('unknownTool');
+    expect(getOriginDrawingToolName('Линия')).toBe('drawLine');
+    expect(getOriginDrawingToolName('Прямоугольник')).toBe('drawRectangle');
+    expect(getOriginDrawingToolName('Окружность')).toBe('drawCircle');
+    expect(getOriginDrawingToolName('Многоугольник')).toBe('drawPolygon');
+    expect(isDrawingToolName('unknownTool')).toBe(false);
+    expect(isDrawingToolNameRus('Метка')).toBe(true);
+    expect(isDrawingToolNameRus('неизвестный лист')).toBe(false);
   });
 });

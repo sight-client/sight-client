@@ -72,7 +72,7 @@ also-touches:
 Новый инструмент группы `CameraViewTools` по образцу `take-screenshot.ts`:
 
 - один `*.ts` + `*.spec.ts`, инлайн-шаблон;
-- `tool-panel-button`, `setStartBtnVisibility` / `MutationObserver`, `mousedown` без `stopPropagation`;
+- `tool-panel-button`, видимость хоста через `setNormalButtonsVisibility` (не `MutationObserver` / `setStartBtnVisibility`), `mousedown` без `stopPropagation`;
 - `ng-template` в `#hiddenNGCForCameraViewTools`, `position="3"`;
 - нет service, стора сущностей, floating window;
 - `toolName` вроде `toggleFullscreen`, русская подпись «На весь экран» / «Выйти из полноэкранного режима» и иконка enter/exit по текущему режиму;

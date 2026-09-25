@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { reportError } from '@global/lib/report-error.lib';
 import { RouterOutlet } from '@angular/router';
 
 import { SetLightDarkModeService } from '@global/services/set-light-dark-mode-service/set-light-dark-mode.service';
@@ -24,11 +25,8 @@ export class App {
     try {
       this.$setLightDarkModeService.getStartColorScheme();
       this.$setUserThemeService.setUserTheme();
-    } catch (error) {
-      console.log(error);
-      if (error instanceof Error) {
-        console.log(error.stack);
-      }
+    } catch (error: unknown) {
+      reportError(error);
     }
   }
 }

@@ -1,6 +1,6 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, computed, effect, linkedSignal, signal, untracked } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
@@ -48,7 +48,7 @@ export class DrawingToolBlankService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -66,7 +66,7 @@ export class DrawingToolBlankService {
     try {
       this.$drawingService.cancelDrawingTool(); // общая функция отмены сценария любого из инструментов работы с картой
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     } finally {
       this.drawingHasStarted.set(false);
       this.isActive.set(false);
@@ -110,7 +110,7 @@ export class DrawingToolBlankService {
         this.cancelThisTool();
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       this.cancelThisTool();
     }
   }
@@ -120,7 +120,7 @@ export class DrawingToolBlankService {
   // Main-функция настоящего инструмента
   private mainFunction(options: DrawingOptions = {}): boolean {
     try {
-      console.log('Старт нового сценария');
+      console.info('Старт нового сценария');
       if (this.$toolsService.drawingsBlocker() === true) return false;
       this.$toolsService.clearCommonHandler();
       this.$toolsService.setDrawingsBlocker(true);
@@ -148,10 +148,10 @@ export class DrawingToolBlankService {
             this.$viewerService.onEntityPickingBlock();
 
           // ...логика, характерная для настоящего инструмента
-          console.log('left click');
+          console.info('left click');
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -162,10 +162,10 @@ export class DrawingToolBlankService {
       const continueDrawing = (): void => {
         try {
           // ...логика, характерная для настоящего инструмента
-          if (true) console.log('mouse move');
+          if (true) console.info('mouse move');
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -175,7 +175,7 @@ export class DrawingToolBlankService {
       const finishDrawing = (): void => {
         try {
           if (this.drawingHasStarted() === false) {
-            console.log('Отмена сценария');
+            console.info('Отмена сценария');
             this.cancelThisTool();
             return;
           }
@@ -183,20 +183,20 @@ export class DrawingToolBlankService {
           this.$viewerService.offEntityPickingBlock();
 
           // ...логика, характерная для настоящего инструмента
-          console.log('right click');
+          console.info('right click');
 
           this.$toolsService.setDrawingsBlocker(false);
           if (options?.callback && typeof options.callback === 'function') {
             options.callback();
           }
           if (this.drawingHasStarted() === true) this.drawingHasStarted.set(false);
-          console.log('Окончание сценария');
+          console.info('Окончание сценария');
           if (options.reuse === true) {
             this.mainFunction(options);
           } else this.cancelThisTool();
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -205,7 +205,7 @@ export class DrawingToolBlankService {
       return true;
     } catch (error: unknown) {
       this.cancelThisTool();
-      console.log(chalk.red(error));
+      reportError(error);
       alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
       return false;
     }

@@ -34,6 +34,17 @@ import { CalculateCircleFloatingWindowService } from '@/components/tools/measuri
 import { CalculatePolygonFloatingWindowService } from '@/components/tools/measuring-tools/components/calculate-polygon/components/calculate-polygon-floating-window/services/calculate-polygon-floating-window-service/calculate-polygon-floating-window.service';
 import { FlyAroundFloatingWindowService } from '@/components/tools/camera-view-tools/components/fly-around/components/fly-around-floating-window/services/fly-around-floating-window-service/fly-around-floating-window.service';
 
+function prepareKmlEntities(
+  service: DrawingsListKmlService,
+  entities: Cesium.Entity[],
+): Cesium.Entity[] | undefined {
+  return (
+    service as unknown as {
+      prepareKmlEntities(entities: Cesium.Entity[]): Cesium.Entity[] | undefined;
+    }
+  ).prepareKmlEntities(entities);
+}
+
 function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
   return {
     viewer: {
@@ -146,7 +157,6 @@ describe('DrawingsListKmlService', () => {
         color: Cesium.Color.YELLOW,
       },
     });
-    // @ts-expect-error Sight custom property on Entity
     entity.toolName = 'drawMark';
     layer.entities.add(entity);
 
@@ -183,7 +193,7 @@ describe('DrawingsListKmlService', () => {
       description: `<div class="cesium-infoBox-description-lighter">${payload}</div>`,
     });
 
-    const parsed = (service as any).prepareKmlEntities([entity]);
+    const parsed = prepareKmlEntities(service, [entity]);
 
     expect(parsed).toBeTruthy();
     expect(String(entity.name ?? '')).not.toMatch(/javascript:/i);
@@ -203,7 +213,7 @@ describe('DrawingsListKmlService', () => {
       description: `<div class="cesium-infoBox-description-lighter">${payload}</div>`,
     });
 
-    (service as any).prepareKmlEntities([entity]);
+    prepareKmlEntities(service, [entity]);
 
     expect(entity.name).toBe('TestMark');
   });
@@ -223,9 +233,33 @@ describe('DrawingsListKmlService', () => {
       description: `<div class="cesium-infoBox-description-lighter">${payload}</div>`,
     });
 
-    (service as any).prepareKmlEntities([entity]);
+    prepareKmlEntities(service, [entity]);
 
     const image = entity.billboard?.image?.getValue?.() ?? entity.billboard?.image;
     expect(String(image ?? '')).not.toMatch(/javascript:/i);
+  });
+
+  it('prepareKmlEntities skips invalid JSON and still parses the next entity', () => {
+    const $toolsService = TestBed.inject(ToolsService);
+    vi.spyOn($toolsService, 'setClampingToGroudForEntity').mockImplementation(() => true);
+    const bad = new Cesium.Entity({
+      id: 'g1-drawMark-point-bad',
+      description: '<div class="cesium-infoBox-description-lighter">{not-json</div>',
+    });
+    const payload = JSON.stringify({
+      toolName: 'drawMark',
+      id: 'g1-drawMark-point-ok',
+      name: 'GoodMark',
+      show: true,
+    });
+    const good = new Cesium.Entity({
+      id: 'g1-drawMark-point-ok',
+      description: `<div class="cesium-infoBox-description-lighter">${payload}</div>`,
+    });
+
+    const parsed = prepareKmlEntities(service, [bad, good]);
+
+    expect(parsed).toBeTruthy();
+    expect(good.name).toBe('GoodMark');
   });
 });

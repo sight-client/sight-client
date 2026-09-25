@@ -7,7 +7,6 @@ import {
   OnInit,
   OnDestroy,
 } from '@angular/core';
-import chalk from 'chalk';
 
 import { UserDataService } from '@global/services/user-data-service/user-data.service';
 import { UserRegistrationData } from '@global/services/user-data-service/user-data.service';
@@ -157,11 +156,11 @@ export class AuthModule implements OnInit, OnDestroy {
       this.emailFormControl.errors
     ) {
       event.preventDefault();
-      console.log(chalk.blue('Невалидные данные формы для регистрации!'));
+      console.info('Невалидные данные формы для регистрации!');
       alert('Невалидные данные формы для регистрации!');
       return;
     }
-    const regDataObj: UserRegistrationData = new UserRegistrationData(
+    const regDataObj = new UserRegistrationData(
       this.userRegForm.value.login,
       this.userRegForm.value.password,
       this.userRegForm.value.firstName,
@@ -174,13 +173,21 @@ export class AuthModule implements OnInit, OnDestroy {
     this.userRegForm.disable();
     // Блокировка остальных элементов в диалоговом окне
     this.regFormIsDisabled.set(true);
-    this.$userDataService.getRegistrationSubscription(regDataObj).add(() => {
-      this.regFormIsDisabled.set(false);
-      this.userRegForm.enable();
-      if (this.$userDataService.registrationResult() === true) {
-        alert('Регистрация прошла успешно');
-      }
-    });
+    this.$userDataService.registrationConnectionSubscription = this.$userDataService
+      .register(regDataObj)
+      .subscribe({
+        complete: () => {
+          this.regFormIsDisabled.set(false);
+          this.userRegForm.enable();
+          if (this.$userDataService.registrationResult() === true) {
+            alert('Регистрация прошла успешно');
+          }
+        },
+        error: () => {
+          this.regFormIsDisabled.set(false);
+          this.userRegForm.enable();
+        },
+      });
   }
 
   // ---------------------------------------------------------------------------------------------- //
@@ -202,17 +209,23 @@ export class AuthModule implements OnInit, OnDestroy {
     if (this.loginLogFormControl.errors || this.passwordLogFormControl.errors) {
       event.preventDefault();
       event.stopPropagation();
-      console.log(chalk.blue('Невалидные данные формы для входа!'));
+      console.info('Невалидные данные формы для входа!');
       alert('Невалидные данные формы для входа!');
       return;
     }
     this.logFormIsDisabled.set(true);
     this.userLoginForm.disable();
-    this.$userDataService
-      .getLoginSubscription(this.userLoginForm.value.login, this.userLoginForm.value.password)
-      .add(() => {
-        this.logFormIsDisabled.set(false);
-        this.userLoginForm.enable();
+    this.$userDataService.loginConnectionSubscription = this.$userDataService
+      .login(this.userLoginForm.value.login, this.userLoginForm.value.password)
+      .subscribe({
+        complete: () => {
+          this.logFormIsDisabled.set(false);
+          this.userLoginForm.enable();
+        },
+        error: () => {
+          this.logFormIsDisabled.set(false);
+          this.userLoginForm.enable();
+        },
       });
   }
 
@@ -233,21 +246,19 @@ export class AuthModule implements OnInit, OnDestroy {
 
   // ---------------------------------------------------------------------------------------------- //
   // Зацикливание перехода по "Tab"
-  @ViewChild('firstLogFormInput') protected firstLogFormInputRef: ElementRef<Element> | undefined;
-  @ViewChild('firstRegFormInput') protected firstRegFormInputRef: ElementRef<Element> | undefined;
-  protected focusOnFirstInput(focusEl: ElementRef | undefined): void {
+  @ViewChild('firstLogFormInput') protected firstLogFormInputRef: ElementRef<HTMLElement> | undefined;
+  @ViewChild('firstRegFormInput') protected firstRegFormInputRef: ElementRef<HTMLElement> | undefined;
+  protected focusOnFirstInput(focusEl: ElementRef<HTMLElement> | undefined): void {
     if (focusEl) focusEl.nativeElement.focus();
   }
   protected focusOnFirstInputAlt(
-    focusEl: ElementRef | undefined,
+    focusEl: ElementRef<HTMLElement> | undefined,
     eventTarget: EventTarget | null,
   ): void {
     if (
       focusEl &&
-      (eventTarget as Element).parentElement?.nextElementSibling?.attributes.getNamedItem(
-        'disabled',
-      )
-      // ?.lastElementChild?.attributes.getNamedItem('disabled')
+      eventTarget instanceof Element &&
+      eventTarget.parentElement?.nextElementSibling?.attributes.getNamedItem('disabled')
     ) {
       focusEl.nativeElement.focus();
     }
@@ -256,13 +267,31 @@ export class AuthModule implements OnInit, OnDestroy {
   // ---------------------------------------------------------------------------------------------- //
   // Получение резервных значений (для хранения в сервисе)
   ngOnInit(): void {
-    // Note: есть разночтение типов FormControl и FormGroup.value.key (undefined),
-    // но any в данном случае безопасен, т.к. имеется проверка на соответствие UserRegistrationData
-    this.userRegForm.setValue(this.$userDataService.regFormValuesReserv() as any);
+    const saved = this.$userDataService.regFormValuesReserv();
+    this.userRegForm.setValue({
+      login: saved.login ?? null,
+      password: saved.password ?? null,
+      firstName: saved.firstName ?? null,
+      lastName: saved.lastName ?? null,
+      organization: saved.organization ?? null,
+      telephone: saved.telephone ?? null,
+      email: saved.email ?? null,
+    });
   }
   ngOnDestroy() {
     // Резервное сохранение состояния импутов формы регистрации на время жизни сервиса или до выпололнения успешного сценария (на случай непреднамеренного закрытия формы)
-    this.$userDataService.setRegFormValuesReserv(this.userRegForm.value as UserRegistrationData);
+    const value = this.userRegForm.value;
+    this.$userDataService.setRegFormValuesReserv(
+      new UserRegistrationData(
+        value.login,
+        value.password,
+        value.firstName,
+        value.lastName,
+        value.organization,
+        value.telephone,
+        value.email,
+      ),
+    );
     // Контрольная очистка подписок, находящихся в сервисе (без этого компонента они не нужны)
     // Тем-не-менее, закрытие данного компонента запрещено (в родителе) при их отработке
     this.$userDataService.clearAuthSubscriptions();

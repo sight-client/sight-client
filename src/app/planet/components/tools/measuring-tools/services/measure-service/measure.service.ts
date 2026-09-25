@@ -1,6 +1,6 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { computed, effect, Injectable, signal, untracked, WritableSignal } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
@@ -30,7 +30,11 @@ export const measuringToolsNames = Object.freeze([
 ] as const);
 export type MeasuringToolName = (typeof measuringToolsNames)[number];
 
-export function getRusMeasuringToolName(toolName: MeasuringToolName | string) {
+export function isMeasuringToolName(name: string): name is MeasuringToolName {
+  return measuringToolsNames.some((toolName) => toolName === name);
+}
+
+export function getRusMeasuringToolName(toolName: MeasuringToolName) {
   switch (toolName) {
     case 'calculateLine':
       return 'Дистанция';
@@ -40,10 +44,6 @@ export function getRusMeasuringToolName(toolName: MeasuringToolName | string) {
       return 'Площадь окружности';
     case 'calculatePolygon':
       return 'Площадь многоугольника';
-    // case 'newTool':
-    //   return 'Новый инструмент';
-    default:
-      return toolName;
   }
 }
 // ---------------------------------------------------------- Блок базовых установок ---------------------------------------------- //
@@ -94,18 +94,14 @@ export class MeasureService {
             );
         });
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
 
   public cancelMeasuringTool(): void {
-    try {
-      this.removeTemporalEntities();
-      this.$toolsService.clearCommonHandler();
-    } catch (error: unknown) {
-      throw error;
-    }
+    this.removeTemporalEntities();
+    this.$toolsService.clearCommonHandler();
   }
   // -------------------------------------------------- Блок размещения сторов инструментов --------------------------------------- //
 
@@ -172,9 +168,7 @@ export class MeasureService {
     try {
       if (!entitiesStore().length) return false;
       if (groupId === undefined) {
-        console.log(
-          chalk.blue('Entities group to delete is not defined (by removeEntitiesByGroupId fn)'),
-        );
+        console.info('Entities group to delete is not defined (by removeEntitiesByGroupId fn)');
         return false;
       }
       // Массив id для последующего удаления из dataSource
@@ -182,19 +176,18 @@ export class MeasureService {
       const entitiesGroupIndex = entitiesStore().findIndex((groupObj) =>
         groupObj?.groupId.startsWith(groupId),
       );
-      if (entitiesGroupIndex !== -1 && entitiesStore()[entitiesGroupIndex]?.entitiesList) {
-        for (const entity of entitiesStore()[entitiesGroupIndex]!.entitiesList) {
-          idsArr.push(entity!.id);
+      const entitiesGroup = entitiesStore()[entitiesGroupIndex];
+      if (entitiesGroupIndex !== -1 && entitiesGroup?.entitiesList) {
+        for (const entity of entitiesGroup.entitiesList) {
+          if (entity) idsArr.push(entity.id);
         }
         entitiesStore.update((arr) => {
           arr.splice(entitiesGroupIndex, 1);
           return [...arr];
         });
       } else {
-        console.log(
-          chalk.blue(
-            "Entities group to delete haven't found in entitiesStore (by removeEntitiesByGroupId fn)",
-          ),
+        console.info(
+          "Entities group to delete haven't found in entitiesStore (by removeEntitiesByGroupId fn)",
         );
         return false;
       }
@@ -205,12 +198,12 @@ export class MeasureService {
           dataSource.entities.removeById(id);
         }
       } else {
-        console.log(chalk.blue('dataSource is undefined (by removeEntitiesByGroupId fn)'));
+        console.info('dataSource is undefined (by removeEntitiesByGroupId fn)');
         return false;
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -232,9 +225,7 @@ export class MeasureService {
           return [...arr];
         });
       } else {
-        console.log(
-          chalk.blue("Entity Id hasn't found in entitiesStore (by removeOneEntityByGroupId fn)"),
-        );
+        console.info("Entity Id hasn't found in entitiesStore (by removeOneEntityByGroupId fn)");
         return false;
       }
       const dataSource: Cesium.DataSource | undefined =
@@ -242,11 +233,11 @@ export class MeasureService {
       if (dataSource) {
         return dataSource.entities.removeById(entityId);
       } else {
-        console.log(chalk.blue('dataSource is undefined (by removeOneEntityByGroupId fn)'));
+        console.info('dataSource is undefined (by removeOneEntityByGroupId fn)');
         return false;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -255,33 +246,32 @@ export class MeasureService {
 
   // Очистка всех групп сущностей определенного инструмента (например, по СКМ на кнопках) с холста и из стора
   public allToolEntitiesCleaning(
-    toolName: MeasuringToolName | string,
+    toolName: MeasuringToolName,
     dataSourceName: string = this.$toolsService.measuringToolsLayerName,
   ): boolean {
     try {
       if (!toolName) throw new Error('toolName is undefined in allToolEntitiesCleaning fn');
-      if (!measuringToolsNames.includes(toolName as any)) return true;
-      if (!this._allEntitiesListsLinks[toolName as MeasuringToolName])
+      if (!isMeasuringToolName(toolName)) return true;
+      if (!this._allEntitiesListsLinks[toolName])
         throw new Error('targetStore is undefined in allToolEntitiesCleaning fn');
       const targetStore: WritableSignal<Array<EntitiesGroup | undefined>> =
-        this._allEntitiesListsLinks[toolName as MeasuringToolName];
+        this._allEntitiesListsLinks[toolName];
       if (!targetStore().length) {
-        console.log(chalk.blue('targetStore is already empty (by allToolEntitiesCleaning fn)'));
-        console.trace();
+        console.info('targetStore is already empty (by allToolEntitiesCleaning fn)');
         return false;
       }
       const idsArr: string[] = [];
       for (const item of targetStore()) {
         if (item?.entitiesList.length) {
           for (const entity of item.entitiesList) {
-            idsArr.push(entity!.id);
+            if (entity) idsArr.push(entity.id);
           }
         }
       }
       if (idsArr.length) {
         targetStore.update(() => []);
       } else {
-        console.log(chalk.blue('Nothing to erase in targetStore (by allToolEntitiesCleaning fn)'));
+        console.info('Nothing to erase in targetStore (by allToolEntitiesCleaning fn)');
         return false;
       }
       const dataSource: Cesium.DataSource | undefined =
@@ -291,12 +281,12 @@ export class MeasureService {
           dataSource.entities.removeById(id);
         }
       } else {
-        console.log(chalk.blue('dataSource is undefined (by allToolEntitiesCleaning fn)'));
+        console.info('dataSource is undefined (by allToolEntitiesCleaning fn)');
         return false;
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -313,7 +303,7 @@ export class MeasureService {
       if (dataSource) {
         dataSource.entities.removeAll();
       } else {
-        console.log(chalk.blue('dataSource is undefined (by clearMeasuresDataSource fn)'));
+        console.info('dataSource is undefined (by clearMeasuresDataSource fn)');
         return false;
       }
       const listsArr: Array<WritableSignal<Array<EntitiesGroup | undefined>>> = Object.values(
@@ -323,8 +313,8 @@ export class MeasureService {
         item.update(() => []);
       });
       return true;
-    } catch (error) {
-      console.log(chalk.red(error));
+    } catch (error: unknown) {
+      reportError(error);
       return false;
     }
   }
@@ -342,16 +332,17 @@ export class MeasureService {
       const index = targetList().findIndex((item) => item?.groupId === groupIdChank);
       if (index !== -1) {
         targetList.update((arr) => {
-          arr[index]!.defaultEntity = defaultEntity || undefined;
+          const group = arr[index];
+          if (group) group.defaultEntity = defaultEntity || undefined;
           return [...arr];
         });
       } else {
-        console.log(chalk.blue("groupId hasn't found in changeDefaultEntityInGroup fn"));
+        console.info("groupId hasn't found in changeDefaultEntityInGroup fn");
         return false;
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -365,7 +356,7 @@ export class MeasureService {
   ): boolean {
     try {
       if (toolName === undefined) {
-        console.log(chalk.blue('toolName is undefined in pushGroupFromTemporal fn'));
+        console.info('toolName is undefined in pushGroupFromTemporal fn');
         return false;
       }
       const targetList: WritableSignal<Array<EntitiesGroup | undefined>> =
@@ -388,7 +379,7 @@ export class MeasureService {
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -401,7 +392,7 @@ export class MeasureService {
   ): boolean {
     try {
       if (toolName === undefined) {
-        console.log(chalk.blue('toolName is undefined in pushGroupWithoutTemporal fn'));
+        console.info('toolName is undefined in pushGroupWithoutTemporal fn');
         return false;
       }
       if (!entities.length) throw new Error('None entities in pushGroupWithoutTemporal fn');
@@ -425,7 +416,7 @@ export class MeasureService {
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -438,18 +429,18 @@ export class MeasureService {
   ): boolean {
     try {
       if (toolName === undefined) {
-        console.log(chalk.blue('toolName is undefined in pushGroupWithoutTemporalWithDrawing fn'));
+        console.info('toolName is undefined in pushGroupWithoutTemporalWithDrawing fn');
         return false;
       }
       if (!entities.length) throw new Error('None entities in pushGroupWithoutTemporal fn');
       if (this.pushGroupWithoutTemporal(entities, groupIdChank, toolName, defaultEntity) === true) {
         for (const entity of entities) {
-          this.addNewEntityToMeasureLayer(entity!);
+          if (entity) this.addNewEntityToMeasureLayer(entity);
         }
         return true;
       } else return false;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -469,11 +460,11 @@ export class MeasureService {
           this._temporalEntitiesList.set([]);
         }
       } else {
-        console.log('_temporalEntitiesList() is empty in clearTemporalEntitiesList fn');
+        console.info('_temporalEntitiesList() is empty in clearTemporalEntitiesList fn');
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -492,7 +483,7 @@ export class MeasureService {
         }
       } else {
         for (const entity of this._temporalEntitiesList()) {
-          idsArr.push(entity!.id);
+          if (entity) idsArr.push(entity.id);
         }
       }
       const hasDeletedFromStore = this.clearTemporalEntitiesList(groupId);
@@ -505,17 +496,15 @@ export class MeasureService {
           }
           return true;
         } else {
-          console.log(chalk.blue('dataSource is undefined (by removeTemporalEntities fn)'));
+          console.info('dataSource is undefined (by removeTemporalEntities fn)');
           return false;
         }
       } else {
-        console.log(
-          chalk.blue('Temporal store clearing has failed (by removeTemporalEntities fn)'),
-        );
+        console.info('Temporal store clearing has failed (by removeTemporalEntities fn)');
         return false;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -523,9 +512,8 @@ export class MeasureService {
   // -------------------------------------------------- Блок добавления сущности на холст ----------------------------------------- //
 
   public addNewEntityToMeasureLayer(entity: Cesium.Entity): boolean {
-    try {
-      if (!entity || !(entity instanceof Cesium.Entity)) {
-        console.log(chalk.red('Invalid entity in addNewEntityToMeasureLayer fn'));
+    if (!entity || !(entity instanceof Cesium.Entity)) {
+        console.info('Invalid entity in addNewEntityToMeasureLayer fn');
         return false;
       }
       const dataSource: Cesium.DataSource | undefined =
@@ -536,12 +524,9 @@ export class MeasureService {
         dataSource.entities.add(entity);
         return true;
       } else {
-        console.log(chalk.red("Data source hasn't found in addNewEntityToMeasureLayer fn"));
+        console.info("Data source hasn't found in addNewEntityToMeasureLayer fn");
         return false;
       }
-    } catch (error: unknown) {
-      throw error;
-    }
   }
 
   // ------------------------------------------------ Блок изменений параметров сущностей ----------------------------------------- //
@@ -558,12 +543,12 @@ export class MeasureService {
   //     if (this.setEntityConstantsTimeouts?.[entityId]) {
   //       clearTimeout(this.setEntityConstantsTimeouts[entityId]);
   //     }
-  //     const toolName: string = entityId.split('-')[1];
-  //     if (measuringToolsNames.includes(toolName as MeasuringToolName)) {
+  //     const toolName = entityId.split('-')[1];
+  //     if (toolName && isMeasuringToolName(toolName)) {
   //       this.setEntityConstantsTimeouts[entityId] = setTimeout(
   //         (id: string) => {
   //           this.$toolsService.setConstantsForStoreEntities(
-  //             this.allEntitiesListsLinks[toolName as MeasuringToolName],
+  //             this.allEntitiesListsLinks[toolName],
   //             id,
   //           );
   //         },

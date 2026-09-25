@@ -1,3 +1,4 @@
+import { reportError } from '@global/lib/report-error.lib';
 import {
   Component,
   ChangeDetectionStrategy,
@@ -10,7 +11,6 @@ import {
   computed,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import chalk from 'chalk';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,15 +21,13 @@ import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { FloatingWindowsService } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
 import type { WindowName } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
 import {
-  drawingToolsNames,
   getRusDrawingToolName,
+  isDrawingToolName,
 } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
-import type { DrawingToolName } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 import {
-  measuringToolsNames,
   getRusMeasuringToolName,
+  isMeasuringToolName,
 } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
-import type { MeasuringToolName } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
 
 @Component({
   selector: 'floating-window',
@@ -46,7 +44,7 @@ import type { MeasuringToolName } from '@/components/tools/measuring-tools/servi
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FloatingWindow implements OnInit {
-  @Input() contentTemplate: TemplateRef<any>;
+  @Input() contentTemplate: TemplateRef<unknown>;
   @Input() parentName: WindowName;
   @Input() customTop?: number; // пропс для плавающих окон, не относящихся к инструментам правой панели
   @Input() customLeft?: number;
@@ -75,7 +73,7 @@ export class FloatingWindow implements OnInit {
           this.$floatingWindowsService.getWindowHeaderHeight(windowHeaderHeight);
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -86,8 +84,8 @@ export class FloatingWindow implements OnInit {
 
   ngOnInit() {
     // Определение соответствия к/л группе инструментов
-    this.isDrawingTool = drawingToolsNames.includes(this.parentName as DrawingToolName);
-    this.isMeasuringTool = measuringToolsNames.includes(this.parentName as MeasuringToolName);
+    this.isDrawingTool = isDrawingToolName(this.parentName);
+    this.isMeasuringTool = isMeasuringToolName(this.parentName);
 
     // Русификация имени инструмента
     this.headerName = this.normalizeName(this.parentName);
@@ -95,13 +93,16 @@ export class FloatingWindow implements OnInit {
 
   // Требуется преобразование, т.к. для инструментов работы с картой везде сохраняюся литералы из type типа "ToolName"
   protected normalizeName = (name: WindowName): string => {
-    if (this.isDrawingTool) {
+    if (isDrawingToolName(name)) {
       return getRusDrawingToolName(name);
-    } else if (this.isMeasuringTool) {
+    }
+    if (isMeasuringToolName(name)) {
       return getRusMeasuringToolName(name);
-    } else if (name === 'terrainAnalysis') {
+    }
+    if (name === 'terrainAnalysis') {
       return 'Анализ рельефа';
-    } else return name;
+    }
+    return name;
   };
 
   // Пересмотр индекса модалки после удаления из общего списка ее "соседей" слева (единственного вычисления parentIndex в ngOnInit недостаточно)
@@ -114,17 +115,17 @@ export class FloatingWindow implements OnInit {
         if (index !== -1) {
           return index;
         } else {
-          console.log(chalk.red(`Parent index in Window "${this.parentName}" is not valid`));
+          console.info(`Parent index in Window "${this.parentName}" is not valid`);
           return -1;
         }
       } else {
-        console.log(
-          chalk.red(`Floating windows list is empty (from "${this.parentName}" window component)`),
+        console.info(
+          `Floating windows list is empty (from "${this.parentName}" window component)`,
         );
         return -1;
       }
     } else {
-      console.log(chalk.red(`Parent name in window "${this.parentName}" hasn't recived`));
+      console.info(`Parent name in window "${this.parentName}" hasn't recived`);
       return -1;
     }
   });

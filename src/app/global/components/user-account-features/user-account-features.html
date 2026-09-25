@@ -1,6 +1,6 @@
 @if (inMenu) {
   @if ($userDataService.userName()) {
-    <button (click)="this.$userDataService.getLogoutSubscription()" class="main-menu-import-button">
+    <button (click)="clickFromParentMenu()" class="main-menu-import-button">
       <!-- exit_to_app, directions_walk, directions_run  -->
       <mat-icon>exit_to_app</mat-icon>
       <span style="text-decoration: underline">Выйти из профиля</span>
@@ -29,7 +29,7 @@
         <button class="user-name-in-main-menu" mat-menu-item disabled style="opacity: 0.8">
           <span>{{ $userDataService.userName() }}</span>
         </button>
-        <button mat-menu-item (click)="this.$userDataService.getLogoutSubscription()">
+        <button mat-menu-item (click)="clickFromParentMenu()">
           <!-- exit_to_app, directions_walk, directions_run  -->
           <mat-icon>exit_to_app</mat-icon>
           <span style="text-decoration: underline">Выйти из профиля</span>

@@ -91,9 +91,8 @@ export class ThemeColorPalette {
     themesList: string[] | undefined[] = this.themesPalettesList(),
     themePalettes: string = this.nowThemePalettes(),
   ) {
-    try {
-      // if (inMenu) console.log(event); // события keydown.enter / keydown.space сюда не дойдут (останутся на mat-menu button)
-      event.preventDefault();
+    // if (inMenu) console.log(event); // события keydown.enter / keydown.space сюда не дойдут (останутся на mat-menu button)
+    event.preventDefault();
       event.stopPropagation();
       const nowThemeIndex = this.getNowThemeIndex(themesList, themePalettes);
       if (nowThemeIndex === themesList.length - 1) {
@@ -104,14 +103,9 @@ export class ThemeColorPalette {
           themesList[nowThemeIndex + 1],
         );
       }
-    } catch (error: any) {
-      if (!error.cause) error.cause = 'red';
-      throw error;
-    }
   }
   private getNowThemeIndex(themesList: string[] | undefined[], themePalettes: string): number {
-    try {
-      if (!themesList || !themesList.length) {
+    if (!themesList || !themesList.length) {
         throw new Error('Список тем оформления пуст!');
       }
       const userThemeIndex = themesList.findIndex((item) => item === themePalettes);
@@ -120,10 +114,6 @@ export class ThemeColorPalette {
       } else {
         throw new Error('Ошибка в определении индекса темы в списке тем!');
       }
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
   }
 
   constructor(private $setUserThemeService: SetUserThemeService) {}

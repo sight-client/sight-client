@@ -1,5 +1,5 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, effect, signal, untracked, WritableSignal } from '@angular/core';
-import chalk from 'chalk';
 import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
@@ -13,12 +13,12 @@ import type { DrawingToolName } from '@/components/tools/drawing-tools/services/
 export type DrawingStores = Array<DrawingStoreItem>;
 
 export type DrawingStoreItem = {
-  storeName: string | DrawingToolName;
+  storeName: DrawingToolName;
   collection: WritableSignal<Array<EntitiesGroup | undefined>>;
   activeObjInStore: WritableSignal<EntitiesGroup | undefined>;
 };
 export type DrawingStoreForOvers = {
-  storeName: string | DrawingToolName;
+  storeName: string;
   collection: WritableSignal<Array<EntitiesGroup | undefined>>;
 };
 
@@ -42,7 +42,6 @@ export class DrawingsListService {
             // console.log(this.$viewerService?.viewer?.forcedPickedEntity?.());
             const forcedPickedEntity = this.$viewerService?.viewer?.forcedPickedEntity?.();
             if (!forcedPickedEntity) return;
-            // @ts-ignore (конфликт - кастомное свойство toolName)
             const forcedPickedToolName = forcedPickedEntity?.toolName;
             if (!forcedPickedToolName) return;
             let objInCollectionIndex: number = -1;
@@ -63,8 +62,7 @@ export class DrawingsListService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
-        if (error instanceof Error) console.log(error.stack);
+        reportError(error);
       }
     });
   }
@@ -96,7 +94,7 @@ export class DrawingsListService {
       this._drawingStoreForOvers.collection = this?.$drawingService?.overEntitiesList || signal([]);
       // ...другие пополнения drawingStores
     } catch (error: unknown) {
-      console.log(chalk.red('Ошибка старта DrawingsListService'));
+      console.info('Ошибка старта DrawingsListService');
       throw error;
     }
   }
@@ -120,8 +118,7 @@ export class DrawingsListService {
         throw new Error('Invalid object in setActiveEntity fn');
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return false;
     }
   }

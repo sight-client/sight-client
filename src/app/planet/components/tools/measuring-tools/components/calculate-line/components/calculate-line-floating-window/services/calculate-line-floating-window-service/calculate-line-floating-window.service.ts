@@ -1,5 +1,5 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { computed, effect, Injectable, linkedSignal, untracked } from '@angular/core';
-import chalk from 'chalk';
 
 import { FloatingWindowsService } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
 import { MeasureService } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
@@ -27,7 +27,7 @@ export class CalculateLineFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
 
@@ -47,7 +47,7 @@ export class CalculateLineFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
 
@@ -71,7 +71,7 @@ export class CalculateLineFloatingWindowService {
     //       });
     //     }
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
     // Удаление окна вместе с последней относящейся к нему сущностью
@@ -83,7 +83,7 @@ export class CalculateLineFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
     // Deprecated (на текущий момент для мерителей поддерживается только единоразовый сценарий использования)
@@ -101,7 +101,7 @@ export class CalculateLineFloatingWindowService {
     //       });
     //     }
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
     // // Сокрытие (без удаления) окна при удалении активной (отображаемой в нем) сущности
@@ -119,7 +119,7 @@ export class CalculateLineFloatingWindowService {
     //       });
     //     }
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
     // Удаление сущностей инструмента с холста при уделении его плавающего окна
@@ -140,7 +140,7 @@ export class CalculateLineFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }

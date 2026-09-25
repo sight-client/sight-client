@@ -8,13 +8,13 @@ Skills from the Superpowers plugin override default agent habits. Check for a re
 
 This file overrides Superpowers default artifact paths. **`docs/` is the GitHub Pages build output** (`ng build --configuration docs`). Never write specs, plans, or source there.
 
-| Artifact | Path |
-|---|---|
-| Design specs | `.cursor/superpowers/specs/` — index: `2026-09-17-sight-product-design.md` |
-| Implementation plans | `.cursor/superpowers/plans/YYYY-MM-DD-<feature-name>.md` |
-| AI session log | `.cursor/superpowers/log/YYYY-MM-DD.md` (append-only, end of a work unit) |
-| Slash command `/save-chat-text` | `.cursor/commands/save-chat-text.md` — полный диалог чата в `.chats/` (gitignored) |
-| Isolated worktrees | `.worktrees/<branch-name>/` (gitignored) |
+| Artifact                            | Path                                                                                                                                                                                                           |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Design specs                        | `.cursor/superpowers/specs/` — index: `2026-09-17-sight-product-design.md`                                                                                                                                     |
+| Implementation plans                | `.cursor/superpowers/plans/YYYY-MM-DD-<feature-name>.md`                                                                                                                                                       |
+| AI session log                      | `.cursor/superpowers/log/YYYY-MM-DD.md` (append-only, end of a work unit)                                                                                                                                      |
+| Slash command `/save-chat-text`     | `.cursor/commands/save-chat-text.md` — полный диалог чата в `.chats/` (gitignored)                                                                                                                             |
+| Isolated worktrees                  | `.worktrees/<branch-name>/` (gitignored)                                                                                                                                                                       |
 | Brainstorm companion (HTML mockups) | `.superpowers/` (gitignored). Not product. When the visual brainstorm unit ends, stop the companion server and delete `.superpowers/` unless I asked to keep the mockups. Never delete `.cursor/superpowers/`. |
 
 Ask before creating a worktree unless this file already records a standing preference.
@@ -23,7 +23,7 @@ Project skills in `.cursor/skills/` (auto-invoke in this chat, do not copy Super
 
 **SDD / Superpowers subagents:** they do not inherit this session's skill list. The controller (parent) must put **1–3 relevant** skill paths into the implementer brief and into the plan task (e.g. `.cursor/skills/sight-map-tools/SKILL.md`). Never dump the whole catalog. Reviewers judge against the spec, this file, and those named skills — not against Angular Style Guide. Permanent conventions stay here and in `.cursor/rules/`; skills are traps the neighboring file will not teach.
 
-**Standing decisions:** when I approve a new convention, stack rule, trap, or checklist, update the existing owner file (`AGENTS.md`, a `.cursor/rules` rule, a `sight-*` skill, or a spec under `.cursor/superpowers/specs/`). If a user-facing behavior changes and an as-is spec or `sight-*` skill already states the old one (feature, tool, CRS, route, export format, layout, sidenav, breakpoint), update that owner in the same change, and the product index table if the feature is listed there. Do not changelog bugfixes or refactors here. If the owner is unclear, ask.
+**Standing decisions:** when I approve a new convention, stack rule, trap, or checklist, update the existing owner file (`AGENTS.md`, a `.cursor/rules` rule, a `sight-*` skill, or a spec under `.cursor/superpowers/specs/`). If a user-facing behavior changes and an as-is spec or `sight-*` skill already states the old one (feature, tool, CRS, route, export format, layout, sidenav, breakpoint), update that owner in the same change, and the product index table if the feature is listed there. In that same change, review colocated `*.spec.ts` that still assert the old behavior (mocks of new signals, expected layout, sidenav mode, breakpoint, tool literal) and update them to the new behavior. A doc update with a stale unit spec is not done. Do not changelog bugfixes or refactors here. If the owner is unclear, ask.
 
 At the end of a completed work unit, append a short block to `.cursor/superpowers/log/YYYY-MM-DD.md` (goal, spec/plan, skills, consequential files, decisions, status). Not after every approval.
 
@@ -63,6 +63,7 @@ npm run build:docs # write GitHub Pages build into docs/
 - New tests must call `provideZonelessChangeDetection()`.
 - Follow existing folder patterns. Do not invent a parallel architecture.
 - Do not commit secrets, `node_modules`, `.worktrees/`, or `.superpowers/`.
+- Classes Evgeniy wrote stay classes. Do not turn them into interfaces, type aliases, or other shapes that TypeScript erases from the build, even when the file has no `instanceof` yet. He may add that check later. Example: `UserRegistrationData`.
 
 ## Agent permissions
 

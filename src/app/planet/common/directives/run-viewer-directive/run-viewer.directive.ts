@@ -1,4 +1,5 @@
 import { afterNextRender, Directive, effect, ElementRef, inject, untracked } from '@angular/core';
+import { reportError } from '@global/lib/report-error.lib';
 import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
@@ -18,12 +19,7 @@ export class RunViewerDirective {
   ) {
     const el = inject<ElementRef<Element>>(ElementRef);
     afterNextRender(() => {
-      try {
-        this.$viewerService.getNewViewer(el.nativeElement);
-      } catch (error: any) {
-        error.cause = 'red';
-        throw error;
-      }
+      this.$viewerService.getNewViewer(el.nativeElement);
     });
     // Гарантия корректной очередности загрузки сервисов работы с Cesium
     effect(() => {
@@ -34,10 +30,8 @@ export class RunViewerDirective {
               url: 'https://tile.openstreetmap.org/',
             }),
           );
-        } catch (error: any) {
-          // error.cause = 'red';
-          // throw error;
-          console.log(error);
+        } catch (error: unknown) {
+          reportError(error);
         }
       }
     });

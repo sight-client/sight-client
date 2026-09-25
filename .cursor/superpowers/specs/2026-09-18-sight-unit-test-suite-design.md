@@ -13,14 +13,14 @@ parent: none
 
 ## Decisions (зафиксировано 2026-09-18)
 
-| Тема | Выбор |
-|---|---|
-| Покрытие | Поведение, не `%` statements. Нет порога Vitest coverage. |
-| Подход | Характеризация as-is. Production не менять в сессиях покрытия. |
-| Cesium | Не создавать `Cesium.Viewer` / WebGL. Мок `ViewerService`. |
-| Exclude | `drawing-tool-blank/**` и `api-url-chunk-proxy/**` остаются снаружи. `AutofocusDirective` — внутри. |
-| Нарезка | Нулевой план гигиены, затем пять доменных. GitHub Pages unit-планом не закрывается. |
-| Баги | Находка в характеристике — парковать, не чинить в той же сессии. Фикс — отдельный TDD. |
+| Тема     | Выбор                                                                                               |
+| -------- | --------------------------------------------------------------------------------------------------- |
+| Покрытие | Поведение, не `%` statements. Нет порога Vitest coverage.                                           |
+| Подход   | Характеризация as-is. Production не менять в сессиях покрытия.                                      |
+| Cesium   | Не создавать `Cesium.Viewer` / WebGL. Мок `ViewerService`.                                          |
+| Exclude  | `drawing-tool-blank/**` и `api-url-chunk-proxy/**` остаются снаружи. `AutofocusDirective` — внутри. |
+| Нарезка  | Нулевой план гигиены, затем пять доменных. GitHub Pages unit-планом не закрывается.                 |
+| Баги     | Находка в характеристике — парковать, не чинить в той же сессии. Фикс — отдельный TDD.              |
 
 ## Non-goals
 
@@ -106,14 +106,14 @@ function fakeViewerService(overrides: Partial<{ viewer: object }> = {}) {
 
 Не очередь задач. Файлы — история нарезки. Новое покрытие — отдельный план или TDD по багу.
 
-| # | План | Product-срез | Скилы (1–3) | Статус |
-|---|---|---|---|---|
-| 0 | [2026-09-18-unit-test-hygiene](../plans/2026-09-18-unit-test-hygiene.md) | — | `sight-testing`, `sight-change-control` | executed 2026-09-18 |
-| 1 | [2026-09-18-unit-test-ui-theme](../plans/2026-09-18-unit-test-ui-theme.md) | [ui-theme](./2026-09-17-sight-ui-theme-design.md) | `sight-testing`, `sight-angular-ui` | executed 2026-09-20 |
-| 2 | [2026-09-18-unit-test-viewer-crs](../plans/2026-09-18-unit-test-viewer-crs.md) | [viewer-crs](./2026-09-17-sight-viewer-crs-design.md) | `sight-testing`, `sight-geodesy`, `sight-cesium-map` | executed 2026-09-20 |
-| 3 | [2026-09-18-unit-test-drawing-tools](../plans/2026-09-18-unit-test-drawing-tools.md) | [map-tools](./2026-09-17-sight-map-tools-design.md) | `sight-testing`, `sight-map-tools` | executed 2026-09-20 |
-| 4 | [2026-09-18-unit-test-measuring-tools](../plans/2026-09-18-unit-test-measuring-tools.md) | [map-tools](./2026-09-17-sight-map-tools-design.md) | `sight-testing`, `sight-map-tools`, `sight-geodesy` | executed 2026-09-20 |
-| 5 | [2026-09-18-unit-test-list-export-windows](../plans/2026-09-18-unit-test-list-export-windows.md) | [map-tools](./2026-09-17-sight-map-tools-design.md) | `sight-testing`, `sight-map-tools`, `sight-client-security` | executed 2026-09-20 |
+| #   | План                                                                                             | Product-срез                                          | Скилы (1–3)                                                 | Статус              |
+| --- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------- | ----------------------------------------------------------- | ------------------- |
+| 0   | [2026-09-18-unit-test-hygiene](../plans/2026-09-18-unit-test-hygiene.md)                         | —                                                     | `sight-testing`, `sight-change-control`                     | executed 2026-09-18 |
+| 1   | [2026-09-18-unit-test-ui-theme](../plans/2026-09-18-unit-test-ui-theme.md)                       | [ui-theme](./2026-09-17-sight-ui-theme-design.md)     | `sight-testing`, `sight-angular-ui`                         | executed 2026-09-20 |
+| 2   | [2026-09-18-unit-test-viewer-crs](../plans/2026-09-18-unit-test-viewer-crs.md)                   | [viewer-crs](./2026-09-17-sight-viewer-crs-design.md) | `sight-testing`, `sight-geodesy`, `sight-cesium-map`        | executed 2026-09-20 |
+| 3   | [2026-09-18-unit-test-drawing-tools](../plans/2026-09-18-unit-test-drawing-tools.md)             | [map-tools](./2026-09-17-sight-map-tools-design.md)   | `sight-testing`, `sight-map-tools`                          | executed 2026-09-20 |
+| 4   | [2026-09-18-unit-test-measuring-tools](../plans/2026-09-18-unit-test-measuring-tools.md)         | [map-tools](./2026-09-17-sight-map-tools-design.md)   | `sight-testing`, `sight-map-tools`, `sight-geodesy`         | executed 2026-09-20 |
+| 5   | [2026-09-18-unit-test-list-export-windows](../plans/2026-09-18-unit-test-list-export-windows.md) | [map-tools](./2026-09-17-sight-map-tools-design.md)   | `sight-testing`, `sight-map-tools`, `sight-client-security` | executed 2026-09-20 |
 
 CI: [2026-09-20-ci-and-kml-sanitize](../plans/2026-09-20-ci-and-kml-sanitize.md) — executed 2026-09-20 (`ng test` на Actions + санитайз KML).
 

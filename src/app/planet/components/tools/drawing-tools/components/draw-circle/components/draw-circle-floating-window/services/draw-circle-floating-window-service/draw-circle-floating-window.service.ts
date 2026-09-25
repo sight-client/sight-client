@@ -1,3 +1,4 @@
+import { reportError } from '@global/lib/report-error.lib';
 import {
   computed,
   effect,
@@ -6,11 +7,13 @@ import {
   untracked,
   WritableSignal,
 } from '@angular/core';
-import chalk from 'chalk';
 import * as Cesium from 'cesium';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  colorFromCssString,
+} from '@/components/tools/services/tools-service/tools.service';
 import type { EntitiesGroup } from '@/components/tools/services/tools-service/tools.service';
 import { FloatingWindowsService } from '@/components/floating-windows/services/floating-windows-service/floating-windows.service';
 import { DrawingService } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
@@ -40,7 +43,7 @@ export class DrawCircleFloatingWindowService {
                 this.$drawingService.drawCircleEntitiesList()?.[0]?.defaultEntity ||
                 this.$drawingService.drawCircleEntitiesList()?.[0]?.entitiesList?.[0];
               if (!firstEntity || !(firstEntity instanceof Cesium.Entity)) {
-                console.log(chalk.red('Invalid entity has added'));
+                console.info('Invalid entity has added');
                 return;
               } else {
                 this._validPickedEnttity.set(firstEntity);
@@ -54,7 +57,7 @@ export class DrawCircleFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
     effect(() => {
@@ -71,7 +74,7 @@ export class DrawCircleFloatingWindowService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -91,12 +94,11 @@ export class DrawCircleFloatingWindowService {
     const selectedEntity = this.$viewerService.viewer?.newPickedEntity?.();
     let targetEntity: Cesium.Entity | undefined = undefined;
     untracked(() => {
-      // @ts-ignore (конфликт - кастомное свойство toolName)
       if (selectedEntity?.toolName !== this.toolName) return;
       if (!this.$drawCircleService.drawCircleEntitiesList().length) return;
       const indexGroup = this.$drawCircleService
         .drawCircleEntitiesList()
-        .findIndex((group) => selectedEntity.id.startsWith(group!.groupId));
+        .findIndex((group) => !!group && selectedEntity.id.startsWith(group.groupId));
       if (indexGroup === -1) return;
       const group = this.$drawCircleService.drawCircleEntitiesList()[indexGroup];
       if (group?.defaultEntity) {
@@ -104,7 +106,7 @@ export class DrawCircleFloatingWindowService {
       } else {
         if (!group?.entitiesList.length) return;
         const indexEntity = group?.entitiesList.findIndex((entity) =>
-          entity!.id.includes('-ellipse-'),
+          !!entity && entity.id.includes('-ellipse-'),
         );
         if (indexEntity === -1) return;
         targetEntity = group.entitiesList[indexEntity];
@@ -126,14 +128,12 @@ export class DrawCircleFloatingWindowService {
   // Для приведения радиуса
   // Используется в draw-circle-floating-window.html
   public validAuxiliaryEntity = computed<Cesium.Entity | undefined>(() => {
-    if (this._validPickedEnttity()) {
+    const picked = this._validPickedEnttity();
+    if (picked) {
       let targetEntity: Cesium.Entity | undefined = undefined;
       untracked(() => {
         const store = this.$drawingService.drawCircleEntitiesList;
-        const indexGroup = this.$toolsService.findEntityPathInStore(
-          this.validPickedEnttity()!.id,
-          store,
-        ).indexGroup;
+        const indexGroup = this.$toolsService.findEntityPathInStore(picked.id, store).indexGroup;
         if (indexGroup === -1 || indexGroup === undefined) return;
         const indexRadius = store()[indexGroup]?.entitiesList.findIndex((entity) =>
           entity?.id.includes('-line-'),
@@ -148,31 +148,36 @@ export class DrawCircleFloatingWindowService {
 
   public changeCircleEntitiesColor(newColor: string) {
     try {
+      const picked = this.validPickedEnttity();
+      if (!picked) return false;
       const store = this.$drawingService.drawCircleEntitiesList;
       const path = this.$toolsService.findEntityPathInStore(
-        this.validPickedEnttity()!.id,
+        picked.id,
         this.$drawingService.drawCircleEntitiesList,
       );
       const indexGroup = path.indexGroup;
       const indexEntity = path.indexEntity;
       if (indexGroup === undefined || indexEntity === undefined)
         throw new Error("Entity's path search error in changeCircleEntityColor fn");
+      const color = colorFromCssString(newColor);
+      if (!color) return false;
+      const material = new Cesium.ColorMaterialProperty(color);
       store.update((oldStore) => {
-        oldStore[indexGroup]!.entitiesList[indexEntity]!.polyline!.material =
-          new Cesium.ColorMaterialProperty(Cesium.Color.fromCssColorString(newColor)); // .withAlpha даст ошибку несовместимости с html input hex color
-        const indexRadius = oldStore[indexGroup]!.entitiesList.findIndex((entity) =>
-          entity?.id.includes('-line-'),
-        );
-        if (indexRadius !== -1) {
-          oldStore[indexGroup]!.entitiesList[indexRadius]!.polyline!.material =
-            new Cesium.ColorMaterialProperty(Cesium.Color.fromCssColorString(newColor)); // .withAlpha даст ошибку несовместимости с html input hex color
-        }
+        const group = oldStore[indexGroup];
+        const entity = group?.entitiesList[indexEntity];
+        if (entity?.polyline) entity.polyline.material = material;
+        const indexRadius = group?.entitiesList.findIndex((item) => item?.id.includes('-line-'));
+        const radiusEntity =
+          indexRadius !== undefined && indexRadius !== -1
+            ? group?.entitiesList[indexRadius]
+            : undefined;
+        if (radiusEntity?.polyline) radiusEntity.polyline.material = material;
         const newStore = [...oldStore];
         return newStore;
       });
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }

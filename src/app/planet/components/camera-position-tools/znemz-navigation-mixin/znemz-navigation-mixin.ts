@@ -15,6 +15,16 @@ import ViewerCesiumNavigationMixin from '@znemz/cesium-navigation';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 
+function elementByClass(className: string, index = 0): HTMLElement | undefined {
+  const el = document.getElementsByClassName(className).item(index);
+  return el instanceof HTMLElement ? el : undefined;
+}
+
+function elementChild(parent: HTMLElement, index: number): HTMLElement | undefined {
+  const child = parent.children.item(index);
+  return child instanceof HTMLElement ? child : undefined;
+}
+
 @Component({
   selector: 'znemz-navigation-mixin',
   imports: [],
@@ -31,25 +41,11 @@ export class ZnemzNavigationMixin {
   ) {
     effect(() => {
       if (this.$viewerService.cameraIsFlyingAround() === true) {
-        const navigationControlsDiv: Element =
-          document.getElementsByClassName('navigation-controls')[0];
-        if (navigationControlsDiv) {
-          navigationControlsDiv?.classList.add('navigation-controls-blocked');
-        }
-        const compassDiv: Element = document.getElementsByClassName('compass')[0];
-        if (compassDiv) {
-          compassDiv?.classList.add('compass-blocked');
-        }
+        elementByClass('navigation-controls')?.classList.add('navigation-controls-blocked');
+        elementByClass('compass')?.classList.add('compass-blocked');
       } else {
-        const navigationControlsDiv: Element =
-          document.getElementsByClassName('navigation-controls')[0];
-        if (navigationControlsDiv) {
-          navigationControlsDiv?.classList.remove('navigation-controls-blocked');
-        }
-        const compassDiv: Element = document.getElementsByClassName('compass')[0];
-        if (compassDiv) {
-          compassDiv?.classList.remove('compass-blocked');
-        }
+        elementByClass('navigation-controls')?.classList.remove('navigation-controls-blocked');
+        elementByClass('compass')?.classList.remove('compass-blocked');
       }
     });
 
@@ -74,23 +70,20 @@ export class ZnemzNavigationMixin {
         });
         onCleanup(detach);
       } else {
-        const navigationMixinDiv = document?.getElementsByClassName(
-          'cesium-widget-cesiumNavigationContainer',
-        )?.[0];
-        if (navigationMixinDiv) navigationMixinDiv.remove();
+        const navigationMixinDiv = elementByClass('cesium-widget-cesiumNavigationContainer');
+        navigationMixinDiv?.remove();
       }
     });
   }
 
   private setNavMixin(): void {
-    try {
-      const mixinOptions: {
+    const mixinOptions: {
         enableCompass: boolean;
         enableCompassOuterRing: boolean;
         enableZoomControls: boolean;
         defaultResetView: Cesium.Cartographic;
         enableDistanceLegend: boolean;
-        distanceLabelFormatter: Function;
+        distanceLabelFormatter: (length: number, units: string) => string;
       } = {
         enableCompass: true,
         enableCompassOuterRing: true,
@@ -104,15 +97,10 @@ export class ZnemzNavigationMixin {
       /* Подключение миксина к вьюеру (в #cesiumContainer) - по умолчанию в новый контейнер класса 'cesium-widget-[контейнер миксина]',
           который состоит из #distanceLegendDiv (с .distance-legend) и #navigationDiv (с .compass и .navigation-controls) */
       this.$viewerService.viewer.extend(ViewerCesiumNavigationMixin, mixinOptions);
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
   }
 
   private distanceLabelFormatter(length: number, units: string): string {
-    try {
-      const UNITS_TO_ABBREVIATION: {
+    const UNITS_TO_ABBREVIATION: {
         [key: string]: string;
       } = {
         meters: 'м',
@@ -122,43 +110,25 @@ export class ZnemzNavigationMixin {
       const unitsRes = length < 1 ? 'meters' : units;
       const lengthRes = length < 1 ? Math.round(length * 1000) : length;
       return `${lengthRes.toFixed(fixed)} ${UNITS_TO_ABBREVIATION[unitsRes]}`;
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
   }
 
   private replaceNavMixin(): void {
-    try {
-      document.getElementById('navigationDiv')?.classList.add('navigationMixinDiv');
-      /* Перенаправление контейнера с миксином в шаблон настоящего компонента */
-      const navigationMixinDiv = document.getElementsByClassName(
-        'cesium-widget-cesiumNavigationContainer',
-      )[0];
-      document.getElementById('navigationMixinWrapper')?.appendChild(navigationMixinDiv);
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
+    document.getElementById('navigationDiv')?.classList.add('navigationMixinDiv');
+    const navigationMixinDiv = elementByClass('cesium-widget-cesiumNavigationContainer');
+    const wrapper = document.getElementById('navigationMixinWrapper');
+    if (navigationMixinDiv && wrapper) {
+      wrapper.appendChild(navigationMixinDiv);
     }
   }
 
   private translateNavMixin(): void {
-    try {
-      document.getElementsByClassName('compass-outer-ring')[0].removeAttribute('title');
-      document.getElementsByClassName('compass')[0].removeAttribute('title');
-      document
-        .getElementsByClassName('navigation-controls')[0]
-        .children[0].removeAttribute('title');
-      document
-        .getElementsByClassName('navigation-controls')[0]
-        .children[1].removeAttribute('title');
-      document
-        .getElementsByClassName('navigation-controls')[0]
-        .children[2].removeAttribute('title');
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
+    elementByClass('compass-outer-ring')?.removeAttribute('title');
+    elementByClass('compass')?.removeAttribute('title');
+    const controls = elementByClass('navigation-controls');
+    if (!controls) return;
+    elementChild(controls, 0)?.removeAttribute('title');
+    elementChild(controls, 1)?.removeAttribute('title');
+    elementChild(controls, 2)?.removeAttribute('title');
   }
 
   private bindNavMixinTooltips(): () => void {
@@ -215,31 +185,25 @@ export class ZnemzNavigationMixin {
   }
 
   private getUsability(): void {
-    try {
-      const zoomIn: Element = document.getElementsByClassName('navigation-control')[0];
-      const resetView: Element = document.getElementsByClassName('navigation-control')[1];
-      const zoomOut: Element = document.getElementsByClassName('navigation-control-last')[0];
-      if (zoomIn && resetView && zoomOut) {
+    const zoomIn = elementByClass('navigation-control', 0);
+    const resetView = elementByClass('navigation-control', 1);
+    const zoomOut = elementByClass('navigation-control-last', 0);
+    if (zoomIn && resetView && zoomOut) {
         const btnsArr = [zoomIn, resetView, zoomOut];
         for (const btn of btnsArr) {
+          if (!(btn instanceof HTMLElement)) continue;
           btn.setAttribute('tabindex', '0');
-          (btn as HTMLElement).addEventListener('keyup', (event: KeyboardEvent) => {
+          btn.addEventListener('keyup', (event: KeyboardEvent) => {
             if (event.code === 'Enter' || event.code === 'NumpadEnter') {
-              (btn as HTMLElement).click();
+              btn.click();
             }
           });
         }
       }
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
   }
 
   private getCursorListeners(): void {
-    const compassRingEl: HTMLElement | null = document.getElementsByClassName(
-      'compass-outer-ring-background',
-    )?.[0] as HTMLElement;
+    const compassRingEl = elementByClass('compass-outer-ring-background');
     function mouseUpCallback(): void {
       document.body.style.cursor = 'auto';
       document.removeEventListener('mouseup', mouseUpCallback);
@@ -250,9 +214,7 @@ export class ZnemzNavigationMixin {
         document.addEventListener('mouseup', mouseUpCallback);
       });
     }
-    const compassGyroEl: HTMLElement | null = document.getElementsByClassName(
-      'compass-gyro-background',
-    )?.[0] as HTMLElement;
+    const compassGyroEl = elementByClass('compass-gyro-background');
     if (compassGyroEl) {
       compassGyroEl.addEventListener('mousedown', () => {
         document.body.style.cursor = 'move';

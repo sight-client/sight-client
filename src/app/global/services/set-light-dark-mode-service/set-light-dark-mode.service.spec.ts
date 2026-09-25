@@ -48,4 +48,19 @@ describe('SetLightDarkModeService', () => {
     expect(localStorage.getItem('colorScheme')).toBe('dark');
     expect(service.isDarkChecked()).toBe(true);
   });
+
+  it('ignores a non-literal colorScheme in localStorage', () => {
+    localStorage.setItem('colorScheme', 'sepia');
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: vi.fn().mockReturnValue({
+        matches: false,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }),
+    });
+    expect(service.getStartColorScheme()).toBe(false);
+    expect(localStorage.getItem('colorScheme')).toBe('light');
+  });
 });

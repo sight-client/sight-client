@@ -40,4 +40,15 @@ describe('SetUserThemeService', () => {
     expect(localStorage.getItem('themePalettes')).toBe('cyan-orange');
     expect(service.nowUserPalettes()).toBe('cyan-orange');
   });
+
+  it('ignores whitespace-only themePalettes from localStorage', () => {
+    localStorage.setItem('themePalettes', '   ');
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection()],
+    });
+    const next = TestBed.inject(SetUserThemeService);
+    expect(next.userThemePalettesOnStart.trim().length).toBeGreaterThan(0);
+    expect(next.userThemePalettesOnStart).not.toBe('   ');
+  });
 });

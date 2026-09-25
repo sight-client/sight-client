@@ -162,9 +162,7 @@
                       matTooltipShowDelay="1000"
                       (click)="
                         $event.stopPropagation();
-                        store.storeName === 'drawMark' ||
-                        store.storeName === 'addAnnotation' ||
-                        store.storeName === 'addPhoto'
+                        store.storeName === 'drawMark'
                           ? $drawingsListService.flyToEntity(
                               objInCollection?.defaultEntity || objInCollection?.entitiesList[0],
                               false

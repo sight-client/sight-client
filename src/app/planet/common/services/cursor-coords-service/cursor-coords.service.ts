@@ -1,4 +1,5 @@
-import { Injectable, signal, HostListener } from '@angular/core';
+import { Injectable, OnDestroy, signal } from '@angular/core';
+import { reportError } from '@global/lib/report-error.lib';
 import * as Cesium from 'cesium';
 import {
   exhaustMap,
@@ -15,8 +16,12 @@ import { CoordSystems } from '@/common/lib/coord-sistems.lib';
 import type { CRS } from '@/common/lib/coord-sistems.lib';
 import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 
+function cartesianFromValue(value: unknown): Cesium.Cartesian3 | undefined {
+  return value instanceof Cesium.Cartesian3 ? value : undefined;
+}
+
 @Injectable()
-export class CursorCoordsService {
+export class CursorCoordsService implements OnDestroy {
   constructor(
     private $viewerService: ViewerService,
     private $checkMobileDeviceService: CheckMobileDeviceService,
@@ -29,19 +34,11 @@ export class CursorCoordsService {
     return this._isMobile;
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(_event: Event) {
-    this.canvas = this.$viewerService?.viewer?.scene?.canvas;
-    this.canvasCenterX = this.canvas.scrollWidth / 2;
-    this.canvasCenterY = this.canvas.scrollHeight / 2;
-  }
-
   // Стартует вместе с viewer'ом и инструментами правой панели в директиве run-viewer.directive.ts
   public async startCursorCoordsService(): Promise<void> {
-    this.canvas = this.$viewerService?.viewer?.scene?.canvas;
+    this.syncCanvasCenter();
     if (!this.canvas) throw new Error('Scene canvas is undefined!');
-    this.canvasCenterX = this.canvas.scrollWidth / 2;
-    this.canvasCenterY = this.canvas.scrollHeight / 2;
+    this.bindCanvasResize();
     await this.setUnderMouseEntity();
     if (!this._isMobile) {
       this.mouseMoveSubscription = this.getMouseMoveSubscription();
@@ -69,8 +66,7 @@ export class CursorCoordsService {
   public underMouseEntity = signal<Cesium.Entity | undefined>(undefined);
   public underMouseEntityHasLoaded = signal<boolean>(false);
   private async setUnderMouseEntity(): Promise<void> {
-    try {
-      const mousePositionDataSource = new Cesium.CustomDataSource('mousePosition');
+    const mousePositionDataSource = new Cesium.CustomDataSource('mousePosition');
       mousePositionDataSource.entities.add({
         id: 'mouse',
         // Скрыт и дублируется html-контейнером компонента cursor-coords-info с целью оптимизации (наблюдались фризы).
@@ -92,10 +88,6 @@ export class CursorCoordsService {
       );
       if (this.underMouseEntity() !== undefined) this.underMouseEntityHasLoaded.set(true);
       else throw new Error('underMouseEntity is not defined');
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
   }
 
   // Элемент, в котором будут отслеживаться события (ссылка приходит из planet.ts по окончании его рендеринга - раньше запуска местных лисенеров)
@@ -107,8 +99,7 @@ export class CursorCoordsService {
   // Подписка на движение курсора мыши по эллипсоиду (оформляется при старте сервиса)
   declare private mouseMoveSubscription: Subscription;
   private getMouseMoveSubscription(): Subscription {
-    try {
-      if (!this.watchedContainer)
+    if (!this.watchedContainer)
         throw new Error('Planet container is not defined. Mouse move subscription was failed!');
       const mouseMove$: Observable<Event> = fromEvent(this.watchedContainer, 'mousemove');
       // NOTICE: конструкцию не менять! (см. пояснения у this.setUnderMouseEntityPosition)
@@ -129,10 +120,6 @@ export class CursorCoordsService {
           }),
         )
         .subscribe();
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
   }
 
   // declare private cameraChangedSubscription: Subscription;
@@ -165,7 +152,7 @@ export class CursorCoordsService {
   //         // !!! Отрабатывает, но координата не меняется
   //         () => console.log('camera changed event'),
   //       );
-  //   } catch (error: any) {
+  //   } catch (error: unknown) {
   //     error.cause = 'red';
   //     throw error;
   //   }
@@ -174,8 +161,7 @@ export class CursorCoordsService {
   // Подписка на движение пальца (на точпаде) по эллипсоиду (оформляется при старте сервиса)
   declare private touchMoveSubscription: Subscription;
   private getTouchMoveSubscription(): Subscription {
-    try {
-      if (!this.watchedContainer)
+    if (!this.watchedContainer)
         throw new Error('Planet container is not defined. Long touch subscription was failed!');
       const touchMove$: Observable<Event> = fromEvent(this.watchedContainer, 'touchmove');
       return touchMove$
@@ -194,10 +180,6 @@ export class CursorCoordsService {
           }),
         )
         .subscribe();
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
   }
 
   // Уусловия показа поля с координатами (в левом нижнем углу)
@@ -212,6 +194,23 @@ export class CursorCoordsService {
   declare private canvas: HTMLCanvasElement | undefined;
   declare private canvasCenterX: number;
   declare private canvasCenterY: number;
+  private resizeSubscription: Subscription | undefined;
+
+  /** @internal invoked from startCursorCoordsService; covered by the resize spec */
+  bindCanvasResize(): void {
+    this.resizeSubscription?.unsubscribe();
+    this.resizeSubscription = fromEvent(window, 'resize').subscribe(() => {
+      this.syncCanvasCenter();
+    });
+  }
+
+  private syncCanvasCenter(): void {
+    const canvas = this.$viewerService?.viewer?.scene?.canvas;
+    if (!canvas) return;
+    this.canvas = canvas;
+    this.canvasCenterX = canvas.scrollWidth / 2;
+    this.canvasCenterY = canvas.scrollHeight / 2;
+  }
   // // Фиксация максимальных значений параметров изменяющегося по высоте контейнера
   // private minTop: number = 1000000;
   // private maxHeight: number = 1;
@@ -224,7 +223,7 @@ export class CursorCoordsService {
       // Резервная проверка на существование холста
       if (!this.canvas) {
         this.cursorOnViewerCanvas.set(false);
-        console.log('Scene canvas is undefined!');
+        console.info('Scene canvas is undefined!');
         return undefined;
       }
       const targetPoint: Cesium.Cartesian2 | undefined = this.getCursorXY(event);
@@ -263,9 +262,8 @@ export class CursorCoordsService {
         return undefined;
       }
       return cartesian;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.calculationBlocker.set(false);
-      error.cause = 'red';
       throw error;
     }
   }
@@ -277,7 +275,7 @@ export class CursorCoordsService {
       // Резервная проверка на существование холста
       if (!this.canvas) {
         this.cursorOnViewerCanvas.set(false);
-        console.log('Scene canvas is undefined!');
+        console.info('Scene canvas is undefined!');
         return undefined;
       }
       if ((event instanceof TouchEvent && event.type === 'touchmove') || this._isMobile) {
@@ -320,9 +318,8 @@ export class CursorCoordsService {
       const x = this.cursorX - 0; // валидно, потому что #cesiumContainer всегда - на весь экран (если нет то "...  - this.canvas.getBoundingClientRect().left")
       const y = this.cursorY - 0;
       return new Cesium.Cartesian2(x, y); // target point
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.calculationBlocker.set(false);
-      error.cause = 'red';
       throw error;
     }
   }
@@ -332,27 +329,18 @@ export class CursorCoordsService {
   // Поэтому, в подписке this.underMouseEntity().position устанавливается в .pipe.map, а точная высота (с самого нижнего слоя рельефа)
   // добавляется уже в setUnderMouseEntityCoords в .pipe.map.exhaustMap (ожидает выполненния ассинхронной операции, пропуская выполнение внеочередных (не копится пул выполнений), последний в очереди запрос также будет выполне).
   private setUnderMouseEntityPosition(cartesian: Cesium.Cartesian3): void {
-    try {
-      const underMouseEntity = this.underMouseEntity();
-      if (underMouseEntity !== undefined && cartesian !== undefined) {
-        underMouseEntity.position = new Cesium.ConstantPositionProperty(cartesian);
-      }
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
+    const underMouseEntity = this.underMouseEntity();
+    if (underMouseEntity !== undefined && cartesian !== undefined) {
+      underMouseEntity.position = new Cesium.ConstantPositionProperty(cartesian);
     }
   }
 
   public selectedCrs = signal<CRS>('WGS-84');
   public async setSelectedCrs(newVal: CRS): Promise<void> {
     this.selectedCrs.set(newVal);
-    if (
-      this.underMouseEntity()?.position?.getValue() &&
-      this.underMouseEntity()?.position?.getValue() instanceof Cesium.Cartesian3
-    ) {
-      await this.setUnderMouseEntityCoords(
-        this.underMouseEntity()?.position?.getValue() as Cesium.Cartesian3,
-      );
+    const underMousePosition = cartesianFromValue(this.underMouseEntity()?.position?.getValue());
+    if (underMousePosition) {
+      await this.setUnderMouseEntityCoords(underMousePosition);
     }
   }
 
@@ -382,9 +370,10 @@ export class CursorCoordsService {
       // ---------------------------------------------------------------- //
 
       // Set most deep height on under cursor entity's position
-      const cartesianUnderCursor: Cesium.Cartesian3 | undefined =
-        this.underMouseEntity()?.position?.getValue();
-      if (cartesianUnderCursor !== undefined && cartesianUnderCursor instanceof Cesium.Cartesian3) {
+      const cartesianUnderCursor = cartesianFromValue(
+        this.underMouseEntity()?.position?.getValue(),
+      );
+      if (cartesianUnderCursor) {
         const cartographictUnderCursor: Cesium.Cartographic =
           Cesium.Cartographic.fromCartesian(cartesianUnderCursor);
         // Расхождение, т.к. heightUnderCursor берется с текущего уровня тайлов рельефа (зависит от высоты камеры)
@@ -501,12 +490,8 @@ export class CursorCoordsService {
     }
     try {
       if (mostDetailedHeightFlag === false) return quickUnderMouseEntity;
-      const cartesianUnderCursor: Cesium.Cartesian3 | undefined =
-        quickUnderMouseEntity?.position?.getValue();
-      if (
-        cartesianUnderCursor === undefined ||
-        !(cartesianUnderCursor instanceof Cesium.Cartesian3)
-      )
+      const cartesianUnderCursor = cartesianFromValue(quickUnderMouseEntity?.position?.getValue());
+      if (!cartesianUnderCursor)
         // throw new Error('Invalid position from under mouse entity');
         return quickUnderMouseEntity;
       const cartographictUnderCursor: Cesium.Cartographic =
@@ -536,12 +521,13 @@ export class CursorCoordsService {
         return quickUnderMouseEntity;
       }
     } catch (error: unknown) {
-      console.log(error);
+      reportError(error);
       return quickUnderMouseEntity || new Cesium.Entity();
     }
   }
 
   ngOnDestroy() {
+    this.resizeSubscription?.unsubscribe();
     if (this.mouseMoveSubscription) {
       this.mouseMoveSubscription.unsubscribe();
     }

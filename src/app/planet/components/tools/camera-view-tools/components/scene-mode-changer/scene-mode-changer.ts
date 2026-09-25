@@ -1,24 +1,11 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  signal,
-  computed,
-  ElementRef,
-  OnInit,
-  OnDestroy,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import {
-  setStartBtnVisibility,
-  getBtnVisibilityObserver,
-} from '@/components/tools/lib/buttons-subgroups-visibility';
-
+import { reportError } from '@global/lib/report-error.lib';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import type { SceneModeLiterals } from '@/common/services/viewer-service/viewer.service';
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
@@ -30,45 +17,17 @@ import { ToolsService } from '@/components/tools/services/tools-service/tools.se
   styleUrls: ['../../../tools-panel.scss', './scene-mode-changer.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SceneModeChanger implements OnInit, OnDestroy {
-  protected readonly toolName: string = '3D/2D/Columbus';
-  protected readonly rusToolName: string = 'Снимок экрана';
+export class SceneModeChanger {
+  protected readonly toolName = '3D/2D/Columbus' as const;
+  protected readonly rusToolName = 'Снимок экрана' as const;
 
   constructor(
     private $viewerService: ViewerService,
     protected $toolsService: ToolsService,
-    // -------------------------- Управление видимостью кнопки (входящей в группу инструментов) (start) -------------------------- //
-    private el: ElementRef<HTMLElement>,
   ) {
     this.nextSceneModeDescription.set(this.getNextSceneMode());
   }
 
-  // Управление видимостью кнопки (входящей в группу инструментов)
-  protected buttonVisibility = signal<boolean>(false);
-  private observer: MutationObserver | undefined;
-
-  ngOnInit() {
-    try {
-      // Определение стартового значения флага видимости кнопки
-      if (setStartBtnVisibility(this.el, this.buttonVisibility)) {
-        // Отслеживание изменения кастомного атрибута хоста для выставления флага видимости кнопки
-        this.observer = getBtnVisibilityObserver(this.el, this.buttonVisibility);
-        if (this.observer !== undefined) {
-          this.observer.observe(this.el.nativeElement, {
-            attributes: true,
-          });
-        } else throw new Error('getBtnVisibilityObserver fn has failed');
-      } else throw new Error('setStartBtnVisibility fn has failed');
-    } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
-    }
-  }
-
-  ngOnDestroy() {
-    this.observer?.disconnect();
-  }
-  // -------------------------- Управление видимостью кнопки (входящей в группу инструментов) (end) -------------------------- //
   protected nowSceneModeDescription = computed<SceneModeLiterals>(() =>
     this.$viewerService.nowSceneModeDescription(),
   );
@@ -77,17 +36,18 @@ export class SceneModeChanger implements OnInit, OnDestroy {
     let nextSceneMode: SceneModeLiterals = '2D';
     try {
       if (this.$viewerService.viewerHasLoaded()) {
-        if (this.$viewerService.viewer.scene.mode === 3) {
+        const mode = this.$viewerService.viewer.scene.mode;
+        if (mode === Cesium.SceneMode.SCENE3D) {
           nextSceneMode = '2D';
-        } else if (this.$viewerService.viewer.scene.mode === 2) {
+        } else if (mode === Cesium.SceneMode.SCENE2D) {
           nextSceneMode = 'Columbus';
-        } else if (this.$viewerService.viewer.scene.mode === 1) {
+        } else if (mode === Cesium.SceneMode.COLUMBUS_VIEW) {
           nextSceneMode = '3D';
         }
       }
       return nextSceneMode;
     } catch (error: unknown) {
-      console.log(error);
+      reportError(error);
       return nextSceneMode;
     }
   }
@@ -102,16 +62,17 @@ export class SceneModeChanger implements OnInit, OnDestroy {
       }
       this.$toolsService.setDrawingsBlocker(true);
       // this.disableChanging.set(true);
-      if (this.$viewerService.viewer.scene.mode === 3) {
-        this.$viewerService.viewer.scene.morphTo2D(); // to mode === 2
+      const mode = this.$viewerService.viewer.scene.mode;
+      if (mode === Cesium.SceneMode.SCENE3D) {
+        this.$viewerService.viewer.scene.morphTo2D();
         sceneMode = Cesium.SceneMode.SCENE2D;
         nextSceneMode = 'Columbus';
-      } else if (this.$viewerService.viewer.scene.mode === 2) {
-        this.$viewerService.viewer.scene.morphToColumbusView(); // to mode === 1
+      } else if (mode === Cesium.SceneMode.SCENE2D) {
+        this.$viewerService.viewer.scene.morphToColumbusView();
         sceneMode = Cesium.SceneMode.COLUMBUS_VIEW;
         nextSceneMode = '3D';
-      } else if (this.$viewerService.viewer.scene.mode === 1) {
-        this.$viewerService.viewer.scene.morphTo3D(); // to mode === 3
+      } else if (mode === Cesium.SceneMode.COLUMBUS_VIEW) {
+        this.$viewerService.viewer.scene.morphTo3D();
         sceneMode = Cesium.SceneMode.SCENE3D;
         nextSceneMode = '2D';
       }
@@ -125,7 +86,7 @@ export class SceneModeChanger implements OnInit, OnDestroy {
     } catch (error: unknown) {
       // this.disableChanging.set(false);
       this.$toolsService.setDrawingsBlocker(false);
-      console.log(error);
+      reportError(error);
     }
   }
   private setLocalStorageSceneMode(sceneMode: Cesium.SceneMode): void {
@@ -142,7 +103,7 @@ export class SceneModeChanger implements OnInit, OnDestroy {
       }
       localStorage.setItem('sceneMode', sceneModeDescription);
     } catch (error: unknown) {
-      console.log(error);
+      reportError(error);
     }
   }
 }

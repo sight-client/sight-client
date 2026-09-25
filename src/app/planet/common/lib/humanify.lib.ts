@@ -4,6 +4,13 @@ export function formatDec(
   seconds: number,
   direction: string,
 ): number {
+  if (
+    !Number.isFinite(degrees) ||
+    !Number.isFinite(minutes) ||
+    !Number.isFinite(seconds)
+  ) {
+    return Number.NaN;
+  }
   let dd: number = degrees + minutes / 60 + seconds / 3600;
   if (direction === 'S' || direction === 'W') {
     dd *= -1;
@@ -12,6 +19,7 @@ export function formatDec(
 }
 
 export function formatNumber(number: number, decimals: number = -1): string {
+  if (!Number.isFinite(number)) return '';
   let whole: string[];
   let integer: string;
   if (decimals === -1) {
@@ -19,20 +27,25 @@ export function formatNumber(number: number, decimals: number = -1): string {
   } else {
     whole = number.toFixed(decimals).split('.');
   }
-  if (Number(whole[0]) < -9999 || Number(whole[0]) > 9999) {
-    integer = whole[0]
+  const integerPart = whole[0];
+  if (integerPart === undefined) return '';
+  const grouped = Number(integerPart);
+  if (!Number.isFinite(grouped)) return '';
+  if (grouped < -9999 || grouped > 9999) {
+    integer = integerPart
       .split('')
       .reverse()
       .reduce((acc, num, i) => num + (i && !(i % 3) ? ' ' : '') + acc, '')
       .replace('- ', '-');
   } else {
-    [integer] = whole;
+    integer = integerPart;
   }
   if (whole.length > 1) integer += `,${whole[1]}`;
   return integer;
 }
 
 export function formatDms(degrees: number, decimals: number): string {
+  if (!Number.isFinite(degrees) || !Number.isFinite(decimals)) return '';
   let nullSign: string;
   let d: number;
   let m: number;

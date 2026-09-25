@@ -16,7 +16,7 @@ Angular 22, **zoneless**, standalone-компоненты, сигналы. Не 
 - Селекторы без `app-`, кроме `app-root`.
 - Инжекты: `$setUserThemeService`, не переименовывать в файле, который правишь.
 - Алиасы: `@/*`, `@global/*`, `@landing/*`.
-- Темы: `SetUserThemeService` / `SetLightDarkModeService`, CSS-переменные в `src/app/global/configs/angular-material.config.scss`, ключи `themePalettes` / схема в `localStorage`.
+- Темы: `SetUserThemeService` / `SetLightDarkModeService`, CSS-переменные в `src/app/global/configs/angular-material.config.scss`, ключи `themePalettes` / схема в `localStorage`. `colorScheme` — только `'light' | 'dark'`, проверка `isColorScheme`.
 - Миксины: `src/app/global/styles`, `src/app/planet/common/styles`. Не дублировать `$breakpoints`.
 
 ## Сигналы
@@ -24,6 +24,9 @@ Angular 22, **zoneless**, standalone-компоненты, сигналы. Не 
 - Новое UI-состояние — `signal` / `computed` / `linkedSignal`.
 - В `effect` побочные эффекты оборачивать в `untracked()`, как в `run-viewer.directive.ts`.
 - Не класть огромные объекты (Viewer) в `WritableSignal` целиком.
+- `ElementRef` / `TemplateRef` без дженерика — это `any`. Писать `ElementRef<HTMLElement>` и `TemplateRef<unknown>`.
+
+Планы `.cursor/superpowers/plans/2026-09-23-error-reporting.md` и `2026-09-23-user-data-auth-flow.md` — **executed** 2026-09-25. Не возвращать `chalk` и `userNameGlobal`.
 
 ## SCSS / темы
 

@@ -1,6 +1,6 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, WritableSignal, computed, effect, signal, untracked } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
@@ -8,7 +8,7 @@ import { ToolsService } from '@/components/tools/services/tools-service/tools.se
 import type { EntitiesGroup } from '@/components/tools/services/tools-service/tools.service';
 import {
   DrawingService,
-  drawingToolsNames,
+  isDrawingToolName,
 } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 
 // Запровайден в planet.ts
@@ -31,7 +31,7 @@ export class EntityRubberService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -85,7 +85,7 @@ export class EntityRubberService {
         this.cancelThisTool();
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       this.cancelThisTool();
     }
   }
@@ -93,7 +93,7 @@ export class EntityRubberService {
     try {
       this.$drawingService.cancelDrawingTool();
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     } finally {
       this.isActive.set(false);
     }
@@ -131,26 +131,22 @@ export class EntityRubberService {
             // Ожидаемый сценарий
             // ------------------ //
 
+            const entityToolName = entity.toolName;
             if (
-              // @ts-ignore (конфликт - кастомное свойство toolName)
-              entity?.toolName &&
-              // @ts-ignore (конфликт - кастомное свойство toolName)
-              drawingToolsNames.includes(entity?.toolName as any) &&
-              // @ts-ignore (конфликт - кастомное свойство toolName)
-              this.$drawingService.allEntitiesListsLinks[entity.toolName]
+              typeof entityToolName === 'string' &&
+              isDrawingToolName(entityToolName) &&
+              this.$drawingService.allEntitiesListsLinks[entityToolName]
             ) {
               if (groupId) {
                 // Предполагается, что коллекции с искомым id / groupId будут размещены только в одном из сторов
                 isRemove = this.$drawingService.removeEntitiesByGroupId(
                   groupId,
-                  // @ts-ignore (конфликт - кастомное свойство toolName)
-                  this.$drawingService.allEntitiesListsLinks[entity.toolName],
+                  this.$drawingService.allEntitiesListsLinks[entityToolName],
                 );
               } else {
                 isRemove = this.$drawingService.removeOneEntityByGroupId(
                   entity.id,
-                  // @ts-ignore (конфликт - кастомное свойство toolName)
-                  this.$drawingService.allEntitiesListsLinks[entity.toolName],
+                  this.$drawingService.allEntitiesListsLinks[entityToolName],
                 );
               }
               return isRemove;
@@ -197,7 +193,7 @@ export class EntityRubberService {
               } else {
                 // Первая очередь поиска (стор, характерный для "примитивов")
                 isRemove = this.$drawingService.removeOneEntityByGroupId(
-                  groupId,
+                  entity.id,
                   this.$drawingService.overEntitiesList,
                 );
                 // Вторая очередь поиска (основные сторы)
@@ -243,7 +239,7 @@ export class EntityRubberService {
           return isRemove;
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
           return false;
         }
@@ -261,7 +257,7 @@ export class EntityRubberService {
       return true;
     } catch (error: unknown) {
       this.cancelThisTool();
-      console.log(chalk.red(error));
+      reportError(error);
       alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
       return false;
     }

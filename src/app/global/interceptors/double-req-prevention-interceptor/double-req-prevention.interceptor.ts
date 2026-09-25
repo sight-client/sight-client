@@ -1,7 +1,7 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
 import { finalize } from 'rxjs';
 
-const urlsDict = new Set();
+const urlsDict = new Set<string>();
 
 const doubleReqPreventionInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,

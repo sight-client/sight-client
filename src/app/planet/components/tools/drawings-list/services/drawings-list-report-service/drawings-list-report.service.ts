@@ -1,10 +1,11 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import { cloneDeep } from 'lodash';
 
 import { OdsDocument } from 'odf-kit';
 import type { OdsCellValue, OdsRowOptions, OdsCellObject } from 'odf-kit';
+
 import {
   readOds,
   //  odsToHtml,
@@ -17,8 +18,7 @@ import {
   uploadBlob,
 } from '@global/lib/common-global.lib';
 
-import { crsLiterals, CoordSystems } from '@/common/lib/coord-sistems.lib';
-import type { CRS } from '@/common/lib/coord-sistems.lib';
+import { CoordSystems, isCRS } from '@/common/lib/coord-sistems.lib';
 import * as Humanify from '@/common/lib/humanify.lib';
 
 import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
@@ -26,16 +26,23 @@ import { SetProgressSpinnerService } from '@global/services/set-progress-spinner
 // import { UserDataService } from '@global/services/user-data-service/user-data.service';
 import {
   DrawingService,
-  drawingToolsNames,
   getRusDrawingToolName,
   getOriginDrawingToolName,
+  isDrawingToolName,
+  isDrawingToolNameRus,
 } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 import type {
   DrawingToolName,
   // DrawingToolNameRus,
 } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
 import { DrawingsListService } from '@/components/tools/drawings-list/services/drawings-list-service/drawings-list.service';
-import { ToolsService, getCircle } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  getCircle,
+  cartesian3ListFromProperty,
+  cartesianFromProperty,
+  numberFromProperty,
+} from '@/components/tools/services/tools-service/tools.service';
 import type { ToolOptions } from '@/components/tools/services/tools-service/tools.service';
 // import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 
@@ -50,6 +57,19 @@ export type ToolPseudoEntityObj = {
     radius?: number | undefined;
   }>;
 };
+
+function isOdsCellObject(cell: OdsCellValue): cell is OdsCellObject {
+  return typeof cell === 'object' && cell !== null && 'rowSpan' in cell;
+}
+
+function finiteCellNumber(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
 
 // Запровайден в drawings-list.ts
 @Injectable()
@@ -91,7 +111,7 @@ export class DrawingsListReportService {
         return;
       }
       const bytes = await doc.save();
-      const blob = new Blob([bytes as BlobPart], {
+      const blob = new Blob([new Uint8Array(bytes)], {
         type: 'application/vnd.oasis.opendocument.text',
       });
       const url = URL.createObjectURL(blob);
@@ -101,8 +121,7 @@ export class DrawingsListReportService {
       a.click();
       URL.revokeObjectURL(url);
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return undefined;
     } finally {
       this.$SetProgressSpinnerService.setSpinnerOff();
@@ -114,8 +133,8 @@ export class DrawingsListReportService {
     try {
       const storesNames: Array<DrawingToolName> = [];
       for (const item of this.$drawingsListService.drawingStores) {
-        if (item?.storeName && drawingToolsNames.includes(item.storeName as DrawingToolName)) {
-          storesNames.push(item.storeName as DrawingToolName);
+        if (item?.storeName && isDrawingToolName(item.storeName)) {
+          storesNames.push(item.storeName);
         }
       }
       if (!storesNames.length) return undefined;
@@ -175,7 +194,8 @@ export class DrawingsListReportService {
         newSheet.freezeRows(1);
         let coloredRowCounter = 0;
         for (const row of newSheetRows) {
-          if ((row?.[0] as OdsCellObject)?.rowSpan) {
+          const firstCell = row?.[0];
+          if (isOdsCellObject(firstCell) && firstCell.rowSpan) {
             coloredRowCounter++;
           }
           if (coloredRowCounter % 2 === 0) {
@@ -210,7 +230,7 @@ export class DrawingsListReportService {
         //         wrap: true,
         //       },
         //       {
-        //         value: this.$userDataService.firstname()! + ' ' + this.$userDataService.lastname()!,
+        //         value: `${this.$userDataService.firstname() ?? ''} ${this.$userDataService.lastname() ?? ''}`,
         //         type: 'string',
         //         wrap: false,
         //       },
@@ -250,8 +270,7 @@ export class DrawingsListReportService {
 
       return doc;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return undefined;
     } finally {
     }
@@ -268,19 +287,15 @@ export class DrawingsListReportService {
       if (!allStoresObj[toolName]().length) return undefined;
       for (const group of allStoresObj[toolName]()) {
         if (!group) {
-          console.log(
-            chalk.blue(
-              `Group is undefined in store: ${toolName} (by getSheetRows fn). Result will be skiped within .ods document`,
-            ),
+          console.info(
+            `Group is undefined in store: ${toolName} (by getSheetRows fn). Result will be skiped within .ods document`,
           );
           continue;
         }
         const defaultEntity = group?.defaultEntity;
         if (defaultEntity === undefined || !(defaultEntity instanceof Cesium.Entity)) {
-          console.log(
-            chalk.blue(
-              `Group's defaultEntity is undefined in store: ${toolName} (by getSheetRows fn). Result will be skiped within .ods document`,
-            ),
+          console.info(
+            `Group's defaultEntity is undefined in store: ${toolName} (by getSheetRows fn). Result will be skiped within .ods document`,
           );
           continue;
         }
@@ -288,16 +303,15 @@ export class DrawingsListReportService {
         let entityName = defaultEntity?.name; // пользовательское наименование
         if (entityName === undefined) {
           const newIdArr: string[] = defaultEntity.id.split('-');
-          if (newIdArr.length < 2 || !drawingToolsNames.includes(newIdArr[1] as DrawingToolName)) {
+          const idToolName = newIdArr[1];
+          if (newIdArr.length < 2 || !idToolName || !isDrawingToolName(idToolName)) {
             entityName = 'имя не определено';
           } else {
             const unicId = newIdArr[newIdArr.length - 1];
-            const toolNameFromId = newIdArr[1];
-            entityName = `${getRusDrawingToolName(toolNameFromId)}-${unicId}`;
+            entityName = `${getRusDrawingToolName(idToolName)}-${unicId}`;
           }
         } else {
-          // Если имя - это стандартный литерал из DrawingToolName
-          if (drawingToolsNames.includes(entityName as DrawingToolName)) {
+          if (isDrawingToolName(entityName)) {
             entityName = getRusDrawingToolName(entityName);
           }
         }
@@ -308,13 +322,14 @@ export class DrawingsListReportService {
         });
         // Более одной строки
         if (toolName === 'drawLine' || toolName === 'drawRectangle' || toolName === 'drawPolygon') {
-          const positions: Array<Cesium.Cartesian3> =
-            defaultEntity.polyline?.positions?.getValue() || [];
+          const positions = cartesian3ListFromProperty(
+            defaultEntity.polyline?.positions?.getValue(),
+          );
           if (positions.length) {
             for (let i = 0; i < positions.length; i++) {
               const posObj = await this.$toolsService.getPositionCoordsNumbers(
                 positions[i],
-                crsLiterals.includes(sk as CRS) ? (sk as CRS) : undefined,
+                typeof sk === 'string' && isCRS(sk) ? sk : undefined,
               );
               let tagetRow: Array<OdsCellValue> = [];
               if (i === 0) {
@@ -338,8 +353,9 @@ export class DrawingsListReportService {
                 posObj?.crs || gag,
               );
               sheetRows.push(tagetRow);
-              if (i > 0 && (rowWithName?.[0] as OdsCellObject)?.rowSpan !== undefined) {
-                (rowWithName[0] as OdsCellObject).rowSpan!++;
+              const nameCell = rowWithName[0];
+              if (i > 0 && isOdsCellObject(nameCell) && nameCell.rowSpan !== undefined) {
+                nameCell.rowSpan++;
               }
             }
           } else {
@@ -348,11 +364,11 @@ export class DrawingsListReportService {
           }
           // Единственная строка
         } else {
-          let position: Cesium.Cartesian3 | undefined = defaultEntity?.position?.getValue();
+          const position = cartesianFromProperty(defaultEntity.position?.getValue());
           if (position) {
             const posObj = await this.$toolsService.getPositionCoordsNumbers(
               position,
-              crsLiterals.includes(sk as CRS) ? (sk as CRS) : undefined,
+              typeof sk === 'string' && isCRS(sk) ? sk : undefined,
             );
             rowWithName.push(
               {
@@ -373,31 +389,20 @@ export class DrawingsListReportService {
             rowWithName.push(gag, gag, gag, sk || gag);
           }
           if (toolName === 'drawCircle') {
-            if (toolName === 'drawCircle') {
-              let radius: number | undefined = defaultEntity?.ellipse?.semiMajorAxis?.getValue();
-              if (typeof radius === 'number') {
-                rowWithName.push({
-                  value: Math.round(radius),
-                  type: 'float',
-                });
-              } else rowWithName.push(gag);
-            } else if (toolName === 'addDome') {
-              let radius: number | undefined = defaultEntity?.ellipsoid?.radii?.getValue()?.x;
-              if (typeof radius === 'number') {
-                rowWithName.push({
-                  value: Math.round(radius),
-                  type: 'float',
-                });
-              } else rowWithName.push(gag);
-            }
+            const rawRadius = numberFromProperty(defaultEntity.ellipse?.semiMajorAxis?.getValue());
+            if (rawRadius !== undefined) {
+              rowWithName.push({
+                value: Math.round(rawRadius),
+                type: 'float',
+              });
+            } else rowWithName.push(gag);
           }
           sheetRows.push(rowWithName);
         }
       }
       return sheetRows;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return undefined;
     }
   }
@@ -408,7 +413,10 @@ export class DrawingsListReportService {
 
   public uploadReport(event: Event): boolean {
     try {
-      const inputEl = event.target as HTMLInputElement;
+      const inputEl = event.target;
+      if (!(inputEl instanceof HTMLInputElement)) {
+        throw new Error('Report input is not an HTMLInputElement in uploadReport fn');
+      }
       const file = uploadBlob(event);
       const reader = new FileReader();
       reader.onload = (): void => {
@@ -447,8 +455,7 @@ export class DrawingsListReportService {
           // console.log(html);
           // ----------------------------------------------- //
         } catch (error: unknown) {
-          console.log(chalk.red(error));
-          if (error instanceof Error) console.log(error.stack);
+          reportError(error);
           throw error;
         } finally {
           inputEl.value = '';
@@ -457,8 +464,7 @@ export class DrawingsListReportService {
       reader.readAsArrayBuffer(file);
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return false;
     }
   }
@@ -478,7 +484,7 @@ export class DrawingsListReportService {
       // Уровень таблиц
       for (const sheet of sheets) {
         if (!sheet?.rows?.length) {
-          console.log(chalk.red('Empty sheet. Sheet will be skiped.'));
+          console.info('Empty sheet. Sheet will be skiped.');
           continue;
         }
         // Обязательные колонки
@@ -489,10 +495,8 @@ export class DrawingsListReportService {
           sheet.rows[0]?.cells?.[3]?.value !== this.fourthColumnName || // 'Высота, м'
           sheet.rows[0]?.cells?.[4]?.value !== this.fifthColumnName // 'СК'
         ) {
-          console.log(
-            chalk.red(
-              "Invalid row's construction in sheet (default columns). Sheet will be skiped.",
-            ),
+          console.info(
+            "Invalid row's construction in sheet (default columns). Sheet will be skiped.",
           );
           continue;
         }
@@ -501,27 +505,21 @@ export class DrawingsListReportService {
           sheet.rows[0]?.cells?.[5]?.value &&
           sheet.rows[0].cells[5].value !== this.sixthColumnName // 'Радиус, м'
         ) {
-          console.log(
-            chalk.red(
-              "Invalid row's construction in sheet (optional columns). Sheet will be skiped.",
-            ),
+          console.info(
+            "Invalid row's construction in sheet (optional columns). Sheet will be skiped.",
           );
           continue;
         }
         if (sheet.rows[0].cells[0].value === this.firstColumnName && sheet.rows.length === 1) {
-          console.log(chalk.red('Empty rows in sheet is undefined. Sheet will be skiped.'));
+          console.info('Empty rows in sheet is undefined. Sheet will be skiped.');
           continue;
         }
         const rusToolName = sheet?.name;
-        if (rusToolName === undefined) {
-          console.log(chalk.red('rusToolName in sheet is undefined. Sheet will be skiped.'));
+        if (typeof rusToolName !== 'string' || !isDrawingToolNameRus(rusToolName)) {
+          console.info('Invalid toolName in sheet. Sheet will be skiped.');
           continue;
         }
-        const toolName = getOriginDrawingToolName(rusToolName) as DrawingToolName;
-        if (!drawingToolsNames.includes(toolName)) {
-          console.log(chalk.red('Invalid toolName in sheet. Sheet will be skiped.'));
-          continue;
-        }
+        const toolName = getOriginDrawingToolName(rusToolName);
         const toolPseudoEntityObj: ToolPseudoEntityObj = {
           toolName: toolName,
           entitiesList: [],
@@ -548,13 +546,16 @@ export class DrawingsListReportService {
               continue; // пропуск первого столбца 'Наименование инструмента'
             // 'Широта'
             else if (i === 1) {
-              nowCartographic.latitude = Number(row.cells[i].value);
+              const latitude = finiteCellNumber(row.cells[i].value);
+              if (latitude !== undefined) nowCartographic.latitude = latitude;
               // 'Долгота'
             } else if (i === 2) {
-              nowCartographic.longitude = Number(row.cells[i].value);
+              const longitude = finiteCellNumber(row.cells[i].value);
+              if (longitude !== undefined) nowCartographic.longitude = longitude;
               // 'Высота, м'
             } else if (i === 3) {
-              nowCartographic.height = Number(row.cells[i].value);
+              const height = finiteCellNumber(row.cells[i].value);
+              if (height !== undefined) nowCartographic.height = height;
               // 'СК';
             } else if (i === 4) {
               const crs = `${row.cells[i].value}`;
@@ -576,10 +577,10 @@ export class DrawingsListReportService {
                   toolPseudoEntityObj.entitiesList[nowEntityIndex].position = cartesian;
                 }
               } else {
-                if (crsLiterals.includes(crs as CRS)) {
+                if (isCRS(crs)) {
                   // Используем полученные данные для пересчета в текущую систему координат
                   const wgs84PseudoCartographic = CoordSystems.toWGS84Cartographic(
-                    crs as CRS,
+                    crs,
                     nowCartographic,
                     '',
                   );
@@ -605,10 +606,8 @@ export class DrawingsListReportService {
                     toolPseudoEntityObj.entitiesList[nowEntityIndex].position = cartesian;
                   }
                 } else {
-                  console.log(
-                    chalk.red(
-                      `Invalid coord sistem in tool's "${toolName}" row. Row will be skiped.`,
-                    ),
+                  console.info(
+                    `Invalid coord sistem in tool's "${toolName}" row. Row will be skiped.`,
                   );
                   continue;
                 }
@@ -616,9 +615,10 @@ export class DrawingsListReportService {
               // 'Радиус, м'
             } else if (i === 5) {
               if (toolName === 'drawCircle') {
-                toolPseudoEntityObj.entitiesList[nowEntityIndex].radius = Number(
-                  row.cells[i].value,
-                );
+                const radius = finiteCellNumber(row.cells[i].value);
+                if (radius !== undefined) {
+                  toolPseudoEntityObj.entitiesList[nowEntityIndex].radius = radius;
+                }
               }
             }
           }
@@ -628,15 +628,14 @@ export class DrawingsListReportService {
       if (!toolsPseudoCollections.length) return undefined;
       else return toolsPseudoCollections;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return undefined;
     }
   }
 
   private drawEntitiesFromReport(toolsPseudoCollections: Array<ToolPseudoEntityObj>): boolean {
     try {
-      const isActiveObjsInStores: { [key: string]: boolean } = {}; // обеспечивает требуемый автовыбор в списке при импорте (!!! синхронизировано с плавающими окнами инструментов!!! - в свойстве _validPickedEntity)
+      const isActiveObjsInStores: Partial<Record<DrawingToolName, boolean>> = {}; // обеспечивает требуемый автовыбор в списке при импорте (!!! синхронизировано с плавающими окнами инструментов!!! - в свойстве _validPickedEntity)
 
       for (const toolObj of toolsPseudoCollections) {
         const toolName = toolObj.toolName;
@@ -675,9 +674,7 @@ export class DrawingsListReportService {
           if (toolName === 'drawMark') {
             const position = entityObj?.position;
             if (!position) {
-              console.log(
-                chalk.red(`"${toolName}" entity's position is undefined. Entity will be skipped.`),
-              );
+              console.info(`"${toolName}" entity's position is undefined. Entity will be skipped.`);
               continue;
             }
             const optForMark = {
@@ -691,9 +688,7 @@ export class DrawingsListReportService {
             if (optForMark.properties) optForMark.properties.systemCoords = 'WGS-84';
             const entity = this.$toolsService.setPointEntity(position, optForMark);
             if (!entity) {
-              console.log(
-                chalk.red(`"${toolName}" entity's construction failed. Entity will be skipped.`),
-              );
+              console.info(`"${toolName}" entity's construction failed. Entity will be skipped.`);
               continue;
             }
             this.$drawingService.pushGroupWithoutTemporalWithDrawing(
@@ -708,10 +703,8 @@ export class DrawingsListReportService {
           } else if (toolName === 'drawLine') {
             const polylinePositions = entityObj?.polylynePositions;
             if (!polylinePositions?.length) {
-              console.log(
-                chalk.red(
-                  `"${toolName}" entity's polylinePositions is undefined. Entity will be skipped.`,
-                ),
+              console.info(
+                `"${toolName}" entity's polylinePositions is undefined. Entity will be skipped.`,
               );
               continue;
             }
@@ -732,9 +725,7 @@ export class DrawingsListReportService {
               optForLine,
             );
             if (!entity) {
-              console.log(
-                chalk.red(`"${toolName}" entity's construction failed. Entity will be skipped.`),
-              );
+              console.info(`"${toolName}" entity's construction failed. Entity will be skipped.`);
               continue;
             }
             this.$drawingService.pushGroupWithoutTemporalWithDrawing(
@@ -749,10 +740,8 @@ export class DrawingsListReportService {
           } else if (toolName === 'drawRectangle') {
             const polylinePositions = entityObj?.polylynePositions;
             if (!polylinePositions?.length) {
-              console.log(
-                chalk.red(
-                  `"${toolName}" entity's polylinePositions is undefined. Entity will be skipped.`,
-                ),
+              console.info(
+                `"${toolName}" entity's polylinePositions is undefined. Entity will be skipped.`,
               );
               continue;
             }
@@ -772,9 +761,7 @@ export class DrawingsListReportService {
               optForPolygon,
             );
             if (!entity) {
-              console.log(
-                chalk.red(`"${toolName}" entity's construction failed. Entity will be skipped.`),
-              );
+              console.info(`"${toolName}" entity's construction failed. Entity will be skipped.`);
               continue;
             }
             this.$drawingService.pushGroupWithoutTemporalWithDrawing(
@@ -789,16 +776,12 @@ export class DrawingsListReportService {
           } else if (toolName === 'drawCircle') {
             const position = entityObj?.position;
             if (!position) {
-              console.log(
-                chalk.red(`"${toolName}" entity's position is undefined. Entity will be skipped.`),
-              );
+              console.info(`"${toolName}" entity's position is undefined. Entity will be skipped.`);
               continue;
             }
             const radius = entityObj?.radius;
             if (!radius) {
-              console.log(
-                chalk.red(`"${toolName}" entity's radius is undefined. Entity will be skipped.`),
-              );
+              console.info(`"${toolName}" entity's radius is undefined. Entity will be skipped.`);
               continue;
             }
 
@@ -835,10 +818,8 @@ export class DrawingsListReportService {
               optForLine,
             );
             if (!lineEntity) {
-              console.log(
-                chalk.red(
-                  `"${toolName}" lineEntity entity's construction failed. Entity will be skipped.`,
-                ),
+              console.info(
+                `"${toolName}" lineEntity entity's construction failed. Entity will be skipped.`,
               );
               continue;
             }
@@ -867,10 +848,8 @@ export class DrawingsListReportService {
               optForEllipse,
             );
             if (!ellipseEntity) {
-              console.log(
-                chalk.red(
-                  `"${toolName}" ellipse entity's construction failed. Entity will be skipped.`,
-                ),
+              console.info(
+                `"${toolName}" ellipse entity's construction failed. Entity will be skipped.`,
               );
               continue;
             }
@@ -898,10 +877,8 @@ export class DrawingsListReportService {
           } else if (toolName === 'drawPolygon') {
             const polylinePositions = entityObj.polylynePositions;
             if (!polylinePositions?.length) {
-              console.log(
-                chalk.red(
-                  `"${toolName}" entity's polylinePositions is undefined. Entity will be skipped.`,
-                ),
+              console.info(
+                `"${toolName}" entity's polylinePositions is undefined. Entity will be skipped.`,
               );
               continue;
             }
@@ -921,9 +898,7 @@ export class DrawingsListReportService {
               optForPolygon,
             );
             if (!entity) {
-              console.log(
-                chalk.red(`"${toolName}" entity's construction failed. Entity will be skipped.`),
-              );
+              console.info(`"${toolName}" entity's construction failed. Entity will be skipped.`);
               continue;
             }
             this.$drawingService.pushGroupWithoutTemporalWithDrawing(
@@ -938,16 +913,12 @@ export class DrawingsListReportService {
           } else if (toolName === 'addDome') {
             const position = entityObj?.position;
             if (!position) {
-              console.log(
-                chalk.red(`"${toolName}" entity's position is undefined. Entity will be skipped.`),
-              );
+              console.info(`"${toolName}" entity's position is undefined. Entity will be skipped.`);
               continue;
             }
             const radius = entityObj?.radius;
             if (!radius) {
-              console.log(
-                chalk.red(`"${toolName}" entity's radius is undefined. Entity will be skipped.`),
-              );
+              console.info(`"${toolName}" entity's radius is undefined. Entity will be skipped.`);
               continue;
             }
 
@@ -990,9 +961,7 @@ export class DrawingsListReportService {
               optForEllipsoid,
             );
             if (!entity) {
-              console.log(
-                chalk.red(`"${toolName}" entity's construction failed. Entity will be skipped.`),
-              );
+              console.info(`"${toolName}" entity's construction failed. Entity will be skipped.`);
               continue;
             }
             this.$drawingService.pushGroupWithoutTemporalWithDrawing(
@@ -1029,8 +998,7 @@ export class DrawingsListReportService {
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return false;
     }
   }

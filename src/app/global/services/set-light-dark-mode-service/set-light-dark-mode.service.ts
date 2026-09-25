@@ -6,6 +6,13 @@ import { map, skip, startWith } from 'rxjs/operators';
 // - app.ts
 // - light-dark-mode.ts (переиспользование)
 
+export const colorSchemeLiterals = Object.freeze(['light', 'dark'] as const);
+export type ColorScheme = (typeof colorSchemeLiterals)[number];
+
+export function isColorScheme(value: string): value is ColorScheme {
+  return colorSchemeLiterals.some((scheme) => scheme === value);
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -34,15 +41,13 @@ export class SetLightDarkModeService {
   public isDarkChecked = signal<boolean>(true);
   // Начальные установки для переключателей и local storage (в app.ts)
   public getStartColorScheme(): boolean {
-    try {
-      let isDarkMode: boolean = false;
-      const userColorScheme: string | null = localStorage.getItem('colorScheme');
-      // Самое первое значение (до записи в localStorage) берется из установок браузера
+    let isDarkMode: boolean = false;
+      const userColorScheme = localStorage.getItem('colorScheme');
       const isSystemDarkScheme: boolean = window?.matchMedia(
         '(prefers-color-scheme: dark)',
-      )?.matches; // не будет выдавать адекватное значение (всегда true), если тема установлена и в ОС (браузер не в приоритете)
-      if (userColorScheme === 'light' || userColorScheme === 'dark') {
-        userColorScheme === 'light' ? (isDarkMode = false) : (isDarkMode = true);
+      )?.matches;
+      if (userColorScheme !== null && isColorScheme(userColorScheme)) {
+        isDarkMode = userColorScheme === 'dark';
       } else {
         if (isSystemDarkScheme === true) {
           localStorage.setItem('colorScheme', 'dark');
@@ -54,40 +59,21 @@ export class SetLightDarkModeService {
       isDarkMode ? this.setDark() : this.setLight();
       this.isDarkChecked.set(isDarkMode);
       return isDarkMode;
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
   }
   private setLight(): void {
-    try {
-      document.documentElement.classList.add('light-mode');
-      document.documentElement.classList.remove('dark-mode');
-      localStorage.setItem('colorScheme', 'light');
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
+    document.documentElement.classList.add('light-mode');
+    document.documentElement.classList.remove('dark-mode');
+    localStorage.setItem('colorScheme', 'light');
   }
   private setDark(): void {
-    try {
-      document.documentElement.classList.add('dark-mode');
-      document.documentElement.classList.remove('light-mode');
-      localStorage.setItem('colorScheme', 'dark');
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
+    document.documentElement.classList.add('dark-mode');
+    document.documentElement.classList.remove('light-mode');
+    localStorage.setItem('colorScheme', 'dark');
   }
   // Функция на кнопке в компонентах-переключателях:
   public setColorScheme = (checked: boolean): void => {
-    try {
-      checked ? this.setDark() : this.setLight();
-      this.isDarkChecked.set(checked);
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
+    checked ? this.setDark() : this.setLight();
+    this.isDarkChecked.set(checked);
   };
   // Получение (пропускается через .pipe(skip(1))) и отслеживание системных настроек light-dark-режима оформления.
   // Приоритет - на состоянии приложения (последнего положения тоггла), но данная настройка существует для
@@ -96,25 +82,16 @@ export class SetLightDarkModeService {
   // результат пользователь увидит только после перезагрузки страницы - данные в localStorage (на которые ориентируется
   // положение тоггла) обновились и при загрузке будут считаны стандартным путем.
 
-  private prefersColorScheme(): Observable<string> {
-    try {
-      if (typeof window === 'undefined' || !window.matchMedia) {
-        return new Observable((subscriber) => {
-          subscriber.unsubscribe();
-        });
-        // return new Observable((subscriber) => {
-        //   subscriber.error(new Error('window.matchMedia is not available.'));
-        // });
-      }
-      const mediaQueryListObj: MediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
-      // Событие не отслеживается (не реагирует на переключение темы в настройках браузера), если тема выставлена в самой ОС
-      return fromEvent<MediaQueryListEvent>(mediaQueryListObj, 'change').pipe(
-        map((event: MediaQueryListEvent) => (event.matches ? 'dark' : 'light')),
-        startWith(mediaQueryListObj.matches ? 'dark' : 'light'),
-      );
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
+  private prefersColorScheme(): Observable<ColorScheme> {
+    if (typeof window === 'undefined' || !window.matchMedia) {
+      return new Observable<ColorScheme>((subscriber) => {
+        subscriber.unsubscribe();
+      });
     }
+    const mediaQueryListObj: MediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+    return fromEvent<MediaQueryListEvent>(mediaQueryListObj, 'change').pipe(
+      map((event: MediaQueryListEvent): ColorScheme => (event.matches ? 'dark' : 'light')),
+      startWith<ColorScheme>(mediaQueryListObj.matches ? 'dark' : 'light'),
+    );
   }
 }

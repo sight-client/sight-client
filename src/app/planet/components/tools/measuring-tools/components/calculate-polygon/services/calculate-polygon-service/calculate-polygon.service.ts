@@ -1,10 +1,14 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, computed, effect, linkedSignal, signal, untracked } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  cartesianFromProperty,
+  booleanFromProperty,
+} from '@/components/tools/services/tools-service/tools.service';
 import {
   MeasureService,
   getRusMeasuringToolName,
@@ -51,7 +55,7 @@ export class CalculatePolygonService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -69,7 +73,7 @@ export class CalculatePolygonService {
     try {
       this.$measureService.cancelMeasuringTool(); // общая функция отмены сценария любого из инструментов работы с картой
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     } finally {
       this._measureHasStarted.set(false);
       this.isActive.set(false);
@@ -120,7 +124,7 @@ export class CalculatePolygonService {
         this.cancelThisTool();
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       this.cancelThisTool();
     }
   }
@@ -212,7 +216,7 @@ export class CalculatePolygonService {
               }
             } else {
               mouseEntity = await this.$toolsService.getMouseEntity(true);
-              startPos = mouseEntity?.position?.getValue();
+              startPos = cartesianFromProperty(mouseEntity?.position?.getValue());
             }
             if (startPos === undefined) {
               // throw new Error('Start position is undefined in drawPolygonalAreaMeasureGraphics()');
@@ -252,7 +256,11 @@ export class CalculatePolygonService {
               if (polygonEntity.position) polygonEntity.position = reactiveLabelPosition;
               if (polygonEntity.label?.text) polygonEntity.label.text = reactiveLabelText;
 
-              if (!labelText && polygonEntity?.label?.show?.getValue() === true) {
+              if (
+                !labelText &&
+                polygonEntity?.label &&
+                booleanFromProperty(polygonEntity.label.show?.getValue()) === true
+              ) {
                 polygonEntity.label.show = new Cesium.ConstantProperty(false);
               }
 
@@ -273,7 +281,7 @@ export class CalculatePolygonService {
               }
             } else {
               mouseEntity = await this.$toolsService.getMouseEntity(true);
-              newPos = mouseEntity?.position?.getValue();
+              newPos = cartesianFromProperty(mouseEntity?.position?.getValue());
             }
             if (newPos === undefined) {
               // throw new Error('New position is undefined in drawPolygonalAreaMeasureGraphics()');
@@ -281,7 +289,7 @@ export class CalculatePolygonService {
               return;
             }
             if (Cesium.Cartesian3.equals(polylinePositions[polylinePositions.length - 1], newPos)) {
-              console.log(chalk.blue('Next & start positions are equal'));
+              console.info('Next & start positions are equal');
               return;
             }
             if (polylinePositions.length === 4) {
@@ -298,7 +306,7 @@ export class CalculatePolygonService {
                 if (
                   this.$toolsService.isMobile &&
                   polygonEntity?.point &&
-                  polygonEntity.point.show?.getValue() === true
+                  booleanFromProperty(polygonEntity.point.show?.getValue()) === true
                 ) {
                   polygonEntity.point.show = new Cesium.ConstantProperty(false);
                 }
@@ -322,7 +330,7 @@ export class CalculatePolygonService {
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -349,7 +357,7 @@ export class CalculatePolygonService {
             }
           } else {
             mouseEntity = await this.$toolsService.getMouseEntity(true);
-            movePos = mouseEntity?.position?.getValue();
+            movePos = cartesianFromProperty(mouseEntity?.position?.getValue());
           }
           if (movePos === undefined) return;
 
@@ -366,13 +374,17 @@ export class CalculatePolygonService {
             // На эллипсоиде
             labelText = MeasuresLib.calculateAreaWithTurf(polylinePositions);
 
-            if (polygonEntity?.label?.show?.getValue() === false && labelText) {
+            if (
+              polygonEntity?.label &&
+              booleanFromProperty(polygonEntity.label.show?.getValue()) === false &&
+              labelText
+            ) {
               polygonEntity.label.show = new Cesium.ConstantProperty(true);
             }
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -405,7 +417,7 @@ export class CalculatePolygonService {
             // Сценарий нажатий мышки в одной коорданате
             Cesium.Cartesian3.equals(startPos, polylinePositions[polylinePositions.length - 1])
           ) {
-            console.log(chalk.blue('End & start positions are equal'));
+            console.info('End & start positions are equal');
             this.cancelThisTool();
             return;
           }
@@ -433,7 +445,7 @@ export class CalculatePolygonService {
           // if (endPos === undefined)
           //   throw new Error('End position is undefined in drawPolygonalAreaMeasureGraphics()');
           // if (Cesium.Cartesian3.equals(startPos, endPos)) {
-          //   console.log(chalk.blue('End & start positions are equal'));
+          //   console.info('End & start positions are equal');
           //   this.cancelThisTool();
           //   return;
           // }
@@ -444,7 +456,7 @@ export class CalculatePolygonService {
           // polygonHierarchy.positions.push(endPos);
 
           if (Cesium.Cartesian3.equals(startPos, polylinePositions[polylinePositions.length - 1])) {
-            console.log(chalk.blue('End & start positions are equal'));
+            console.info('End & start positions are equal');
             this.cancelThisTool();
             return;
           }
@@ -477,7 +489,7 @@ export class CalculatePolygonService {
           this.cancelThisTool();
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -486,8 +498,7 @@ export class CalculatePolygonService {
       return true;
     } catch (error: unknown) {
       this.cancelThisTool();
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
       return false;
     }

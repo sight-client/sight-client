@@ -1,5 +1,5 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, signal } from '@angular/core';
-import chalk from 'chalk';
 
 // Используется в:
 // - app.ts
@@ -20,21 +20,18 @@ export class SetUserThemeService {
 
   readonly userThemePalettesOnStart: string = this.getUserThemePalettes(this.defaultThemePalettes);
   private getUserThemePalettes(defaultPalettes: string | null): string {
-    try {
-      let customPalettes: string | null = localStorage.getItem('themePalettes');
-      if (!customPalettes || typeof customPalettes !== 'string') {
-        if (defaultPalettes && typeof defaultPalettes === 'string') {
-          customPalettes = defaultPalettes;
-        } else {
-          customPalettes = 'azure-blue';
-        }
-      }
-      // Будет записано в root-css-переменную и в local storage внутри setUserTheme()
-      return customPalettes;
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
+    let customPalettes: string | null = localStorage.getItem('themePalettes');
+    if (typeof customPalettes === 'string') {
+      customPalettes = customPalettes.trim();
     }
+    if (!customPalettes) {
+      if (typeof defaultPalettes === 'string' && defaultPalettes.trim() !== '') {
+        customPalettes = defaultPalettes.trim();
+      } else {
+        customPalettes = 'azure-blue';
+      }
+    }
+    return customPalettes;
   }
 
   // Запрашивается в ui-theme.ts и theme-color-palette.ts
@@ -46,20 +43,19 @@ export class SetUserThemeService {
         document.documentElement,
       ).getPropertyValue('--theme-palettes-list');
       if (!cssThemeListVar || typeof cssThemeListVar !== 'string') {
-        console.log(
-          chalk.blue('Список тем оформления пуст. Инструмент выбора тем оформления отключен'),
-        );
+        console.info('Список тем оформления пуст. Инструмент выбора тем оформления отключен');
         return [];
       }
-      const themesArr: string[] = cssThemeListVar.split(' ');
+      const themesArr: string[] = cssThemeListVar
+        .trim()
+        .split(/\s+/)
+        .filter((item) => item.length > 0);
       return themesArr;
-    } catch (error: any) {
-      console.log(
-        chalk.blue(
-          'Ошибка при определении тем оформления. Инструмент выбора тем оформления отключен',
-        ),
+    } catch (error: unknown) {
+      console.info(
+        'Ошибка при определении тем оформления. Инструмент выбора тем оформления отключен',
       );
-      console.log(chalk.red(error));
+      reportError(error);
       return [];
     }
   }
@@ -68,8 +64,7 @@ export class SetUserThemeService {
   public nowUserPalettes = signal<string>('azure-blue');
 
   public setUserTheme(customPalettesPrev?: string, customPalettesNext?: string): void {
-    try {
-      // Условие для применения в theme-color-palette.ts (по кнопке)
+    // Условие для применения в theme-color-palette.ts (по кнопке)
       if (
         customPalettesPrev !== undefined &&
         typeof customPalettesNext === 'string' &&
@@ -99,31 +94,15 @@ export class SetUserThemeService {
         this.setLocalStorageTheme('azure-blue');
         this.nowUserPalettes.set('azure-blue');
         document.documentElement.classList.add(`${'azure-blue'}-theme`);
-        console.log(
-          chalk.blue('Ошибка в конфигурации тем приложения, будет установлена тема "azure-blue'),
-        );
+        console.info('Ошибка в конфигурации тем приложения, будет установлена тема "azure-blue');
       }
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
   }
 
   private setUserThemeCssRootVar(userPalettes: string): void {
-    try {
-      document.documentElement.style.setProperty('--theme-palettes', userPalettes);
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
+    document.documentElement.style.setProperty('--theme-palettes', userPalettes);
   }
 
   private setLocalStorageTheme(userPalettes: string): void {
-    try {
-      localStorage.setItem('themePalettes', userPalettes);
-    } catch (error: any) {
-      error.cause = 'red';
-      throw error;
-    }
+    localStorage.setItem('themePalettes', userPalettes);
   }
 }

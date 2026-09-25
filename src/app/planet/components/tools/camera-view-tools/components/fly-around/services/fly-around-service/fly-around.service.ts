@@ -1,10 +1,13 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { Injectable, computed, effect, linkedSignal, signal, untracked } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
+import {
+  ToolsService,
+  cartesianFromProperty,
+} from '@/components/tools/services/tools-service/tools.service';
 import {
   CameraViewToolsService,
   getRusCameraToolName,
@@ -61,7 +64,7 @@ export class FlyAroundService {
     //       });
     //     }
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
 
@@ -76,7 +79,7 @@ export class FlyAroundService {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
   }
@@ -95,7 +98,7 @@ export class FlyAroundService {
     try {
       this.$cameraViewToolsService.cancelCameraTool(); // общая функция отмены сценария любого из инструментов работы с картой
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     } finally {
       this.drawingHasStarted.set(false);
       this.isActive.set(false);
@@ -110,7 +113,7 @@ export class FlyAroundService {
   // -------------------------- Блок отработки кнопки инструмента (start) --------------------------- //
   // Еще используется в flyAround-floating-window.service.ts
   public readonly toolName: CameraToolName = 'flyAround';
-  public readonly toolNameAlt: string = 'flyAroundWithoutPoint';
+  public readonly toolNameAlt = 'flyAroundWithoutPoint' as const;
 
   public buttonHandler(event: MouseEvent): void {
     // event.stopPropagation(); // не применять! (событие также ловится в родителе (camera-view-tools.ts))
@@ -137,10 +140,10 @@ export class FlyAroundService {
       } else if (this.isActive() === true) {
         this.cancelThisTool();
       } else {
-        console.log(chalk.red('Unexpected toggleDrawing try'));
+        console.info('Unexpected toggleDrawing try');
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       this.cancelThisTool();
     }
   }
@@ -224,7 +227,6 @@ export class FlyAroundService {
           new Cesium.CallbackPositionProperty(() => pointPos, false);
         if (pointEntity.position) pointEntity.position = reactivePointPos;
         if (optForPoint?.toolName) {
-          // @ts-ignore (конфликт - кастомное свойство toolName)
           pointEntity.toolName = optForPoint.toolName;
         }
 
@@ -237,7 +239,7 @@ export class FlyAroundService {
       const startDrawing = async (): Promise<void> => {
         try {
           const mouseEntity: Cesium.Entity = await this.$toolsService.getMouseEntity();
-          pointPos = mouseEntity?.position?.getValue();
+          pointPos = cartesianFromProperty(mouseEntity?.position?.getValue());
           if (pointPos === undefined)
             throw new Error('Position arg is undefined in drawLineDrawingGraphics()');
 
@@ -268,7 +270,7 @@ export class FlyAroundService {
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -288,11 +290,11 @@ export class FlyAroundService {
         try {
           if (options?.withPoint || options?.withBillboard) {
             const mouseEntity: Cesium.Entity = await this.$toolsService.getMouseEntity(false);
-            pointPos = mouseEntity?.position?.getValue();
+            pointPos = cartesianFromProperty(mouseEntity?.position?.getValue());
           }
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -306,7 +308,7 @@ export class FlyAroundService {
           return;
         } catch (error: unknown) {
           this.cancelThisTool();
-          console.log(chalk.red(error));
+          reportError(error);
           alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
         }
       };
@@ -315,7 +317,7 @@ export class FlyAroundService {
       return true;
     } catch (error: unknown) {
       this.cancelThisTool();
-      console.log(chalk.red(error));
+      reportError(error);
       alert('Отмена сценария по причине расчетной ошибки в работе инструмента');
       return false;
     }
@@ -328,7 +330,7 @@ export class FlyAroundService {
       this.$cameraViewToolsService.cancelCameraTool();
       this.flyAroundPosition(cartesian);
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
     } finally {
       this.drawingHasStarted.set(false);
     }
@@ -369,27 +371,20 @@ export class FlyAroundService {
         if (listenersCounterPrev < listenersCounterNext) {
           this.$viewerService.setCameraFlyingAroundFlag(true);
         } else {
-          console.log(chalk.red('Rotation listener addition failed'));
+          console.info('Rotation listener addition failed');
           return false;
         }
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) {
-        console.log(error.stack);
-      }
+      reportError(error);
       return false;
     }
   }
 
   // FE применено для обеспечения возможности очистки лисенера с данным колбэком (причинаЖ вызов .bind(this) каждый раз создает новую функцию в оперативной памяти - removeEventListener вернет false)
   private rotateCamera = (): void => {
-    try {
-      this.$viewerService.viewer.scene.camera.rotateRight(0.003);
-    } catch (error: unknown) {
-      throw error;
-    }
+    this.$viewerService.viewer.scene.camera.rotateRight(0.003);
   };
 
   // Применяется при деактивации инструмента
@@ -404,12 +399,12 @@ export class FlyAroundService {
         return true;
       } else {
         if (this.$viewerService.cameraIsFlyingAround() === true) {
-          console.log(chalk.red("Flying around event listener has't removed"));
+          console.info("Flying around event listener has't removed");
         }
         return false;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }

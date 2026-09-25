@@ -1,3 +1,4 @@
+import { reportError } from '@global/lib/report-error.lib';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,7 +11,6 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import chalk from 'chalk';
 import * as Cesium from 'cesium';
 // -------------------------------------------------------------------- //
 // import { RouterLink } from '@angular/router';
@@ -139,15 +139,8 @@ export class Planet {
   ) {
     this.sidenavOpened.set(!this.$checkMobileDeviceService.tabletLayout());
     afterNextRender(() => {
-      try {
-        // Определение контейнера для отслеживания перемещения курсора мыши (для координат)
-        this.$cursorCoordsService.getWatchedContainerRef(this.mainSightContainerRef.nativeElement);
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          error.cause = 'red';
-        }
-        throw error;
-      }
+      // Определение контейнера для отслеживания перемещения курсора мыши (для координат)
+      this.$cursorCoordsService.getWatchedContainerRef(this.mainSightContainerRef.nativeElement);
     });
     effect(() => {
       try {
@@ -157,7 +150,7 @@ export class Planet {
           });
         }
       } catch (error: unknown) {
-        console.log(chalk.red(error));
+        reportError(error);
       }
     });
 
@@ -235,12 +228,11 @@ export class Planet {
         if (this.selectedTabIndex() !== tabNameIndex) this.selectedTabIndex.set(tabNameIndex);
         return true;
       } else {
-        console.log(chalk.red("tabName hasn't found in setSelectedTab fn"));
+        console.info("tabName hasn't found in setSelectedTab fn");
         return false;
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
-      if (error instanceof Error) console.log(error.stack);
+      reportError(error);
       return false;
     }
   }
@@ -263,7 +255,7 @@ export class Planet {
     }
     const end = Date.now();
     const time = (end - start) / 1000;
-    console.log(`Результат теста: ${time} с.`);
+    console.info(`Результат теста: ${time} с.`);
   }
   // readonly dialog = inject(MatDialog);
   // protected openContacts(event: MouseEvent): void {

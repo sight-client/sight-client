@@ -1,5 +1,5 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { computed, effect, Injectable, linkedSignal, untracked } from '@angular/core';
-// import chalk from 'chalk';
 // import * as Cesium from 'cesium';
 
 // import { ViewerService } from '@/common/services/viewer-service/viewer.service';
@@ -30,7 +30,7 @@ export class FlyAroundFloatingWindowService {
     //       });
     //     }
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
     // effect(() => {
@@ -47,7 +47,7 @@ export class FlyAroundFloatingWindowService {
     //       });
     //     }
     //   } catch (error: unknown) {
-    //     console.log(chalk.red(error));
+    //     reportError(error);
     //   }
     // });
   }

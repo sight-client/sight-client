@@ -5,7 +5,6 @@ import {
   HttpEvent,
 } from '@angular/common/http';
 import DOMPurify from 'dompurify';
-import chalk from 'chalk';
 import { Observable } from 'rxjs';
 
 const badHtmlInterceptor: HttpInterceptorFn = (
@@ -17,7 +16,7 @@ const badHtmlInterceptor: HttpInterceptorFn = (
 
   const clean = DOMPurify.sanitize(req.body);
   if (clean !== req.body) {
-    throw new Error(`BAD HTML HAS DETECTED in: "${chalk.red(req.body)}"`);
+    throw new Error(`BAD HTML HAS DETECTED in: "${(req.body)}"`);
   }
 
   return next(req);

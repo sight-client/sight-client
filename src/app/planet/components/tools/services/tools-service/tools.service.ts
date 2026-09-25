@@ -1,7 +1,11 @@
+import { reportError } from '@global/lib/report-error.lib';
 import { computed, Injectable, linkedSignal, signal, WritableSignal } from '@angular/core';
 import * as Cesium from 'cesium';
-import chalk from 'chalk';
 import { Subject } from 'rxjs';
+
+import type { DrawingToolName } from '@/components/tools/drawing-tools/services/drawing-service/drawing.service';
+import type { MeasuringToolName } from '@/components/tools/measuring-tools/services/measure-service/measure.service';
+import type { CameraToolName } from '@/components/tools/camera-view-tools/services/camera-view-tools-service/camera-view-tools.service';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import type { CustomViewer } from '@/common/services/viewer-service/viewer.service';
@@ -15,8 +19,7 @@ import { CheckMobileDeviceService } from '@global/services/check-mobile-device-s
 // ----------------------------------------------------------- Блок для типизации ------------------------------------------------- //
 
 export interface ToolOptions {
-  // toolName?: YourToolsTypeToolName; // stored in appropriate tool's common-services
-  toolName?: any; // характерно литералам инструментов из соответствующих main-сервисов ("any" - чтобы не их не импортировать (находятся ниже по иерархии))
+  toolName?: DrawingToolName | MeasuringToolName | CameraToolName;
   groupId?: string; // globaly important!
   id?: string;
   name?: string;
@@ -26,7 +29,7 @@ export interface ToolOptions {
   distanceSegmentLengthM?: number;
   show?: boolean;
   destroy?: boolean;
-  callback?: Function;
+  callback?: () => void;
   description?: string;
   withBillboard?: boolean;
   billboard?: Cesium.BillboardGraphics | Cesium.BillboardGraphics.ConstructorOptions | undefined;
@@ -59,7 +62,6 @@ export interface ToolOptions {
   properties?: { systemCoords?: string; lineColor?: Cesium.Color; [key: string]: unknown };
   hideLabel?: boolean;
   hideAuxiliary?: boolean;
-  [key: string]: unknown;
 }
 
 export interface EntitiesGroup {
@@ -76,6 +78,27 @@ export const dataSourcesNames = Object.freeze([
   'analysisToolsLayer',
 ] as const);
 export type DataSourceName = (typeof dataSourcesNames)[number];
+
+export type ActiveToolName =
+  | DrawingToolName
+  | MeasuringToolName
+  | CameraToolName
+  | 'entityRubber'
+  | 'flyAroundWithoutPoint';
+
+export type PositionCoordsDescription = {
+  latitudeDescription: string;
+  longitudeDescription: string;
+  heightDescription: string;
+  coordsDescription: string;
+};
+
+export type PositionCoordsNumbers = {
+  latitude: string;
+  longitude: string;
+  height: string;
+  crs: string;
+};
 
 // ---------------------------------------------------------- Блок базовых установок ---------------------------------------------- //
 // Запровайден в planet.ts
@@ -131,7 +154,7 @@ export class ToolsService {
       this._toolsServiceHasStarted.set(true);
     } catch (error: unknown) {
       if (this._toolsServiceHasStarted() === true) this._toolsServiceHasStarted.set(false);
-      console.log(chalk.red('Ошибка старта ToolsService'));
+      console.info('Ошибка старта ToolsService');
       throw error;
     }
   }
@@ -139,15 +162,15 @@ export class ToolsService {
   //------------------------------------------------------------ //
 
   // Флаги для отслеживания активных инструментов посредством this._commonHendler
-  private _activeTool = signal<string | undefined>(undefined);
+  private _activeTool = signal<ActiveToolName | undefined>(undefined);
   get activeTool() {
     return this._activeTool;
   }
   // Флаг "activeTool" также можно применять в инструментах, не использующих this._commonHendler
-  public setActiveTool(name: string) {
+  public setActiveTool(name: ActiveToolName) {
     this._activeTool.set(name);
   }
-  private _lastActiveTool = linkedSignal<string | undefined, string | undefined>({
+  private _lastActiveTool = linkedSignal<ActiveToolName | undefined, ActiveToolName | undefined>({
     source: this._activeTool,
     computation(newVal, prevVal) {
       return newVal !== undefined ? newVal : prevVal?.value;
@@ -166,11 +189,7 @@ export class ToolsService {
     return this._drawingsBlocker;
   }
   public setDrawingsBlocker(newVal: boolean): void {
-    try {
-      if (typeof newVal === 'boolean') this._drawingsBlocker.set(newVal);
-    } catch (error: unknown) {
-      throw error;
-    }
+    if (typeof newVal === 'boolean') this._drawingsBlocker.set(newVal);
   }
 
   //------------------------------------------------------------ //
@@ -182,16 +201,12 @@ export class ToolsService {
     return this._commonHandler;
   }
 
-  public createNewCommonHandler(initializer: string): boolean {
-    try {
-      this._commonHandler.set(new Cesium.ScreenSpaceEventHandler(this._viewer.scene.canvas));
-      // @ts-ignore (конфликт - кастомное свойство _initializer)
-      this._commonHandler()._initializer = initializer;
-      this._activeTool.set(initializer);
-      return true;
-    } catch (error: unknown) {
-      throw error;
-    }
+  public createNewCommonHandler(initializer: ActiveToolName): boolean {
+    this._commonHandler.set(new Cesium.ScreenSpaceEventHandler(this._viewer.scene.canvas));
+    const handler = this._commonHandler();
+    if (handler) handler._initializer = initializer;
+    this._activeTool.set(initializer);
+    return true;
   }
 
   public setCommonHandler(
@@ -204,24 +219,16 @@ export class ToolsService {
     eventType: Cesium.ScreenSpaceEventType,
     modifier?: Cesium.KeyboardEventModifier,
   ): boolean {
-    try {
-      this._commonHandler()?.setInputAction(callbackFn, eventType, modifier);
-      return true;
-    } catch (error: unknown) {
-      throw error;
-    }
+    this._commonHandler()?.setInputAction(callbackFn, eventType, modifier);
+    return true;
   }
 
   public removeActionFromCommonHandler(
     eventType: Cesium.ScreenSpaceEventType,
     modifier?: Cesium.KeyboardEventModifier,
   ): boolean {
-    try {
-      this._commonHandler()?.removeInputAction(eventType, modifier);
-      return true;
-    } catch (error: unknown) {
-      throw error;
-    }
+    this._commonHandler()?.removeInputAction(eventType, modifier);
+    return true;
   }
 
   public clearCommonHandler(): boolean {
@@ -241,8 +248,6 @@ export class ToolsService {
           return true;
         }
       } else return true;
-    } catch (error: unknown) {
-      throw error;
     } finally {
       if (this.$viewerService.entityPickingBlock()) this.$viewerService.offEntityPickingBlock();
       if (this._drawingsBlocker() === true) this._drawingsBlocker.set(false);
@@ -251,19 +256,15 @@ export class ToolsService {
   //------------------------------------------------------------ //
   // Событие для отлова ошибок в удаленном контексте - не имеющем обработчиков ошибок, характерных для конкретных инструментов (например в методах создания примитивов данного сервиса)
 
-  private eventSource = new Subject<string | undefined>();
+  private eventSource = new Subject<ActiveToolName | undefined>();
   public cancelEvent$ = this.eventSource.asObservable();
-  private triggerForCancelEvent(data: string | undefined) {
+  private triggerForCancelEvent(data: ActiveToolName | undefined) {
     this.eventSource.next(data);
   }
-  public alertAboutToolError(toolName: string | undefined): void {
-    try {
-      this.triggerForCancelEvent(toolName);
-      // cancelTool-функция применяется через сам инструмент (в месте, откуда исходит такая ошибка)
-      alert('Отмена сценария по причине расчетной ошибки');
-    } catch (error: unknown) {
-      throw error;
-    }
+  public alertAboutToolError(toolName: ActiveToolName | undefined): void {
+    this.triggerForCancelEvent(toolName);
+    // cancelTool-функция применяется через сам инструмент (в месте, откуда исходит такая ошибка)
+    alert('Отмена сценария по причине расчетной ошибки');
   }
 
   //------------------------------------------------------------ //
@@ -280,7 +281,7 @@ export class ToolsService {
         return currentTerrain?.id !== -1 ? currentTerrain?.name : undefined; // не приоритетно (хардкод в сигнале sigCurrentTerrainLayer)
       }
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return undefined;
     }
   });
@@ -294,7 +295,7 @@ export class ToolsService {
         return true;
       } else return false;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   });
@@ -386,13 +387,11 @@ export class ToolsService {
         // Проверка на разрешение прикрепления сущности к земле (разрешено только для this.$viewerService.viewer.scene.mode === 3 - "3D")
         this.setClampingToGroudForEntity(pointEntity);
       }
-      // @ts-ignore (конфликт - кастомное свойство toolName)
       if (options.toolName) pointEntity.toolName = options.toolName;
       return pointEntity;
     } catch (error: unknown) {
-      console.log(this._activeTool());
       this.alertAboutToolError(this._lastActiveTool());
-      console.log(chalk.red(error));
+      reportError(error);
       return undefined;
     }
   }
@@ -481,12 +480,11 @@ export class ToolsService {
         // Проверка на разрешение прикрепления сущности к земле (разрешено только для this.$viewerService.viewer.scene.mode === 3 - "3D")
         this.setClampingToGroudForEntity(lineEntity);
       }
-      // @ts-ignore (конфликт - кастомное свойство toolName)
       if (options.toolName) lineEntity.toolName = options.toolName;
       return lineEntity;
     } catch (error: unknown) {
       this.alertAboutToolError(this._lastActiveTool());
-      console.log(chalk.red(error));
+      reportError(error);
       return undefined;
     }
   }
@@ -591,12 +589,11 @@ export class ToolsService {
         // Проверка на разрешение прикрепления сущности к земле (разрешено только для this.$viewerService.viewer.scene.mode === 3 - "3D")
         this.setClampingToGroudForEntity(poligonEntity);
       }
-      // @ts-ignore (конфликт - кастомное свойство toolName)
       if (options.toolName) poligonEntity.toolName = options.toolName;
       return poligonEntity;
     } catch (error: unknown) {
       this.alertAboutToolError(this._lastActiveTool());
-      console.log(chalk.red(error));
+      reportError(error);
       return undefined;
     }
   }
@@ -719,12 +716,11 @@ export class ToolsService {
         // Проверка на разрешение прикрепления сущности к земле (разрешено только для this.$viewerService.viewer.scene.mode === 3 - "3D")
         this.setClampingToGroudForEntity(ellipseEntity);
       }
-      // @ts-ignore (конфликт - кастомное свойство toolName)
       if (options.toolName) ellipseEntity.toolName = options.toolName;
       return ellipseEntity;
     } catch (error: unknown) {
       this.alertAboutToolError(this._lastActiveTool());
-      console.log(chalk.red(error));
+      reportError(error);
       return undefined;
     }
   }
@@ -892,12 +888,11 @@ export class ToolsService {
       //   // Проверка на разрешение прикрепления сущности к земле (разрешено только для this.$viewerService.viewer.scene.mode === 3 - "3D")
       //   this.setClampingToGroudForEntity(ellipsoidEntity);
       // }
-      // @ts-ignore (конфликт - кастомное свойство toolName)
       if (options.toolName) ellipsoidEntity.toolName = options.toolName;
       return ellipsoidEntity;
     } catch (error: unknown) {
       this.alertAboutToolError(this._lastActiveTool());
-      console.log(chalk.red(error));
+      reportError(error);
       return undefined;
     }
   }
@@ -912,27 +907,26 @@ export class ToolsService {
   ): boolean {
     try {
       const path = this.findEntityPathInStore(id, store);
-      if (path.indexGroup === undefined || path.indexEntity === undefined)
+      const indexGroup = path.indexGroup;
+      const indexEntity = path.indexEntity;
+      if (indexGroup === undefined || indexEntity === undefined)
         throw new Error("Entity's path search error in changeEntityName fn");
-      if (store()[path.indexGroup]?.entitiesList[path.indexEntity]?.name) {
+      const named = store()[indexGroup]?.entitiesList[indexEntity];
+      if (named?.name) {
         // Срабатывание сигнала отслеживается для обновления имени в левой панели
         store.update((oldStore) => {
-          oldStore[path.indexGroup!]!.entitiesList[path.indexEntity!]!.name = newName.trim();
-          const newStore = [...oldStore];
-          return newStore;
+          const stored = oldStore[indexGroup]?.entitiesList[indexEntity];
+          if (stored) stored.name = newName.trim();
+          return [...oldStore];
         });
       } else throw new Error("Invalid path to entity's name in changeEntityName fn");
-      if (
-        newLabelText !== undefined &&
-        typeof newLabelText === 'string' &&
-        store()[path.indexGroup]?.entitiesList[path.indexEntity]?.label
-      ) {
-        store()[path.indexGroup]!.entitiesList[path.indexEntity]!.label!.text =
-          new Cesium.ConstantProperty(newLabelText.trim());
+      const labeled = store()[indexGroup]?.entitiesList[indexEntity];
+      if (newLabelText !== undefined && typeof newLabelText === 'string' && labeled?.label) {
+        labeled.label.text = new Cesium.ConstantProperty(newLabelText.trim());
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -946,22 +940,17 @@ export class ToolsService {
   ): boolean {
     try {
       const path = this.findEntityPathInStore(id, store);
-      if (path.indexGroup === undefined || path.indexEntity === undefined)
+      const indexGroup = path.indexGroup;
+      const indexEntity = path.indexEntity;
+      if (indexGroup === undefined || indexEntity === undefined)
         throw new Error("Entity's path search error in changeEntityName fn");
-      // Deprecated (излишнее срабатывание сигнала стора; вернуть, если информацию о цвете потребуется отслеживать)
-      // store.update((oldStore) => {
-      //   oldStore[indexGroup]!.entitiesList[indexEntity]!.polyline!.material =
-      //     new Cesium.ColorMaterialProperty(Cesium.Color.fromCssColorString(newVal)); // .withAlpha даст ошибку несовместимости с html input hex color
-      //   const newStore = [...oldStore];
-      //   return newStore;
-      // });
-      if (store()?.[path.indexGroup]?.entitiesList?.[path.indexEntity]?.polyline?.material) {
-        store()[path.indexGroup]!.entitiesList[path.indexEntity]!.polyline!.material =
-          new Cesium.ColorMaterialProperty(Cesium.Color.fromCssColorString(newVal));
-        return true;
-      } else return false;
+      const entity = store()[indexGroup]?.entitiesList[indexEntity];
+      const color = colorFromCssString(newVal);
+      if (!color || !entity?.polyline?.material) return false;
+      entity.polyline.material = new Cesium.ColorMaterialProperty(color);
+      return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -981,7 +970,7 @@ export class ToolsService {
       const indexGroup = store().findIndex((item) => item?.groupId === groupId);
       if (indexGroup === -1) {
         // console.log(
-        //   chalk.blue(
+        //   (
         //     'There is no seeking group in store in findEntityPathInStore fn. Object may be already deleted.',
         //   ),
         // );
@@ -989,15 +978,15 @@ export class ToolsService {
       }
       const group = store()[indexGroup];
       if (!group?.entitiesList.length) {
-        chalk.blue(
+        console.info(
           'Entity collection in group is empty in findEntityPathInStore fn. Array may be already cleared.',
         );
         return { indexGroup: undefined, indexEntity: undefined };
       }
-      const indexEntity = group.entitiesList.findIndex((entity) => entity!.id === id);
+      const indexEntity = group.entitiesList.findIndex((entity) => entity?.id === id);
       if (indexGroup === -1) {
         // console.log(
-        //   chalk.blue(
+        //   (
         //     'There is no seeking entity in store in findEntityPathInStore fn. Object may be already deleted.',
         //   ),
         // );
@@ -1005,7 +994,7 @@ export class ToolsService {
       }
       return { indexGroup: indexGroup, indexEntity: indexEntity };
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return { indexGroup: undefined, indexEntity: undefined };
     }
   }
@@ -1033,7 +1022,7 @@ export class ToolsService {
   //     if (counter === stores.length) return true;
   //     else return false;
   //   } catch (error: unknown) {
-  //     console.log(chalk.red(error));
+  //     reportError(error);
   //     return false;
   //   }
   // }
@@ -1043,7 +1032,7 @@ export class ToolsService {
     isClamped: boolean,
   ): boolean {
     try {
-      console.log(`Switching clamping to groud for entities in store: "${store.name}"`);
+      console.info(`Switching clamping to groud for entities in store: "${store.name}"`);
       if (!store().length) return false;
       let counter: number = 0;
       let counterTwo: number = 0;
@@ -1060,7 +1049,7 @@ export class ToolsService {
       if (counter === counterTwo) return true;
       else return false;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -1097,7 +1086,7 @@ export class ToolsService {
       if (counter === temporalStore().length - exceptionsCounter) return true;
       else return false;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -1107,16 +1096,14 @@ export class ToolsService {
     try {
       let isClamped: boolean = true;
       if (
-        // Columbus
-        this.$viewerService.viewer.scene.mode === 1 ||
-        // 2D
-        this.$viewerService.viewer.scene.mode === 2
+        this.$viewerService.viewer.scene.mode === Cesium.SceneMode.COLUMBUS_VIEW ||
+        this.$viewerService.viewer.scene.mode === Cesium.SceneMode.SCENE2D
       ) {
         isClamped = false;
       }
       return this.switchClampingToGroudForEntity(entity, isClamped);
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -1185,7 +1172,7 @@ export class ToolsService {
       // Для инструментов, использующих entity.ellipsoid, данная функция не будет применена (особенность поведения Cesium.Entity.ellipsoid).
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
 
       return false;
     }
@@ -1208,124 +1195,101 @@ export class ToolsService {
       if (!store().length) return false;
       const path = this.findEntityPathInStore(entityId, store);
       if (path.indexGroup === undefined || path.indexEntity === undefined) {
-        // console.log(chalk.blue("Entity's path searching error in setConstantsForStoreEntities fn"));
+        // console.info("Entity's path searching error in setConstantsForStoreEntities fn");
         return false;
       }
       const entity = store()?.[path.indexGroup]?.entitiesList?.[path.indexEntity];
       if (!entity || !(entity instanceof Cesium.Entity)) {
         throw new Error('Invalid entity in setConstantsForStoreEntities fn');
       }
-      console.log(chalk.blue('Auto rerender for:', id));
-      if (entity?.position && entity.position.constructor?.name === 'CallbackPositionProperty') {
-        const pos = entity.position?.getValue();
-        if (pos && pos instanceof Cesium.Cartesian3) {
-          entity.position = new Cesium.ConstantPositionProperty(pos);
-        }
-      } else if (entity?.position && entity.position.constructor?.name === 'CallbackProperty') {
-        const pos = entity.position?.getValue();
-        if (pos && pos instanceof Cesium.Cartesian3) {
+      console.info('Auto rerender for:', id);
+      if (isReactiveCesiumProperty(entity.position)) {
+        const pos = cartesianFromProperty(entity.position.getValue());
+        if (pos) {
           entity.position = new Cesium.ConstantPositionProperty(pos);
         }
       }
-      if (entity?.label?.text && entity.label.text.constructor?.name === 'CallbackProperty') {
-        const text = entity.label.text?.getValue();
+      if (entity.label?.text && isReactiveCesiumProperty(entity.label.text)) {
+        const text = stringFromProperty(entity.label.text.getValue());
         if (text !== undefined) {
           entity.label.text = new Cesium.ConstantProperty(text);
         }
       }
-      if (
-        entity?.billboard?.color &&
-        entity.billboard.color.constructor?.name === 'CallbackProperty'
-      ) {
-        const color = entity.billboard.color?.getValue();
-        if (color && color instanceof Cesium.Color) {
+      if (entity.billboard?.color && isReactiveCesiumProperty(entity.billboard.color)) {
+        const color = colorFromProperty(entity.billboard.color.getValue());
+        if (color) {
           entity.billboard.color = new Cesium.ConstantProperty(
             new Cesium.Color(color.red, color.green, color.blue, color.alpha ?? 1),
           );
         }
       }
-      if (entity?.polyline) {
-        if (
-          entity?.polyline.positions &&
-          entity.polyline.positions.constructor?.name === 'CallbackProperty'
-        ) {
-          const positions = entity.polyline.positions?.getValue();
-          if (positions?.length && positions?.[0] instanceof Cesium.Cartesian3) {
+      if (entity.polyline) {
+        if (entity.polyline.positions && isReactiveCesiumProperty(entity.polyline.positions)) {
+          const positions = cartesian3ListFromProperty(entity.polyline.positions.getValue());
+          if (positions.length) {
             entity.polyline.positions = new Cesium.ConstantProperty(positions);
           }
         }
-        if (
-          entity?.polyline.material &&
-          entity.polyline.material.constructor?.name === 'CallbackProperty'
-        ) {
-          const material = entity.polyline.material?.getValue();
-          if (material) {
-            entity.polyline.material = material;
+        if (entity.polyline.material && isReactiveCesiumProperty(entity.polyline.material)) {
+          const color = colorFromCallbackMaterial(entity.polyline.material.getValue());
+          if (color) {
+            entity.polyline.material = new Cesium.ColorMaterialProperty(color);
           }
         }
       }
-      if (
-        entity?.polygon?.material &&
-        entity.polygon.material.constructor?.name === 'CallbackProperty'
-      ) {
-        const material = entity.polygon.material?.getValue();
-        if (material) {
-          entity.polygon.material = material;
+      if (entity.polygon?.material && isReactiveCesiumProperty(entity.polygon.material)) {
+        const color = colorFromCallbackMaterial(entity.polygon.material.getValue());
+        if (color) {
+          entity.polygon.material = new Cesium.ColorMaterialProperty(color);
         }
       }
-      if (entity?.ellipse) {
+      if (entity.ellipse) {
         if (
-          entity.ellipse?.semiMinorAxis &&
-          entity.ellipse.semiMinorAxis.constructor?.name === 'CallbackProperty'
+          entity.ellipse.semiMinorAxis &&
+          isReactiveCesiumProperty(entity.ellipse.semiMinorAxis)
         ) {
-          const semiMinorAxis = entity.ellipse.semiMinorAxis?.getValue();
+          const semiMinorAxis = numberFromProperty(entity.ellipse.semiMinorAxis.getValue());
           if (semiMinorAxis !== undefined) {
             entity.ellipse.semiMinorAxis = new Cesium.ConstantProperty(semiMinorAxis);
           }
         }
         if (
-          entity.ellipse?.semiMajorAxis &&
-          entity.ellipse.semiMajorAxis.constructor?.name === 'CallbackProperty'
+          entity.ellipse.semiMajorAxis &&
+          isReactiveCesiumProperty(entity.ellipse.semiMajorAxis)
         ) {
-          const semiMajorAxis = entity.ellipse.semiMajorAxis?.getValue();
+          const semiMajorAxis = numberFromProperty(entity.ellipse.semiMajorAxis.getValue());
           if (semiMajorAxis !== undefined) {
             entity.ellipse.semiMajorAxis = new Cesium.ConstantProperty(semiMajorAxis);
           }
         }
       }
-      if (entity?.ellipsoid) {
-        if (
-          entity.ellipsoid?.radii &&
-          entity.ellipsoid.radii.constructor?.name === 'CallbackProperty'
-        ) {
-          const radii = entity.ellipsoid.radii?.getValue();
-          if (radii && radii instanceof Cesium.Cartesian3) {
+      if (entity.ellipsoid) {
+        if (entity.ellipsoid.radii && isReactiveCesiumProperty(entity.ellipsoid.radii)) {
+          const radii = cartesianFromProperty(entity.ellipsoid.radii.getValue());
+          if (radii) {
             entity.ellipsoid.radii = new Cesium.ConstantProperty(radii);
           }
         }
-        if (
-          entity.ellipsoid?.material &&
-          entity.ellipsoid.material.constructor?.name === 'CallbackProperty'
-        ) {
-          const material = entity.ellipsoid.material?.getValue();
-          if (material) {
-            entity.ellipsoid.material = material;
+        if (entity.ellipsoid.material && isReactiveCesiumProperty(entity.ellipsoid.material)) {
+          const color = colorFromCallbackMaterial(entity.ellipsoid.material.getValue());
+          if (color) {
+            entity.ellipsoid.material = new Cesium.ColorMaterialProperty(color);
           }
         }
         if (
-          entity.ellipsoid?.maximumCone &&
-          entity.ellipsoid.maximumCone.constructor?.name === 'CallbackProperty'
+          entity.ellipsoid.maximumCone &&
+          isReactiveCesiumProperty(entity.ellipsoid.maximumCone)
         ) {
-          const maximumCone = entity.ellipsoid.maximumCone?.getValue();
+          const maximumCone = numberFromProperty(entity.ellipsoid.maximumCone.getValue());
           if (maximumCone !== undefined) {
             entity.ellipsoid.maximumCone = new Cesium.ConstantProperty(maximumCone);
           }
         }
         if (
-          entity.ellipsoid?.minimumCone &&
-          entity.ellipsoid.minimumCone.constructor?.name === 'CallbackProperty'
+          entity.ellipsoid.minimumCone &&
+          isReactiveCesiumProperty(entity.ellipsoid.minimumCone)
         ) {
-          const minimumCone = entity.ellipsoid.minimumCone?.getValue();
+          const minimumCone = numberFromProperty(entity.ellipsoid.minimumCone.getValue());
           if (minimumCone !== undefined) {
             entity.ellipsoid.minimumCone = new Cesium.ConstantProperty(minimumCone);
           }
@@ -1333,7 +1297,7 @@ export class ToolsService {
       }
       return true;
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return false;
     }
   }
@@ -1369,8 +1333,8 @@ export class ToolsService {
         return cartesian;
       }
     } catch (error: unknown) {
-      console.log(chalk.red('Detailed position calculation failed'));
-      console.log(error);
+      console.info('Detailed position calculation failed');
+      reportError(error);
       return cartesian;
     }
   }
@@ -1382,15 +1346,7 @@ export class ToolsService {
     cartesian: Cesium.Cartesian3 | undefined,
     selectedCrs: CRS = this.$cursorCoordsService.selectedCrs(),
     heightVal?: number,
-  ): Promise<
-    | {
-        latitudeDescription: string;
-        longitudeDescription: string;
-        heightDescription: string;
-        coordsDescription: string;
-      }
-    | undefined
-  > {
+  ): Promise<PositionCoordsDescription | undefined> {
     try {
       if (cartesian === undefined)
         return {
@@ -1449,7 +1405,7 @@ export class ToolsService {
         coordsDescription,
       };
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return undefined;
     }
   }
@@ -1458,15 +1414,7 @@ export class ToolsService {
     cartesian: Cesium.Cartesian3 | undefined,
     selectedCrs: CRS = this.$cursorCoordsService.selectedCrs(),
     heightVal?: number,
-  ): Promise<
-    | {
-        latitude: string | number;
-        longitude: string | number;
-        height: string | number;
-        crs: string;
-      }
-    | undefined
-  > {
+  ): Promise<PositionCoordsNumbers | undefined> {
     try {
       if (cartesian === undefined) {
         return {
@@ -1515,7 +1463,7 @@ export class ToolsService {
         crs: selectedCrs,
       };
     } catch (error: unknown) {
-      console.log(chalk.red(error));
+      reportError(error);
       return undefined;
     }
   }
@@ -1523,25 +1471,84 @@ export class ToolsService {
   //------------------------------------------------------------ //
 }
 
+export function cartesianFromProperty(value: unknown): Cesium.Cartesian3 | undefined {
+  return value instanceof Cesium.Cartesian3 ? value : undefined;
+}
+
+export function cartesian3ListFromProperty(value: unknown): Cesium.Cartesian3[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is Cesium.Cartesian3 => item instanceof Cesium.Cartesian3);
+}
+
+export function stringFromProperty(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+export function booleanFromProperty(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+export function numberFromProperty(value: unknown): number | undefined {
+  return typeof value === 'number' ? value : undefined;
+}
+
+export function colorFromProperty(value: unknown): Cesium.Color | undefined {
+  return value instanceof Cesium.Color ? value : undefined;
+}
+
+export function colorFromCssString(value: unknown): Cesium.Color | undefined {
+  if (typeof value !== 'string' || value.trim() === '') return undefined;
+  return colorFromProperty(Cesium.Color.fromCssColorString(value));
+}
+
+export function colorMaterialFromProperty(
+  value: unknown,
+): { color?: Cesium.Color } | undefined {
+  if (typeof value !== 'object' || value === null || !('color' in value)) return undefined;
+  const color = colorFromProperty(value.color);
+  return color ? { color } : undefined;
+}
+
+export function recordFromProperty(value: unknown): Record<string, unknown> | undefined {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+  return Object.fromEntries(Object.entries(value));
+}
+
+export function cartesian2FromProperty(value: unknown): Cesium.Cartesian2 | undefined {
+  return value instanceof Cesium.Cartesian2 ? value : undefined;
+}
+
+export function nearFarFromProperty(value: unknown): Cesium.NearFarScalar | undefined {
+  return value instanceof Cesium.NearFarScalar ? value : undefined;
+}
+
+function colorFromCallbackMaterial(value: unknown): Cesium.Color | undefined {
+  return colorFromProperty(value) ?? colorMaterialFromProperty(value)?.color;
+}
+
+function isReactiveCesiumProperty(
+  value: unknown,
+): value is Cesium.CallbackProperty | Cesium.CallbackPositionProperty {
+  return (
+    value instanceof Cesium.CallbackProperty || value instanceof Cesium.CallbackPositionProperty
+  );
+}
+
 export function getCircle(ellipseEntity: Cesium.Entity): Array<Cesium.Cartesian3> {
   if (!ellipseEntity?.ellipse) throw new Error('Entity ellipse is undefined in getCircle()');
-  if (
-    !ellipseEntity?.position?.getValue() ||
-    !ellipseEntity.ellipse?.semiMajorAxis ||
-    !ellipseEntity.ellipse?.semiMinorAxis
-  )
+  const position = cartesianFromProperty(ellipseEntity.position?.getValue());
+  const semiMajor = numberFromProperty(ellipseEntity.ellipse.semiMajorAxis?.getValue());
+  const semiMinor = numberFromProperty(ellipseEntity.ellipse.semiMinorAxis?.getValue());
+  if (!position || semiMajor === undefined || semiMinor === undefined) {
     throw new Error('Entity is not valid in getCircle()');
-  const ellipse = ellipseEntity?.ellipse;
-  const position = ellipseEntity?.position?.getValue();
-  const semiMajor = ellipse?.semiMajorAxis?.getValue();
-  const semiMinor = ellipse?.semiMinorAxis?.getValue();
-  const rotation = ellipse?.rotation?.getValue();
+  }
+  const rotation = numberFromProperty(ellipseEntity.ellipse.rotation?.getValue()) ?? 0;
 
   const geometry = new Cesium.EllipseOutlineGeometry({
-    center: position || Cesium.Cartesian3.ZERO,
-    semiMajorAxis: semiMajor || 0.0,
-    semiMinorAxis: semiMinor || 0.0,
-    rotation: rotation || 0,
+    center: position,
+    semiMajorAxis: semiMajor,
+    semiMinorAxis: semiMinor,
+    rotation,
     granularity: Math.PI / 360, // плотность точек
   });
 

@@ -27,15 +27,15 @@ Sight (пакет `sight-client` v1.4.0) — некоммерческий CV-п�
 
 ## Stack
 
-| Слой | As-is |
-|---|---|
-| App | Angular 22, zoneless (`provideZonelessChangeDetection`), standalone, `OnPush` |
-| Map | Cesium 1.144, `@znemz/cesium-navigation` |
-| Geodesy | `proj4`, `@turf/turf`. `egm96-universal` есть в `package.json`, но **в `src/` не импортируется** |
-| UI | Angular Material / CDK, SCSS |
-| Files | `odf-kit` (ODS), Cesium KML, `dompurify` |
-| Tests | Vitest 4.1 (`ng test`); CI: `.github/workflows/unit-tests.yml` (`npx ng test --no-watch`) |
-| Unused dep | `ol` (OpenLayers) — не подключать без одобрения |
+| Слой       | As-is                                                                                            |
+| ---------- | ------------------------------------------------------------------------------------------------ |
+| App        | Angular 22, zoneless (`provideZonelessChangeDetection`), standalone, `OnPush`                    |
+| Map        | Cesium 1.144, `@znemz/cesium-navigation`                                                         |
+| Geodesy    | `proj4`, `@turf/turf`. `egm96-universal` есть в `package.json`, но **в `src/` не импортируется** |
+| UI         | Angular Material / CDK, SCSS                                                                     |
+| Files      | `odf-kit` (ODS), Cesium KML, `dompurify`                                                         |
+| Tests      | Vitest 4.1 (`ng test`); CI: `.github/workflows/unit-tests.yml` (`npx ng test --no-watch`)        |
+| Unused dep | `ol` (OpenLayers) — не подключать без одобрения                                                  |
 
 Алиасы путей: `@/*` → `src/app/planet/*`, `@global/*` → `src/app/global/*`, `@landing/*` → `src/app/landing-page/*`.
 
@@ -50,27 +50,27 @@ HTTP interceptors (`app.config.ts`): `badHtmlInterceptor`, `doubleReqPreventionI
 
 ## Module map
 
-| Область | Path | Дочерняя спека |
-|---|---|---|
-| Viewer, CRS, камера, координаты под курсором | `src/app/planet/common/`, camera-view-tools | [viewer-crs](./2026-09-17-sight-viewer-crs-design.md) |
-| Рисование, измерения, список, KML/ODS, плавающие окна | `src/app/planet/components/tools/`, `floating-windows/` | [map-tools](./2026-09-17-sight-map-tools-design.md) |
-| Тема, Material, устройство, меню | `src/app/global/`, `main-menu` | [ui-theme](./2026-09-17-sight-ui-theme-design.md) |
-| Хостинг Pages, `docs/`, env | `angular.json`, `src/main.ts`, `src/environments/` | [github-pages](./2026-09-17-sight-github-pages-design.md) |
+| Область                                               | Path                                                    | Дочерняя спека                                            |
+| ----------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------- |
+| Viewer, CRS, камера, координаты под курсором          | `src/app/planet/common/`, camera-view-tools             | [viewer-crs](./2026-09-17-sight-viewer-crs-design.md)     |
+| Рисование, измерения, список, KML/ODS, плавающие окна | `src/app/planet/components/tools/`, `floating-windows/` | [map-tools](./2026-09-17-sight-map-tools-design.md)       |
+| Тема, Material, устройство, меню                      | `src/app/global/`, `main-menu`                          | [ui-theme](./2026-09-17-sight-ui-theme-design.md)         |
+| Хостинг Pages, `docs/`, env                           | `angular.json`, `src/main.ts`, `src/environments/`      | [github-pages](./2026-09-17-sight-github-pages-design.md) |
 
 `Planet` (`src/app/planet/planet.ts`) — корень композиции: **provides** `ViewerService`, `CursorCoordsService`, `ToolsService`, сервисы drawing/measure/camera, `FloatingWindowsService`, `DrawingsListService` (скоуп компонента, не `providedIn: 'root'`).
 
 ## Features (README → спека)
 
-| Фича | Спека |
-|---|---|
-| Карта OSM 3D / 2D / Columbus | viewer-crs |
-| Координаты под курсором; СК WGS-84, СК-42 м, СК-42 °, ПЗ-90.11 | viewer-crs |
-| Метки и фигуры; экспорт/импорт ODS | map-tools |
-| Экспорт/импорт KML / KMZ | map-tools |
-| Линейные и площадные измерения | map-tools (+ геодезия в viewer-crs) |
-| Камера, скриншот, fullscreen | viewer-crs (CameraViewTools, не виджет Cesium) |
-| Светлая/тёмная + четыре палитры | ui-theme |
-| Тач / mobile | ui-theme + viewer-crs (мышь vs центр canvas; хром по ширине, overlay sidenav — ≤767, включая десктопный UA). Implemented, merged into as-is: [mobile UI chrome](./2026-09-21-mobile-ui-chrome-design.md) |
+| Фича                                                           | Спека                                                                                                                                                                                                    |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Карта OSM 3D / 2D / Columbus                                   | viewer-crs                                                                                                                                                                                               |
+| Координаты под курсором; СК WGS-84, СК-42 м, СК-42 °, ПЗ-90.11 | viewer-crs                                                                                                                                                                                               |
+| Метки и фигуры; экспорт/импорт ODS                             | map-tools                                                                                                                                                                                                |
+| Экспорт/импорт KML / KMZ                                       | map-tools                                                                                                                                                                                                |
+| Линейные и площадные измерения                                 | map-tools (+ геодезия в viewer-crs)                                                                                                                                                                      |
+| Камера, скриншот, fullscreen                                   | viewer-crs (CameraViewTools, не виджет Cesium)                                                                                                                                                           |
+| Светлая/тёмная + четыре палитры                                | ui-theme                                                                                                                                                                                                 |
+| Тач / mobile                                                   | ui-theme + viewer-crs (мышь vs центр canvas; хром по ширине, overlay sidenav — ≤767, включая десктопный UA). Implemented, merged into as-is: [mobile UI chrome](./2026-09-21-mobile-ui-chrome-design.md) |
 
 ## Planning rule
 

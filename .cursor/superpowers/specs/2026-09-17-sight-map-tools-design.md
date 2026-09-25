@@ -12,7 +12,7 @@ parent: 2026-09-17-sight-product-design.md
 
 ## Composition
 
-Правая панель: `ToolsPanel` — три группы: drawing, measuring, camera (UI камеры описан в viewer-crs). С `tablet` ≤767 панель по центру снизу; `column-reverse` у групп всегда. `renderToolsGroupTemplates` / `moveToolToDefault` не переписывать. Хром — [ui-theme](./2026-09-17-sight-ui-theme-design.md).
+Правая панель: `ToolsPanel` — три группы: drawing, measuring, camera (UI камеры описан в viewer-crs). С `tablet` ≤767 панель по центру снизу; `column-reverse` у групп всегда. `renderToolsGroupTemplates` / `moveToolToDefault` не переписывать. Видимость хостов кнопок — `setNormalButtonsVisibility` (`display`), не `MutationObserver`. Хром — [ui-theme](./2026-09-17-sight-ui-theme-design.md).
 
 Слева: `DrawingsList` (список вкладки рисования, подлёт, переименование, импорт/экспорт).
 
@@ -20,13 +20,13 @@ parent: 2026-09-17-sight-product-design.md
 
 Общий ввод с холста: `ToolsService` (`ScreenSpaceEventHandler`, `startToolsService` после cursor-coords). Handler-ы уничтожать на teardown.
 
-`ToolOptions` / `EntitiesGroup` — в `tools.service.ts`. `groupId` важен глобально. `toolName` на entity должен совпадать с замороженными литералами имён.
+`ToolOptions` / `EntitiesGroup` — в `tools.service.ts`. `groupId` важен глобально. `toolName` — ключ стора и `windowName`. На кнопке, сервисе и entity это литерал из массива имён своей группы, не `string`: `DrawingToolName` (`drawingToolsNames` в `drawing.service.ts`), `MeasuringToolName` (`measuringToolsNames` в `measure.service.ts`), `CameraToolName` (`cameraViewToolsNames` в `camera-view-tools.service.ts`). Не расширять тип.
 
 ## Drawing
 
 `DrawingService` + сервисы инструментов, все provided на `Planet`.
 
-`drawingToolsNames`: `drawMark`, `drawLine`, `drawRectangle`, `drawCircle`, `drawPolygon`. Русские подписи — `getRusDrawingToolName`.
+`drawingToolsNames`: `drawMark`, `drawLine`, `drawRectangle`, `drawCircle`, `drawPolygon`. Русские подписи — `getRusDrawingToolName` (только `DrawingToolName`). Обратный маппинг листа ODS — `isDrawingToolNameRus` / `getOriginDrawingToolName`.
 
 Сторы **групп** сущностей живут на `DrawingService`. `effect` clamp-to-ground смотрит `ViewerService.nowSceneModeDescription` (выкл. в 2D/Columbus).
 
@@ -46,12 +46,12 @@ parent: 2026-09-17-sight-product-design.md
 
 `MeasureService` + четыре инструмента:
 
-| Literal | UI |
-|---|---|
-| `calculateLine` | Дистанция |
+| Literal              | UI                    |
+| -------------------- | --------------------- |
+| `calculateLine`      | Дистанция             |
 | `calculateRectangle` | Прямоугольная площадь |
-| `calculateCircle` | Площадь окружности |
-| `calculatePolygon` | Полигональная площадь |
+| `calculateCircle`    | Площадь окружности    |
+| `calculatePolygon`   | Полигональная площадь |
 
 Длины/площади только через `basic-measure-calculations.lib.ts`. Та же регистрация, что у drawing (имена, сторы, erase, список если нужно).
 

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, ViewChild, inject } from '@angular/core';
-// import chalk from 'chalk';
+import { reportError } from '@global/lib/report-error.lib';
 // import { Router } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -63,8 +63,8 @@ export class MainMenu {
         hasBackdrop: true,
         autoFocus: true,
       });
-    } catch (error) {
-      console.log('Auth forms opening failed');
+    } catch (error: unknown) {
+      reportError(error);
       throw error;
     }
   }

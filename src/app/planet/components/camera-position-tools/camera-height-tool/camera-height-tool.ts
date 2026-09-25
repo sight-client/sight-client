@@ -8,8 +8,10 @@ import {
 } from '@angular/core';
 import * as Cesium from 'cesium';
 
+import { reportError } from '@global/lib/report-error.lib';
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
+import { finiteCssPx } from '@global/lib/common-global.lib';
 
 @Component({
   selector: 'camera-height-tool',
@@ -27,7 +29,7 @@ import { CheckMobileDeviceService } from '@global/services/check-mobile-device-s
         max="35000"
         step="any"
         [value]="camHeightKm()"
-        (change)="camFly(+$event.target.value)"
+        (change)="onHeightInput($event)"
       />
       <span>&nbsp;км</span>
     </div>
@@ -119,12 +121,11 @@ export class CameraHeightTool implements OnDestroy {
           return;
         }
         const coordsMin =
-          parseFloat(root.style.getPropertyValue('--phone-coords-content-width')) ||
-          parseFloat(html.style.getPropertyValue('--phone-coords-content-width')) ||
-          0;
+          finiteCssPx(root.style.getPropertyValue('--phone-coords-content-width')) ||
+          finiteCssPx(html.style.getPropertyValue('--phone-coords-content-width'));
         if (!coordsMin) return;
         const cs = getComputedStyle(box);
-        const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+        const padX = finiteCssPx(cs.paddingLeft) + finiteCssPx(cs.paddingRight);
         const childrenW = [...box.children]
           .filter((el) => getComputedStyle(el).display !== 'none')
           .reduce((sum, el) => sum + el.getBoundingClientRect().width, 0);
@@ -139,19 +140,21 @@ export class CameraHeightTool implements OnDestroy {
       this.phoneStackWidthObserver.observe(box);
     });
     if (this.$viewerService.viewerHasLoaded()) {
-      this.camHeightKm.set(
-        Number(
-          (
-            Cesium.Cartographic.fromCartesian(this.$viewerService.startCamDestination).height / 1000
-          ).toFixed(1),
-        ),
+      const startHeightKm = Number(
+        (
+          Cesium.Cartographic.fromCartesian(this.$viewerService.startCamDestination).height / 1000
+        ).toFixed(1),
       );
+      if (Number.isFinite(startHeightKm)) {
+        this.camHeightKm.set(startHeightKm);
+      }
       this.$viewerService.viewer.scene.camera.changed.addEventListener(this.setCamHeightKm);
-      this.camHeightKm.set(
-        Math.round(
-          Cesium.Cartographic.fromCartesian(this.$viewerService.startCamDestination).height / 1000,
-        ),
+      const roundedStartKm = Math.round(
+        Cesium.Cartographic.fromCartesian(this.$viewerService.startCamDestination).height / 1000,
       );
+      if (Number.isFinite(roundedStartKm)) {
+        this.camHeightKm.set(roundedStartKm);
+      }
     }
   }
 
@@ -176,13 +179,21 @@ export class CameraHeightTool implements OnDestroy {
     }
   };
 
+  protected onHeightInput(event: Event): void {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    const km = Number(target.value);
+    if (!Number.isFinite(km)) return;
+    this.camFly(km);
+  }
+
   protected camFly(
     km: number,
     duration: number = 1.0,
     pitch: number | undefined = undefined,
   ): void {
     try {
-      if (typeof km !== 'number') return;
+      if (typeof km !== 'number' || !Number.isFinite(km)) return;
       let height: number = 1;
       if (km < 0.1) height = 100;
       else height = km * 1000;
@@ -204,8 +215,8 @@ export class CameraHeightTool implements OnDestroy {
           this.camHeightKm.set(height / 1000);
         },
       });
-    } catch (error) {
-      console.log(error);
+    } catch (error: unknown) {
+      reportError(error);
     }
   }
 }

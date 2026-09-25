@@ -215,9 +215,11 @@ describe('DrawingsListReportService', () => {
     expect(result?.length).toBe(1);
     expect(result?.[0].toolName).toBe('drawMark');
     const position = result?.[0].entitiesList[0]?.position;
-    expect(position).toBeInstanceOf(Cesium.Cartesian3);
-    expect(Number.isFinite(position!.x)).toBe(true);
-    expect(Number.isFinite(position!.y)).toBe(true);
-    expect(Number.isFinite(position!.z)).toBe(true);
+    if (!(position instanceof Cesium.Cartesian3)) {
+      throw new Error('Expected a Cartesian3 position');
+    }
+    expect(Number.isFinite(position.x)).toBe(true);
+    expect(Number.isFinite(position.y)).toBe(true);
+    expect(Number.isFinite(position.z)).toBe(true);
   });
 });

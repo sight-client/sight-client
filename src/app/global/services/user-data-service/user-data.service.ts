@@ -1,12 +1,11 @@
 import { effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, map, Observable, of, retry, Subscription } from 'rxjs';
+import { catchError, concatMap, map, Observable, of, retry, Subscription, throwError } from 'rxjs';
 import DOMPurify from 'dompurify';
-import chalk from 'chalk';
 
-// Также используется в auth-module.ts
+// Класс, не интерфейс: instanceof остаётся в сборке и может проверить тело запроса.
 export class UserRegistrationData {
-  public login: string | null | undefined; // типизация значений свойств (инпутов) FormGroup (есть разночтение с FormControl)
+  public login: string | null | undefined;
   public password: string | null | undefined;
   public firstName: string | null | undefined;
   public lastName: string | null | undefined;
@@ -32,13 +31,6 @@ export class UserRegistrationData {
   }
 }
 
-// Аналог this.userName() для использования в нативных ts-конструкциях, например, get-req-caching.interceptor.ts
-let userNameGlobal: string | undefined = '';
-// Геттер для него
-export function getUserNameGlobal(): string | undefined {
-  return userNameGlobal;
-}
-
 @Injectable({
   providedIn: 'root',
 })
@@ -55,27 +47,11 @@ export class UserDataService {
     effect(() => {
       if (typeof this.userName() === 'string') {
         untracked(() => {
-          userNameGlobal = this.userName() as string;
-          this.clearAuthResults(); // плюс очистка состояний сообщений кастомных ошибок
+          this.clearAuthResults();
         });
-      } else userNameGlobal = undefined;
+      }
     });
     // Алерты для извещения пользователя о кастомных ошибках с сервера
-    effect(() => {
-      if (typeof this.loginResult() === 'string') {
-        alert(this.loginResult());
-      }
-    });
-    effect(() => {
-      if (typeof this.registrationResult() === 'string') {
-        alert(this.registrationResult());
-      }
-    });
-    effect(() => {
-      if (typeof this.logoutResult() === 'string') {
-        alert(this.logoutResult());
-      }
-    });
   }
   // Сигналы для информационных сообщений auth-module.ts
   public loginResult = signal<boolean | string | undefined>(undefined);
@@ -91,100 +67,55 @@ export class UserDataService {
   // АВТОРИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ (СОЗДАНИЕ AUTH-СЕССИИ НА СЕРВЕРЕ ПРИЛОЖЕНИЯ)
   declare public loginConnectionSubscription: Subscription;
 
-  // Функция для кнопки в auth-module.ts.
-  // Возврат подписки использующему данный сервис компоненту позволит дождаться в нем ее результата, например в .add()-методе (см. auth-module.ts)
-  public getLoginSubscription(
+  public login(
     login: string | null | undefined,
     password: string | null | undefined,
-  ): Subscription {
-    try {
-      this.clearAuthResults();
-      // Резервная проверка
-      if (!login) throw new Error('Empty login!');
-      if (!password) throw new Error('Empty password!');
-      // Сценарий авторизации нового пользователя при активной сессии другого пользователя
-      if (this.userName() && login !== this.userName()) {
-        return this.getLogoutObsevable().subscribe((logoutResult: boolean) => {
-          if (logoutResult === true) {
-            return (this.loginConnectionSubscription = this.getLoginObsevable(
-              login,
-              password,
-            ).subscribe((loginResult: boolean) => {
-              if (loginResult === true) {
-                return (this.userInfoConnectionSubscription = this.getUserInfoObsevable().subscribe(
-                  (userInfoResult: boolean) => {
-                    if (userInfoResult === true) {
-                      return true;
-                    } else {
-                      this.loginResult.set(
-                        "Getting of user's information connection failed. Please, try to reload page.",
-                      );
-                      console.log(
-                        chalk.red(
-                          "Getting of user's information connection failed. Please, try to reload page.",
-                        ),
-                      );
-                      return false;
-                    }
-                  },
-                ));
-              } else {
-                this.loginResult.set(
-                  "Login before getting of user's information connection failed.",
-                );
-                console.log(
-                  chalk.red("Login before getting of user's information connection failed."),
-                );
-                return false;
-              }
-            }));
-          } else {
-            this.loginResult.set(
-              'Logout before authorization connection failed. Please, try to logout manually.',
-            );
-            console.log(
-              chalk.red(
-                'Logout before authorization connection failed. Please, try to logout manually.',
-              ),
-            );
-            return false;
-          }
-        });
-        // Обычный сценарий
-      } else {
-        return (this.loginConnectionSubscription = this.getLoginObsevable(
-          login,
-          password,
-        ).subscribe((loginResult: boolean) => {
-          if (loginResult === true) {
-            return (this.userInfoConnectionSubscription = this.getUserInfoObsevable().subscribe(
-              (userInfoResult: boolean) => {
-                if (userInfoResult === true) {
-                  return true;
-                } else {
-                  this.loginResult.set(
-                    "Getting of user's information connection failed. Please, try to reload page.",
-                  );
-                  console.log(
-                    chalk.red(
-                      "Getting of user's information connection failed. Please, try to reload page.",
-                    ),
-                  );
-                  return false;
-                }
-              },
-            ));
-          } else {
-            this.loginResult.set("Login before getting of user's information connection failed.");
-            console.log(chalk.red("Login before getting of user's information connection failed."));
-            return false;
-          }
-        }));
-      }
-    } catch (error) {
+  ): Observable<boolean> {
+    this.clearAuthResults();
+    if (!login || !password) {
       this.loginResult.set('Login failed');
-      throw error;
+      return throwError(() => new Error(!login ? 'Empty login!' : 'Empty password!'));
     }
+    const signedInAsSomeoneElse = Boolean(this.userName()) && login !== this.userName();
+    const start$ = signedInAsSomeoneElse ? this.getLogoutObsevable() : of(true);
+    return start$.pipe(
+      concatMap((logoutResult) => {
+        if (logoutResult !== true) {
+          this.loginResult.set(
+            'Logout before authorization connection failed. Please, try to logout manually.',
+          );
+          console.info(
+            'Logout before authorization connection failed. Please, try to logout manually.',
+          );
+          return of(false);
+        }
+        return this.loginAndLoadUser(login, password);
+      }),
+    );
+  }
+
+  private loginAndLoadUser(login: string, password: string): Observable<boolean> {
+    return this.getLoginObsevable(login, password).pipe(
+      concatMap((loginResult) => {
+        if (loginResult !== true) {
+          this.loginResult.set("Login before getting of user's information connection failed.");
+          console.info("Login before getting of user's information connection failed.");
+          return of(false);
+        }
+        return this.getUserInfoObsevable().pipe(
+          map((userInfoResult) => {
+            if (userInfoResult === true) return true;
+            this.loginResult.set(
+              "Getting of user's information connection failed. Please, try to reload page.",
+            );
+            console.info(
+              "Getting of user's information connection failed. Please, try to reload page.",
+            );
+            return false;
+          }),
+        );
+      }),
+    );
   }
 
   // Обработка результата, необходимого для изменения напрямую причастных к нему состояний, именно в pipe'е
@@ -194,8 +125,7 @@ export class UserDataService {
     login: string | null | undefined,
     password: string | null | undefined,
   ): Observable<boolean> {
-    try {
-      if (!login) throw new Error('Empty login!');
+    if (!login) throw new Error('Empty login!');
       if (!password) throw new Error('Empty password!');
       const newAuthHeaders: HttpHeaders = new HttpHeaders().set(
         'Authorization',
@@ -217,24 +147,24 @@ export class UserDataService {
                 if (data) {
                   // Выдаст ошибку (отсортируется в catch), если в ответе пришла обычная строка (например с текстом кастомной ошибки).
                   // Если же в ответе пришла JSON-образная сущность, она будет успешно распарсена.
-                  const parsedRes = JSON.parse(data as string);
+                  const parsedRes: unknown = JSON.parse(data);
                   if (parsedRes === true) {
                     this.loginResult.set(parsedRes);
                     this.userName.set(login);
-                    console.log(chalk.green(`User ${login} authorization success`));
+                    console.info(`User ${login} authorization success`);
                     return true;
                   } else {
                     this.loginResult.set('Invalid data in login connection response');
-                    console.log(chalk.red('Invalid data in login connection response'));
+                    console.info('Invalid data in login connection response');
                     return false;
                   }
                 } else {
                   this.loginResult.set('Empty result in login connection');
-                  console.log(chalk.red('Empty result in loginConnection fn'));
+                  console.info('Empty result in loginConnection fn');
                   return false;
                 }
                 // В данном catch ожидается только запланированная ошибка парсинга строки в JSON
-              } catch (_error) {
+              } catch (_error: unknown) {
                 if (typeof data === 'string') {
                   // `User's ${session.user} authorization has already valid`
                   // 'User was not registered never before'
@@ -244,37 +174,25 @@ export class UserDataService {
                 } else {
                   this.loginResult.set('Login failed');
                 }
-                console.log(chalk.blue(data));
+                console.info(data);
                 return false;
               }
             }),
           )
       );
-      // Блок под незапланированные системные ошибки (прокидывает ошибку дальше - в подписку)
-    } catch (error) {
-      throw error;
-    }
   }
 
   // ----------------------------------------------------------------------------------------------------------------- //
   // ВЫХОД ПОЛЬЗОВАТЕЛЯ ИЗ СЕССИИ (на основе данных cookie браузера)
   declare public logoutConnectionSubscription: Subscription;
 
-  // Функция для кнопки в auth-module.ts
-  public getLogoutSubscription(): Subscription {
-    // Событие не перехватвать (нужно для mat-menu)
-    try {
-      this.clearAuthResults();
-      return (this.logoutConnectionSubscription = this.getLogoutObsevable().subscribe());
-    } catch (error) {
-      this.logoutResult.set('Logout failed');
-      throw error;
-    }
+  public logout(): Observable<boolean> {
+    this.clearAuthResults();
+    return this.getLogoutObsevable();
   }
 
   private getLogoutObsevable(): Observable<boolean> {
-    try {
-      return this.http
+    return this.http
         .get('/api/user/logout', {
           responseType: 'text' as const,
           withCredentials: true,
@@ -283,22 +201,22 @@ export class UserDataService {
           map((data: string) => {
             try {
               if (data) {
-                const parsedRes = JSON.parse(data as string); // true
+                const parsedRes: unknown = JSON.parse(data);
                 if (parsedRes === true) {
                   this.logoutResult.set(true);
-                  console.log(chalk.green(`User ${this.userName()} logout success`));
+                  console.info(`User ${this.userName()} logout success`);
                   this.userName.set(undefined);
                   if (this.firstname()) this.firstname.set(undefined);
                   if (this.lastname()) this.lastname.set(undefined);
                   return true;
                 } else {
                   this.logoutResult.set('Invalid data in logout connection response');
-                  console.log(chalk.red('Invalid data in logout connection response'));
+                  console.info('Invalid data in logout connection response');
                   return false;
                 }
               } else {
                 this.logoutResult.set('Empty result in logout connection');
-                console.log(chalk.red('Empty result in logoutConnection fn'));
+                console.info('Empty result in logoutConnection fn');
                 return false;
               }
             } catch (_error: unknown) {
@@ -308,14 +226,11 @@ export class UserDataService {
               } else {
                 this.logoutResult.set('Logout failed');
               }
-              console.log(chalk.blue(data));
+              console.info(data);
               return false;
             }
           }),
         );
-    } catch (error) {
-      throw error;
-    }
   }
 
   // ----------------------------------------------------------------------------------------------------------------- //
@@ -326,7 +241,7 @@ export class UserDataService {
   public getUserInfoConnection(): Subscription {
     try {
       return (this.userInfoConnectionSubscription = this.getUserInfoObsevable().subscribe());
-    } catch (error) {
+    } catch (error: unknown) {
       if (this.userName()) this.userName.set(undefined);
       if (this.firstname()) this.firstname.set(undefined);
       if (this.lastname()) this.lastname.set(undefined);
@@ -335,8 +250,7 @@ export class UserDataService {
   }
 
   private getUserInfoObsevable(): Observable<boolean> {
-    try {
-      if (
+    if (
         this.userName() !== undefined &&
         this.firstname() !== undefined &&
         this.lastname() !== undefined
@@ -354,15 +268,28 @@ export class UserDataService {
           map((data: string) => {
             try {
               if (data) {
-                const encoded = JSON.parse(data);
-                const encodedName: string | null = encoded?.userName;
-                const encodedFirstname: string | null = encoded?.firstname;
-                const encodedLastname: string | null = encoded?.lastname;
+                const encoded: unknown = JSON.parse(data);
+                if (typeof encoded !== 'object' || encoded === null) {
+                  this.userName.set(undefined);
+                  this.firstname.set(undefined);
+                  this.lastname.set(undefined);
+                  return false;
+                }
+                const encodedName =
+                  'userName' in encoded && typeof encoded.userName === 'string'
+                    ? encoded.userName
+                    : null;
+                const encodedFirstname =
+                  'firstname' in encoded && typeof encoded.firstname === 'string'
+                    ? encoded.firstname
+                    : null;
+                const encodedLastname =
+                  'lastname' in encoded && typeof encoded.lastname === 'string'
+                    ? encoded.lastname
+                    : null;
                 if (encodedName) {
                   if (this.userName() === undefined) {
-                    console.log(
-                      chalk.green(`User ${atob(encodedName)} auto authorization success`),
-                    );
+                    console.info(`User ${atob(encodedName)} auto authorization success`);
                   }
                   this.userName.set(atob(encodedName));
                   if (encodedFirstname && encodedLastname) {
@@ -375,20 +302,20 @@ export class UserDataService {
                   if (this.userName()) this.userName.set(undefined);
                   if (this.firstname()) this.firstname.set(undefined);
                   if (this.lastname()) this.lastname.set(undefined);
-                  console.log(chalk.blue(`Unauthorized user`));
+                  console.info(`Unauthorized user`);
                   return false;
                 } else {
                   if (this.userName()) this.userName.set(undefined);
                   if (this.firstname()) this.firstname.set(undefined);
                   if (this.lastname()) this.lastname.set(undefined);
-                  console.log(chalk.red('Ivalid data in user info connection response'));
+                  console.info('Ivalid data in user info connection response');
                   return false;
                 }
               } else {
                 if (this.userName()) this.userName.set(undefined);
                 if (this.firstname()) this.firstname.set(undefined);
                 if (this.lastname()) this.lastname.set(undefined);
-                console.log(chalk.red('Empty result in userInfoConnection fn'));
+                console.info('Empty result in userInfoConnection fn');
                 return false;
               }
             } catch (_error: unknown) {
@@ -396,115 +323,84 @@ export class UserDataService {
               if (this.firstname()) this.firstname.set(undefined);
               if (this.lastname()) this.lastname.set(undefined);
               // `User's (${session?.user}) groups are absent in session data, auto authorization failed`
-              console.log(chalk.blue(data));
+              console.info(data);
               return false;
             }
           }),
         );
-    } catch (error) {
-      throw error;
-    }
   }
 
   // ----------------------------------------------------------------------------------------------------------------- //
   // РЕГИСТРАЦИЯ В БД НОВОГО ПОЛЬЗОВАТЕЛЯ (С АВТОМАТИЧЕСКОЙ АВТОРИЗАЦИЕЙ)
   declare public registrationConnectionSubscription: Subscription;
 
-  // Функция для кнопки в auth-module.ts
-  public getRegistrationSubscription(registrationData: UserRegistrationData): Subscription {
-    try {
-      // Контрольная проверка на полноту данных
-      const bodyEntriesArr = Object.entries(registrationData);
-      for (const arr of bodyEntriesArr) {
-        if (arr[0] === 'organization' || arr[0] === 'telephone') continue;
-        if (!arr[1]) {
+  public register(registrationData: UserRegistrationData): Observable<boolean> {
+    if (!(registrationData instanceof UserRegistrationData)) {
+      this.registrationResult.set('Registration failed');
+      return throwError(() => new Error('Registration body is not UserRegistrationData'));
+    }
+    const invalid = this.invalidRegistrationData(registrationData);
+    if (invalid) {
+      this.registrationResult.set('Registration failed');
+      return throwError(() => new Error(invalid));
+    }
+    this.clearAuthResults();
+    const start$ = this.userName() ? this.getLogoutObsevable() : of(true);
+    return start$.pipe(
+      concatMap((logoutResult) => {
+        if (logoutResult !== true) {
           this.registrationResult.set(
-            `Empty "${arr[0]}" in registration required data. Registration failed.`,
+            'Logout before registration connection failed. Please, try to logout manually.',
           );
-          throw new Error(`Empty "${arr[0]}" in registration required data. Registration failed.`);
+          console.info(
+            'Logout before registration connection failed. Please, try to logout manually.',
+          );
+          return of(false);
         }
-      }
-      // Проверка на bad html сохраняемых в БД строковых данных
-      const bodyValsArr = Object.values(registrationData);
-      for (const item of bodyValsArr) {
-        if (typeof item !== 'string') continue; // null не будет проверен и не вызывет ошибку обработки неизвестного DOMPurify типа
-        const clean = DOMPurify.sanitize(item);
-        if (item !== clean) {
-          this.registrationResult.set(
-            `BAD HTML HAS DETECTED FROM USER: ${registrationData.login}: ${item}. Registration failed.`,
-          );
-          throw new Error(
-            `BAD HTML HAS DETECTED FROM USER: ${registrationData.login}: ${item}. Registration failed.`,
-          );
-        }
-      }
-      // Note: FE позволяет использовать внешний this-контекст
-      const getDefaultRegSubscription = (registrationData: UserRegistrationData): Subscription => {
-        try {
-          return (this.registrationConnectionSubscription = this.getRegistrationObsevable(
-            registrationData,
-          ).subscribe((regResult: boolean) => {
-            if (regResult === true) {
-              return (this.loginConnectionSubscription = this.getLoginObsevable(
-                registrationData.login,
-                registrationData.password,
-              ).subscribe((loginResult: boolean) => {
+        return this.getRegistrationObsevable(registrationData).pipe(
+          concatMap((regResult) => {
+            if (regResult !== true) return of(false);
+            return this.getLoginObsevable(registrationData.login, registrationData.password).pipe(
+              map((loginResult) => {
                 if (loginResult === true) {
                   this.loginResult.set(true);
                   return true;
-                } else {
-                  this.loginResult.set(
-                    'Login after registration connection failed. Please, try to login manually.',
-                  );
-                  console.log(
-                    chalk.red(
-                      'Login after registration connection failed. Please, try to login manually.',
-                    ),
-                  );
-                  // Регистрация, тем-не-менее, выполнена
-                  this.registrationResult.set(true);
-                  return true;
                 }
-              }));
-            } else return false;
-          }));
-        } catch (error) {
-          throw error;
-        }
-      };
-      this.clearAuthResults();
-      // Обычный сценарий
-      if (!this.userName()) {
-        return getDefaultRegSubscription(registrationData);
-        // Сценарий регистрации нового пользователя при активной сессии другого пользователя
-      } else {
-        return (this.logoutConnectionSubscription = this.getLogoutObsevable().subscribe(
-          (logoutResult: boolean) => {
-            if (logoutResult === true) {
-              return getDefaultRegSubscription(registrationData);
-            } else {
-              this.registrationResult.set(
-                'Logout before registration connection failed. Please, try to logout manually.',
-              );
-              console.log(
-                chalk.red(
-                  'Logout before registration connection failed. Please, try to logout manually.',
-                ),
-              );
-              return false;
-            }
-          },
-        ));
+                this.loginResult.set(
+                  'Login after registration connection failed. Please, try to login manually.',
+                );
+                console.info(
+                  'Login after registration connection failed. Please, try to login manually.',
+                );
+                this.registrationResult.set(true);
+                return true;
+              }),
+            );
+          }),
+        );
+      }),
+    );
+  }
+
+  private invalidRegistrationData(registrationData: UserRegistrationData): string | undefined {
+    for (const [key, value] of Object.entries(registrationData)) {
+      if (key === 'organization' || key === 'telephone') continue;
+      if (!value) {
+        return `Empty "${key}" in registration required data. Registration failed.`;
       }
-    } catch (error) {
-      this.registrationResult.set('Registration failed');
-      throw error;
     }
+    for (const item of Object.values(registrationData)) {
+      if (typeof item !== 'string') continue;
+      const clean = DOMPurify.sanitize(item);
+      if (item !== clean) {
+        return `BAD HTML HAS DETECTED FROM USER: ${registrationData.login}: ${item}. Registration failed.`;
+      }
+    }
+    return undefined;
   }
 
   private getRegistrationObsevable(registrationData: UserRegistrationData): Observable<boolean> {
-    try {
-      if (!registrationData.login) throw new Error('Empty login!');
+    if (!registrationData.login) throw new Error('Empty login!');
       if (!registrationData.password) throw new Error('Empty password!');
       const reqBody: UserRegistrationData = structuredClone(registrationData);
       reqBody.login = btoa(registrationData.login);
@@ -526,43 +422,31 @@ export class UserDataService {
             throw err;
           }),
           map((data: true | { customError?: string }) => {
-            try {
-              if (data) {
+            if (data) {
                 if (typeof data === 'boolean' && data === true) {
                   this.registrationResult.set(true);
-                  console.log(chalk.green(`User ${registrationData.login} registration success`));
+                  console.info(`User ${registrationData.login} registration success`);
                   return true;
                 } else if (data?.customError) {
                   this.registrationResult.set(data.customError);
                   // 'Server notice: short password!'
                   // 'User already exists'
-                  console.log(chalk.blue(data.customError));
+                  console.info(data.customError);
                   return false;
                 } else {
                   this.registrationResult.set('Invalid data in registration connection response');
-                  console.log(chalk.red('Invalid data in registrationConnection fn'));
+                  console.info('Invalid data in registrationConnection fn');
                   return false;
                 }
               } else {
                 this.registrationResult.set('Empty result in registration connection');
-                console.log(chalk.red('Empty result in registrationConnection fn'));
+                console.info('Empty result in registrationConnection fn');
                 return false;
               }
-            } catch (error) {
-              throw error;
-            }
           }),
         );
-    } catch (error) {
-      throw error;
-    }
   }
 
-  // ----------------------------------------------------------------------------------------------------------------- //
-  // Контрольная очистка подписок
-  ngOnDestroy() {
-    this.clearAuthSubscriptions();
-  }
   public clearAuthSubscriptions(): void {
     if (this.logoutConnectionSubscription) {
       this.logoutConnectionSubscription.unsubscribe();

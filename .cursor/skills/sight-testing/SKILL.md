@@ -9,7 +9,7 @@ description: Use when writing or changing unit tests, TestBed, spec files, Vites
 
 Раннер: **Vitest 4.1** через `@angular/build:unit-test` (jsdom), команда `npm test` / `ng test`. `provideZonelessChangeDetection()` в каждом `TestBed`. Globals Vitest (`describe` / `it` / `expect`) — через `"types": ["vitest/globals"]` в `tsconfig.spec.json`. Сборка тестов: `buildTarget` `sight-client:build:testing` → `environment.test.ts`. Не возвращаться на Karma/Jasmine без спроса.
 
-Контракт сюиты: `.cursor/superpowers/specs/2026-09-18-sight-unit-test-suite-design.md`. Планы покрытия `.cursor/superpowers/plans/2026-09-18-unit-test-*.md` — **executed**, не гонять заново. Новая логика — TDD; баг из парковки — отдельный TDD.
+Контракт сюиты: `.cursor/superpowers/specs/2026-09-18-sight-unit-test-suite-design.md`. Планы покрытия `.cursor/superpowers/plans/2026-09-18-unit-test-*.md` — **executed**, не гонять заново. План `.cursor/superpowers/plans/2026-09-23-type-holes.md` — **executed** 2026-09-25; не включать `strictPropertyInitialization`. Новая логика — TDD; баг из парковки — отдельный TDD.
 
 ## Шаблон (как `draw-mark.spec.ts`)
 

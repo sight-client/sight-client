@@ -28,6 +28,7 @@
 ### Task 1: Rename the caching interceptor spec
 
 **Files:**
+
 - Rename: `src/app/global/interceptors/get-req-caching-interceptor/caching-get-req,interceptor.spec.ts` → `get-req-caching.interceptor.spec.ts`
 - Do not modify: `get-req-caching.interceptor.ts`
 
@@ -85,6 +86,7 @@ EOF
 ### Task 2: AutofocusDirective compiles and is included
 
 **Files:**
+
 - Modify: `src/app/global/directives/autofocus-directive/autofocus.directive.spec.ts`
 - Modify: `tsconfig.spec.json` (remove autofocus exclude)
 - Modify: `angular.json` `projects.sight-client.architect.test.options.exclude` (remove autofocus entry)
@@ -161,6 +163,7 @@ EOF
 ### Task 3: Zoneless on remaining TestBeds
 
 **Files (missing `provideZonelessChangeDetection` today):**
+
 - Modify: `src/app/planet/components/main-menu/main-menu.spec.ts`
 - Modify: `src/app/planet/components/tools/services/tools-service/tools.service.spec.ts`
 - Modify: `src/app/planet/components/tools/drawings-list/services/drawings-list-kml-service/drawings-list-kml.service.spec.ts`
@@ -200,9 +203,25 @@ describe('RunViewerDirective', () => {
       providers: [
         provideZonelessChangeDetection(),
         RunViewerDirective,
-        { provide: ViewerService, useValue: { viewerHasLoaded: signal(false), getNewViewer: () => {}, setImageryProvider: () => {} } },
-        { provide: CursorCoordsService, useValue: { startCursorCoordsService: () => {}, underMouseEntityHasLoaded: signal(false) } },
-        { provide: ToolsService, useValue: { startToolsService: async () => {}, toolsServiceHasStarted: signal(false) } },
+        {
+          provide: ViewerService,
+          useValue: {
+            viewerHasLoaded: signal(false),
+            getNewViewer: () => {},
+            setImageryProvider: () => {},
+          },
+        },
+        {
+          provide: CursorCoordsService,
+          useValue: {
+            startCursorCoordsService: () => {},
+            underMouseEntityHasLoaded: signal(false),
+          },
+        },
+        {
+          provide: ToolsService,
+          useValue: { startToolsService: async () => {}, toolsServiceHasStarted: signal(false) },
+        },
         { provide: DrawingsListService, useValue: { startDrawingsListService: () => {} } },
       ],
     });
@@ -235,6 +254,7 @@ EOF
 ### Task 4: Stub specs that construct Cesium or HTTP do not explode
 
 **Files (likely failures from the 67-fail baseline):**
+
 - Modify: `src/app/planet/planet.spec.ts`
 - Modify: `src/app/app.spec.ts` (if theme services throw without DOM CSS vars — stub `SetUserThemeService` / `SetLightDarkModeService` only if create fails)
 - Modify: `src/app/global/interceptors/download-progress-interceptor/download-progress.interceptor.spec.ts`
@@ -260,7 +280,12 @@ Replace the incomplete spec (TestBed without `provideHttpClient` / `HttpTestingC
 
 ```typescript
 import { TestBed } from '@angular/core/testing';
-import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import {
+  HTTP_INTERCEPTORS,
+  HttpClient,
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { DownloadProgressInterceptor } from './download-progress.interceptor';
@@ -312,6 +337,7 @@ EOF
 ### Task 5: Confirm excludes and skill trap
 
 **Files:**
+
 - Verify: `tsconfig.spec.json`, `angular.json` still exclude blank and proxy
 - Modify only if hygiene uncovered a new broken spec that must stay out — **ask**, do not expand exclude silently
 

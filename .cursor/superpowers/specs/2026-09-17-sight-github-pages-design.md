@@ -12,13 +12,13 @@ parent: 2026-09-17-sight-product-design.md
 
 ## Build
 
-| Команда | Роль |
-|---|---|
-| `npm start` | `ng serve`, host `0.0.0.0`, порт **9002**, конфигурация по умолчанию `development` |
-| `npm test` | Vitest 4.1 (`@angular/build:unit-test`); `buildTarget` `testing` → `environment.test.ts` |
-| CI | GitHub Actions `.github/workflows/unit-tests.yml`: Node 22, `npm ci`, `npx ng test --no-watch` on push and pull_request |
-| `npm run build:docs` | `ng build --configuration docs` |
-| `npm run watch` | watch-сборка development |
+| Команда              | Роль                                                                                                                    |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `npm start`          | `ng serve`, host `0.0.0.0`, порт **9002**, конфигурация по умолчанию `development`                                      |
+| `npm test`           | Vitest 4.1 (`@angular/build:unit-test`); `buildTarget` `testing` → `environment.test.ts`                                |
+| CI                   | GitHub Actions `.github/workflows/unit-tests.yml`: Node 22, `npm ci`, `npx ng test --no-watch` on push and pull_request |
+| `npm run build:docs` | `ng build --configuration docs`                                                                                         |
+| `npm run watch`      | watch-сборка development                                                                                                |
 
 Конфигурация `docs` (`angular.json`): `outputPath.base = docs`, `browser = ""`, `baseHref = "/sight-client/"`. Хеширование как у production; это артефакт Pages.
 

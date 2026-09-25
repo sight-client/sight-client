@@ -20,17 +20,17 @@ import { Injectable } from '@angular/core';
 @Injectable()
 export class DownloadProgressInterceptor implements HttpInterceptor {
   constructor(private $setProgressSpinnerService: SetProgressSpinnerService) {}
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     this.$setProgressSpinnerService.setSpinnerOn();
     return next.handle(req).pipe(
       tap((event: HttpEvent<unknown>) => {
         switch (event.type) {
           // Не будет работать при использовании withFetch в настройках провайдера HttpClient
           case HttpEventType.UploadProgress:
-            console.log('Uploaded ' + event.loaded + ' out of ' + event.total + ' bytes'); // на будущее: добавить процентовку к спинеру у курсора
+            console.info('Uploaded ' + event.loaded + ' out of ' + event.total + ' bytes'); // на будущее: добавить процентовку к спинеру у курсора
             break;
           case HttpEventType.DownloadProgress:
-            console.log('Downloaded ' + event.loaded + ' out of ' + event.total + ' bytes');
+            console.info('Downloaded ' + event.loaded + ' out of ' + event.total + ' bytes');
             break;
           // case HttpEventType.Response:
           //   console.log('Finished!');

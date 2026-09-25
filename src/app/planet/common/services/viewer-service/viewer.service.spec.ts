@@ -33,6 +33,14 @@ describe('ViewerService', () => {
     expect(TestBed.inject(ViewerService).nowSceneModeDescription()).toBe('3D');
   });
 
+  it('ignores a non-literal sceneMode in localStorage', () => {
+    localStorage.setItem('sceneMode', 'MORPHING');
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection(), ViewerService, SetProgressSpinnerService],
+    });
+    expect(TestBed.inject(ViewerService).nowSceneModeDescription()).toBe('3D');
+  });
+
   it('setClampToGround(false) updates clampToGroundSignal without throwing on empty viewer', () => {
     TestBed.configureTestingModule({
       providers: [provideZonelessChangeDetection(), ViewerService, SetProgressSpinnerService],
