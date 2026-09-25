@@ -28,8 +28,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToolsService } from '@/components/tools/services/tools-service/tools.service';
 import {
   setNormalButtonsVisibility,
-  showAuxillarySubgroup,
-  hideAuxillarySubgroup,
+  showAuxiliarySubgroup,
+  hideAuxiliarySubgroup,
 } from '@/components/tools/lib/buttons-subgroups-visibility';
 
 // Инструменты рисования
@@ -329,12 +329,12 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
               defaultNGCVCR.insert(detachedView); // привязка
             } else
               throw new Error(
-                'View detach has failed in moveToolTrenderToolsGroupTemplatesoDefault fn',
+                'View detach has failed in renderToolsGroupTemplates fn',
               );
           }
         }
       }
-      // Установка начальных значений кастомного атрибута хостов компонентов, входящих в гуппы, служащего для управления видимостью их кнопок
+      // Установка начальных значений кастомного атрибута хостов компонентов, входящих в группы, служащего для управления видимостью их кнопок
       if (setNormalButtonsVisibility(defaultDivER, hiddenDivER) === true) {
         hiddenDivHasShown.set(false);
         // console.log(hiddenDivHasShown());
@@ -521,7 +521,7 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
         hiddenDiv.contains(event.target) === false &&
         !event.target.closest(group.outsideClickIgnore)
       ) {
-        if (hideAuxillarySubgroup(group.hiddenDiv()) === true) {
+        if (hideAuxiliarySubgroup(group.hiddenDiv()) === true) {
           group.expanded.set(false);
         } else {
           console.info(
@@ -539,21 +539,21 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
     try {
       // _event.stopPropagation(); // не перехватывать, нужно для this.handleForOutOfHiddenGroupBoundariesClick()
       if (hiddenDivHasShown() === false) {
-        if (showAuxillarySubgroup(hiddenDivER)) {
+        if (showAuxiliarySubgroup(hiddenDivER)) {
           hiddenDivHasShown.set(true);
           // console.log(hiddenDivHasShown());
           return true;
         } else {
-          console.info('showAuxillarySubgroup fn has failed');
+          console.info('showAuxiliarySubgroup fn has failed');
           return false;
         }
       } else if (hiddenDivHasShown() === true) {
-        if (hideAuxillarySubgroup(hiddenDivER)) {
+        if (hideAuxiliarySubgroup(hiddenDivER)) {
           hiddenDivHasShown.set(false);
           // console.log(hiddenDivHasShown());
           return true;
         } else {
-          console.info('hideAuxillarySubgroup fn has failed');
+          console.info('hideAuxiliarySubgroup fn has failed');
           return false;
         }
       } else
@@ -570,7 +570,7 @@ export class ToolsPanel implements AfterViewInit, OnInit, OnDestroy {
     const hiddenDivHasShown = group.expanded;
     try {
       // event.stopPropagation(); // уже остановлено в общем хэндлере
-      if (hideAuxillarySubgroup(hiddenDivER)) {
+      if (hideAuxiliarySubgroup(hiddenDivER)) {
         hiddenDivHasShown.set(false);
         // console.log(hiddenDivHasShown());
         return true;

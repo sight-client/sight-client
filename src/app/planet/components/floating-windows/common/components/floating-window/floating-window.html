@@ -3,7 +3,7 @@
   cdkDrag
   cdkDragBoundary=".sight-main-ui-container"
   class="floating-window"
-  [class.hiden-element]="
+  [class.hidden-element]="
     $floatingWindowsService.floatingWindowsList()[windowIndex()]?.collapsed() ||
     $floatingWindowsService.floatingWindowsList()[windowIndex()]?.hidden()
   "

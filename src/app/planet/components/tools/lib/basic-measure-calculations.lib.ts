@@ -22,11 +22,11 @@ export function transformCartesianArrayToWGS84Array(
 // Получение длины суммы ОТРЕЗКОВ (с учетом высот - метод "calculatePosDistances" viewer.service.ts)
 export function calculatePosDistances(positions: Array<Cesium.Cartesian3 | undefined>): string {
   if (!positions?.length) return Humanify.distanceM(0);
-  const distance: number = calculatePosDistancesWhithoutHumanify(positions);
+  const distance: number = calculatePosDistancesWithoutHumanify(positions);
   return Humanify.distanceM(distance);
 }
 
-export function calculatePosDistancesWhithoutHumanify(
+export function calculatePosDistancesWithoutHumanify(
   positions: Array<Cesium.Cartesian3 | undefined>,
 ): number {
   let distance: number = 0;
@@ -57,13 +57,13 @@ export function calculatePosDistancesWhithoutHumanify(
 export function calculateAreaWithTurf(positions: Array<Cesium.Cartesian3>): string {
   let area = 0;
   if (positions?.length && positions.length > 2) {
-    area = calculateAreaWithTurfWhithoutHumanify(positions);
+    area = calculateAreaWithTurfWithoutHumanify(positions);
   }
   return Humanify.areaKm(Math.abs(area));
 }
 
 // Расчет по эллипсоиду (не по рельефу)
-export function calculateAreaWithTurfWhithoutHumanify(positions: Array<Cesium.Cartesian3>) {
+export function calculateAreaWithTurfWithoutHumanify(positions: Array<Cesium.Cartesian3>) {
   let area = 0;
   if (positions?.length && positions.length > 2) {
     // Перевод Cartesian3 в массив [Долгота, Широта] для Turf
@@ -116,7 +116,7 @@ export function transformWGS84ToCartographic(
 // Функции данного блока больше нигде не используются (даже в предшествующем проекте), перенесены, как legacy.
 
 // Нигде не используется.
-// Для определения координат курсора используется отдельный инструмент, отслеживающий mousmove на эллипсоиде.
+// Для определения координат курсора используется отдельный инструмент, отслеживающий mousemove на эллипсоиде.
 // export function getCartesian3FromPX(
 //   px: Cesium.Cartesian2,
 //   _viewer: CustomViewer,
@@ -212,11 +212,11 @@ export function transformWGS84ToCartographic(
 // Используется только в данном блоке функций и в transformCartesianArrayToWGS84Array(), которая вынесена отдельно (выше), так как многократно применяется вне блока
 function transformCartesianToWGS84(position: Cesium.Cartesian3 | undefined): degreesPosObj {
   if (!(position instanceof Cesium.Cartesian3)) {
-    throw new Error('Error whith geting position argument in transformCartesianToWGS84 fn!');
+    throw new Error('Error with getting position argument in transformCartesianToWGS84 fn!');
   }
   const cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(position);
   if (!cartographic) {
-    throw new Error('Error whith position in transformCartesianToWGS84 fn');
+    throw new Error('Error with position in transformCartesianToWGS84 fn');
   }
   const wgsPoint = new degreesPosObj();
   wgsPoint.lng = Cesium.Math.toDegrees(cartographic.longitude);

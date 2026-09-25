@@ -162,15 +162,15 @@ export class FlyAroundService {
       // ------------------------------------------------------------------------- //
       // Если необходима сущность на холсте
       let pointEntity: Cesium.Entity | undefined;
-      let groupIdChank: string;
+      let groupIdChunk: string;
       if (options?.groupId === undefined) {
-        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+        groupIdChunk = `${Math.ceil(Math.random() * 1000000)}`;
       } else {
-        groupIdChank = options.groupId;
+        groupIdChunk = options.groupId;
       }
       const optForPoint: CameraViewToolsOptions = cloneDeep(options);
       // Начало id должно быть общим для суммы сущностей одного сценария работы инструмента
-      optForPoint.id = `${groupIdChank}-${this.toolName}-point-${Math.ceil(Math.random() * 1000000)}`;
+      optForPoint.id = `${groupIdChunk}-${this.toolName}-point-${Math.ceil(Math.random() * 1000000)}`;
       // --------------------------------- //
       if (options?.withPoint || options?.withBillboard) {
         if (this.drawingHasStarted() === false) this.drawingHasStarted.set(true);
@@ -181,7 +181,7 @@ export class FlyAroundService {
             .temporalEntitiesList()
             .findIndex((item) => item?.id === optForPoint?.id) !== -1
         ) {
-          throw new Error('Entity already exist in temporal store by setFlyingAround()');
+          throw new Error('Entity already exists in temporal store by setFlyingAround()');
         }
         if (options?.withPoint) {
           optForPoint.point = {
@@ -251,15 +251,15 @@ export class FlyAroundService {
             // Вариант 1: долговременно (удалить все потом можно по СКМ на кнопке инструмента)
             if (!options?.destroy) {
               this.$cameraViewToolsService.pushGroupFromTemporal(
-                groupIdChank,
+                groupIdChunk,
                 optForPoint?.toolName,
                 pointEntity,
               );
-              this.$cameraViewToolsService.clearTemporalEntitiesList(groupIdChank);
+              this.$cameraViewToolsService.clearTemporalEntitiesList(groupIdChunk);
               // this.$viewerService.setNewPickedEntity(pointEntity);
             } else {
               // Вариант 2: только на время выполнения отработки данного метода
-              this.$cameraViewToolsService.removeTemporalEntities(groupIdChank);
+              this.$cameraViewToolsService.removeTemporalEntities(groupIdChunk);
             }
           }
           // ------------------------------------------------------------------------- //

@@ -144,18 +144,18 @@ export class CalculateCircleService {
       if (this.$toolsService.drawingsBlocker() === true) return false;
       this.$toolsService.clearCommonHandler();
       this.$toolsService.setDrawingsBlocker(true);
-      let groupIdChank: string;
+      let groupIdChunk: string;
       if (options?.groupId === undefined) {
-        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+        groupIdChunk = `${Math.ceil(Math.random() * 1000000)}`;
       } else {
-        groupIdChank = options.groupId;
+        groupIdChunk = options.groupId;
       }
       const optForPolygon: MeasureOptions = cloneDeep(options);
       // Начало id должно быть общим для суммы сущностей одного сценария работы инструмента
-      optForPolygon.id = `${groupIdChank}-${this.toolName}-ellipse-${Math.ceil(Math.random() * 1000000)}`;
+      optForPolygon.id = `${groupIdChunk}-${this.toolName}-ellipse-${Math.ceil(Math.random() * 1000000)}`;
       if (options?.name) optForPolygon.name = options.name; // при завершении сценария прибавится площадь
       const optForLine: MeasureOptions = cloneDeep(options);
-      optForLine.id = `${groupIdChank}-${this.toolName}-line-${Math.ceil(Math.random() * 1000000)}`;
+      optForLine.id = `${groupIdChunk}-${this.toolName}-line-${Math.ceil(Math.random() * 1000000)}`;
       if (options?.name) optForLine.name = options.name + ' ' + '(auxiliary)'; // при завершении сценария прибавится радиус;
 
       let ellipseEntity: Cesium.Entity | undefined = undefined;
@@ -300,14 +300,14 @@ export class CalculateCircleService {
                 .temporalEntitiesList()
                 .findIndex((item) => item?.id === ellipseEntity?.id) !== -1
             ) {
-              throw new Error('Entity already exist in temporal store by setEllipseEntity()');
+              throw new Error('Entity already exists in temporal store by setEllipseEntity()');
             }
             if (
               this.$measureService
                 .temporalEntitiesList()
                 .findIndex((item) => item?.id === lineEntity?.id) !== -1
             ) {
-              throw new Error('Entity already exist in temporal store by setLineEntity()');
+              throw new Error('Entity already exists in temporal store by setLineEntity()');
             }
             if (lineEntity.polyline?.positions)
               lineEntity.polyline.positions = reactivePolylinePositionsLine;
@@ -324,7 +324,7 @@ export class CalculateCircleService {
             }
             if (ellipseEntity.ellipse)
               ellipseEntity.ellipse.show = new Cesium.ConstantProperty(false); // необходим только для расчетов, плюс границы эллипса, формирующиеся обычно по двум точкам, будут "испорчены" новым "фантомом" окружности для полилинии
-            // Для привязке к рельефу заливки теперь используем полигон, а не эллипс (polylinePositionsMain определяет и hierarchy.positions полигона)
+            // Для привязки к рельефу заливки теперь используем полигон, а не эллипс (polylinePositionsMain определяет и hierarchy.positions полигона)
             ellipseEntity.polygon = new Cesium.PolygonGraphics({
               material: new Cesium.ColorMaterialProperty(Cesium.Color.WHITE.withAlpha(0.1)),
               perPositionHeight: new Cesium.ConstantProperty(!options?.clampToGround),
@@ -390,7 +390,7 @@ export class CalculateCircleService {
           // По прямой (без учета эллипсоида)
           // const distance = Cesium.Cartesian3.distance(startPos, movePos);
           // По дуге (с учетом эллипсоида и высоты точек)
-          const distance = MeasuresLib.calculatePosDistancesWhithoutHumanify(polylinePositionsLine);
+          const distance = MeasuresLib.calculatePosDistancesWithoutHumanify(polylinePositionsLine);
           labelTextLine = Humanify.distanceM(distance);
           polylinePositionsMain = [startPos, movePos];
           radius = distance;
@@ -499,11 +499,11 @@ export class CalculateCircleService {
           }
 
           this.$measureService.pushGroupFromTemporal(
-            groupIdChank,
+            groupIdChunk,
             options?.toolName,
             ellipseEntity,
           );
-          this.$measureService.clearTemporalEntitiesList(groupIdChank);
+          this.$measureService.clearTemporalEntitiesList(groupIdChunk);
           this.$viewerService.setNewPickedEntity(ellipseEntity);
 
           this.$toolsService.setDrawingsBlocker(false);

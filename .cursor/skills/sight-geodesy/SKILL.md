@@ -7,7 +7,7 @@ description: Use when converting coordinates, adding a CRS, displaying mouse pos
 
 ## Overview
 
-Cesium внутри работает в WGS-84. Пользовательские СК: `'WGS-84' | 'СК-42 м' | 'СК-42 °' | 'ПЗ-90.11'` (`crsLiterals` в `coord-sistems.lib.ts`). Проверка строки — `isCRS`, не `as CRS`.
+Cesium внутри работает в WGS-84. Пользовательские СК: `'WGS-84' | 'СК-42 м' | 'СК-42 °' | 'ПЗ-90.11'` (`crsLiterals` в `coord-systems.lib.ts`). Проверка строки — `isCRS`, не `as CRS`.
 
 ## Правила
 
@@ -19,7 +19,7 @@ Cesium внутри работает в WGS-84. Пользовательские
 - Автозона СК-42 м: смотреть `longitude`/`latitude` у plain object. HUD и tools передают литерал, не `new CartographicLike()` — `instanceof` не сработает.
 - Перед `proj4` — только конечные числа (`Number.isFinite`). Иначе библиотека бросает `coordinates must be finite numbers`. Невалидный ввод возвращать как исходный объект, не писать NaN в Cesium.
 - Обратный ход (`toWGS84Cartographic` / импорт ODS): в тех же полях могут быть метры Гаусса–Крюгера (Y ≈ 7e6, не градусы). Зону брать из easting `floor(lon/1e6)` / `floor(x/1e6)`. Не кормить метры в longlat-автозону — будет NaN / «normalized result is not a number».
-- Длины: `EllipsoidGeodesic` + поправка по высоте (`calculatePosDistancesWhithoutHumanify`). Комментарий в lib: `Cartesian3.distance` срезает дугу — только для отладки.
+- Длины: `EllipsoidGeodesic` + поправка по высоте (`calculatePosDistancesWithoutHumanify`). Комментарий в lib: `Cartesian3.distance` срезает дугу — только для отладки.
 - Площади: Turf в `basic-measure-calculations.lib.ts`, не сырой план на Web Mercator.
 - Высоты: учитывать `systemHeight` в DEFS и `egm96-universal`, если трогаешь ортометрическую высоту. Не смешивать ellipsoidal и orthometric без спроса.
 

@@ -4,7 +4,7 @@ animate.leave="cursor-coords-cursor-field-leave-animation" -->
 @if (cursorCoordsDescription().latitude && !outOfScreen()) {
   <div
     class="cursor-coords-cursor-field"
-    [class.hiden-element]="!$cursorCoordsService.cursorOnViewerCanvas() || !cursorDescIsChecked()"
+    [class.hidden-element]="!$cursorCoordsService.cursorOnViewerCanvas() || !cursorDescIsChecked()"
     [style.left]="left"
     [style.top]="top"
   >

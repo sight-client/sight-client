@@ -44,12 +44,12 @@ export class CalculateRectangleFloatingWindowService {
     // Сокрытие окна инструмента при удалении его сущности, в настоящий момент отображенной в таком окне
     // effect(() => {
     //   try {
-    //     if (this.$calculateRectangleService.rectangleAreaMeasurmentsList().length) {
+    //     if (this.$calculateRectangleService.rectangleAreaMeasurementsList().length) {
     //       untracked(() => {
     //         if (this._validPickedEnttity()) {
     //         const nowGroupId: string | undefined = this._validPickedEnttity()?.id.split('-')[0];
     //         const index = this.$calculateRectangleService
-    //           .rectangleAreaMeasurmentsList()
+    //           .rectangleAreaMeasurementsList()
     //           .findIndex((item) => item?.groupId === nowGroupId);
     //         if (index === -1) this.$floatingWindowsService.hideWindowByToolName(this.toolName);
     //         }
@@ -104,13 +104,13 @@ export class CalculateRectangleFloatingWindowService {
     let targetEntity: Cesium.Entity | undefined = undefined;
     untracked(() => {
       if (selectedEntity?.toolName !== this.toolName) return;
-      if (!this.$calculateRectangleService.rectangleAreaMeasurmentsList().length) return;
+      if (!this.$calculateRectangleService.rectangleAreaMeasurementsList().length) return;
       const indexGroup = this.$calculateRectangleService
-        .rectangleAreaMeasurmentsList()
+        .rectangleAreaMeasurementsList()
         .findIndex((group) => !!group && selectedEntity.id.startsWith(group.groupId));
       if (indexGroup === -1) return;
       const group =
-        this.$calculateRectangleService.rectangleAreaMeasurmentsList()[indexGroup];
+        this.$calculateRectangleService.rectangleAreaMeasurementsList()[indexGroup];
       if (group?.defaultEntity) {
         targetEntity = group.defaultEntity;
       } else {
@@ -148,7 +148,7 @@ export class CalculateRectangleFloatingWindowService {
           rectanglePolylinePositions?.length &&
           rectanglePolylinePositions[0] instanceof Cesium.Cartesian3
         ) {
-          area = MeasuresLib.calculateAreaWithTurfWhithoutHumanify(rectanglePolylinePositions);
+          area = MeasuresLib.calculateAreaWithTurfWithoutHumanify(rectanglePolylinePositions);
         } else {
           console.info('Invalid rectanglePolylinePositions array in validPickedEnttity signal');
         }
@@ -187,7 +187,7 @@ export class CalculateRectangleFloatingWindowService {
           rectanglePolylinePositions?.length &&
           rectanglePolylinePositions[0] instanceof Cesium.Cartesian3
         ) {
-          perimeter = MeasuresLib.calculatePosDistancesWhithoutHumanify(rectanglePolylinePositions);
+          perimeter = MeasuresLib.calculatePosDistancesWithoutHumanify(rectanglePolylinePositions);
         } else {
           console.info('Invalid rectanglePolylinePositions array in validPickedEnttity signal');
         }

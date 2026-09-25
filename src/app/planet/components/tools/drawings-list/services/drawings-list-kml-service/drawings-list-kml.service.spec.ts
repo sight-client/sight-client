@@ -180,7 +180,7 @@ describe('DrawingsListKmlService', () => {
 
   it('prepareKmlEntities strips javascript: from parsed entity.name', () => {
     const $toolsService = TestBed.inject(ToolsService);
-    vi.spyOn($toolsService, 'setClampingToGroudForEntity').mockImplementation(() => true);
+    vi.spyOn($toolsService, 'setClampingToGroundForEntity').mockImplementation(() => true);
     const maliciousName = 'javascript:alert(1)';
     const payload = JSON.stringify({
       toolName: 'drawMark',
@@ -201,7 +201,7 @@ describe('DrawingsListKmlService', () => {
 
   it('prepareKmlEntities keeps a plain entity.name', () => {
     const $toolsService = TestBed.inject(ToolsService);
-    vi.spyOn($toolsService, 'setClampingToGroudForEntity').mockImplementation(() => true);
+    vi.spyOn($toolsService, 'setClampingToGroundForEntity').mockImplementation(() => true);
     const payload = JSON.stringify({
       toolName: 'drawMark',
       id: 'g1-drawMark-point-2',
@@ -220,7 +220,7 @@ describe('DrawingsListKmlService', () => {
 
   it('prepareKmlEntities does not apply javascript: as billboard.image', () => {
     const $toolsService = TestBed.inject(ToolsService);
-    vi.spyOn($toolsService, 'setClampingToGroudForEntity').mockImplementation(() => true);
+    vi.spyOn($toolsService, 'setClampingToGroundForEntity').mockImplementation(() => true);
     const payload = JSON.stringify({
       toolName: 'drawMark',
       id: 'g1-drawMark-point-3',
@@ -241,7 +241,7 @@ describe('DrawingsListKmlService', () => {
 
   it('prepareKmlEntities skips invalid JSON and still parses the next entity', () => {
     const $toolsService = TestBed.inject(ToolsService);
-    vi.spyOn($toolsService, 'setClampingToGroudForEntity').mockImplementation(() => true);
+    vi.spyOn($toolsService, 'setClampingToGroundForEntity').mockImplementation(() => true);
     const bad = new Cesium.Entity({
       id: 'g1-drawMark-point-bad',
       description: '<div class="cesium-infoBox-description-lighter">{not-json</div>',

@@ -18,7 +18,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
-import type { CRS } from '@/common/lib/coord-sistems.lib';
+import type { CRS } from '@/common/lib/coord-systems.lib';
 import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 import { finiteCssPx } from '@global/lib/common-global.lib';
 

@@ -24,8 +24,8 @@ import * as MeasuresLib from '@/components/tools/lib/basic-measure-calculations.
 export class CalculateRectangleService {
   // --------------------- Блок для хранения основных состояний сервиса (start) ----------------------- //
   // Еще используется в calculate-rectangle-floating-window.ts
-  public readonly rectangleAreaMeasurmentsList = computed(() =>
-    this.$measureService.rectangleAreaMeasurmentsList(),
+  public readonly rectangleAreaMeasurementsList = computed(() =>
+    this.$measureService.rectangleAreaMeasurementsList(),
   );
   // Еще используется в calculate-rectangle.ts
   public readonly measuresBlocker = computed(() => this.$toolsService.drawingsBlocker());
@@ -47,7 +47,7 @@ export class CalculateRectangleService {
     // ------------------ Блок логики автоматической деактивации инструмента (start) ------------------ //
     effect(() => {
       try {
-        if (this.rectangleAreaMeasurmentsList()) {
+        if (this.rectangleAreaMeasurementsList()) {
           untracked(() => {
             if (this.isActive() === true && this.hasErasedAll()) {
               this.cancelThisTool();
@@ -60,7 +60,7 @@ export class CalculateRectangleService {
     });
   }
   private readonly rectangleAreaGroupsCounter = computed<number>(
-    () => this.rectangleAreaMeasurmentsList().length,
+    () => this.rectangleAreaMeasurementsList().length,
   );
   private readonly hasErasedAll = linkedSignal<number, boolean>({
     source: this.rectangleAreaGroupsCounter,
@@ -137,15 +137,15 @@ export class CalculateRectangleService {
       if (this.$toolsService.drawingsBlocker() === true) return false;
       this.$toolsService.clearCommonHandler();
       this.$toolsService.setDrawingsBlocker(true);
-      let groupIdChank: string;
+      let groupIdChunk: string;
       if (options?.groupId === undefined) {
-        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+        groupIdChunk = `${Math.ceil(Math.random() * 1000000)}`;
       } else {
-        groupIdChank = options.groupId;
+        groupIdChunk = options.groupId;
       }
       const optForPolygon: MeasureOptions = cloneDeep(options);
       // Начало id должно быть общим для суммы сущностей одного сценария работы инструмента
-      optForPolygon.id = `${groupIdChank}-${this.toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`;
+      optForPolygon.id = `${groupIdChunk}-${this.toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`;
       if (options?.name) optForPolygon.name = options.name; // при завершении сценария прибавится площадь
 
       let polygonEntity: Cesium.Entity | undefined = undefined;
@@ -248,7 +248,7 @@ export class CalculateRectangleService {
                 .temporalEntitiesList()
                 .findIndex((item) => item?.id === polygonEntity?.id) !== -1
             ) {
-              throw new Error('Entity already exist in temporal store by setPolygonEntity()');
+              throw new Error('Entity already exists in temporal store by setPolygonEntity()');
             }
             if (polygonEntity.polyline?.positions)
               polygonEntity.polyline.positions = reactivePolylinePositions;
@@ -415,11 +415,11 @@ export class CalculateRectangleService {
           }
 
           this.$measureService.pushGroupFromTemporal(
-            groupIdChank,
+            groupIdChunk,
             options?.toolName,
             polygonEntity,
           );
-          this.$measureService.clearTemporalEntitiesList(groupIdChank);
+          this.$measureService.clearTemporalEntitiesList(groupIdChunk);
           this.$viewerService.setNewPickedEntity(polygonEntity);
 
           this.$toolsService.setDrawingsBlocker(false);

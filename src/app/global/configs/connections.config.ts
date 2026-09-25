@@ -41,14 +41,14 @@
 // };
 
 // /* ---------------------------------------------------------------------------------------- */
-// //   При наличии keycloack-авторизации
+// //   При наличии keycloak-авторизации
 
-// // interface KeycloackServerConnection extends AppServerConnection {
+// // interface KeycloakServerConnection extends AppServerConnection {
 // //   realm: string;
 // //   clientId: string;
 // // }
 
-// // export const keycloackServerConnection: KeycloackServerConnection = {
+// // export const keycloakServerConnection: KeycloakServerConnection = {
 // //   getDomain() {
 // //     return `http://${this.host}:${this.port}`;
 // //   },

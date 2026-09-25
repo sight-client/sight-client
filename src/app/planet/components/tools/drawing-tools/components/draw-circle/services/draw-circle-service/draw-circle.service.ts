@@ -139,15 +139,15 @@ export class DrawCircleService {
       if (this.$toolsService.drawingsBlocker() === true) return false;
       this.$toolsService.clearCommonHandler();
       this.$toolsService.setDrawingsBlocker(true);
-      let groupIdChank: string;
+      let groupIdChunk: string;
       if (options?.groupId === undefined) {
-        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+        groupIdChunk = `${Math.ceil(Math.random() * 1000000)}`;
       } else {
-        groupIdChank = options.groupId;
+        groupIdChunk = options.groupId;
       }
       const optForPolygon: DrawingOptions = cloneDeep(options);
       // Начало id должно быть общим для суммы сущностей одного сценария работы инструмента
-      optForPolygon.id = `${groupIdChank}-${this.toolName}-ellipse-${Math.ceil(Math.random() * 1000000)}`;
+      optForPolygon.id = `${groupIdChunk}-${this.toolName}-ellipse-${Math.ceil(Math.random() * 1000000)}`;
       this.counter++;
       optForPolygon.name = `${options.name || getRusDrawingToolName(this.toolName)} ${this.counter}`;
       const labelTextGagOne: string = 'Центральная точка';
@@ -194,7 +194,7 @@ export class DrawCircleService {
           // По прямой (без учета эллипсоида и высоты точек)
           // return Cesium.Cartesian3.distance(radiusVectorPositions[0], radiusVectorPositions[1]);
           // По дуге (с учетом эллипсоида и высоты точек)
-          return MeasuresLib.calculatePosDistancesWhithoutHumanify(radiusVectorPositions);
+          return MeasuresLib.calculatePosDistancesWithoutHumanify(radiusVectorPositions);
         } else return 0.0;
       }, false);
 
@@ -257,7 +257,7 @@ export class DrawCircleService {
                 .temporalEntitiesList()
                 .findIndex((item) => item?.id === ellipseEntity?.id) !== -1
             ) {
-              throw new Error('Entity already exist in temporal store by setEllipseEntity()');
+              throw new Error('Entity already exists in temporal store by setEllipseEntity()');
             }
 
             // Добавление реактивности
@@ -269,7 +269,7 @@ export class DrawCircleService {
             }
             if (ellipseEntity.ellipse)
               ellipseEntity.ellipse.show = new Cesium.ConstantProperty(false); // необходим только для расчетов, плюс границы эллипса, формирующиеся обычно по двум точкам, будут "испорчены" новым "фантомом" окружности для полилинии
-            // Для привязке к рельефу заливки теперь используем полигон, а не эллипс (radiusVectorPositions определяет и hierarchy.positions полигона)
+            // Для привязки к рельефу заливки теперь используем полигон, а не эллипс (radiusVectorPositions определяет и hierarchy.positions полигона)
             ellipseEntity.polygon = new Cesium.PolygonGraphics({
               material: new Cesium.ColorMaterialProperty(Cesium.Color.WHITE.withAlpha(0.3)),
               perPositionHeight: new Cesium.ConstantProperty(!options?.clampToGround),
@@ -393,11 +393,11 @@ export class DrawCircleService {
             return;
           }
           this.$drawingService.pushGroupFromTemporal(
-            groupIdChank,
+            groupIdChunk,
             options?.toolName,
             ellipseEntity,
           );
-          this.$drawingService.clearTemporalEntitiesList(groupIdChank);
+          this.$drawingService.clearTemporalEntitiesList(groupIdChunk);
           this.$viewerService.setNewPickedEntity(ellipseEntity);
 
           this.$toolsService.setDrawingsBlocker(false);

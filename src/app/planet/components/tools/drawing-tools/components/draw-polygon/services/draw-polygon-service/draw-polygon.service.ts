@@ -137,15 +137,15 @@ export class DrawPolygonService {
       if (this.$toolsService.drawingsBlocker() === true) return false;
       this.$toolsService.clearCommonHandler();
       this.$toolsService.setDrawingsBlocker(true);
-      let groupIdChank: string;
+      let groupIdChunk: string;
       if (options?.groupId === undefined) {
-        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+        groupIdChunk = `${Math.ceil(Math.random() * 1000000)}`;
       } else {
-        groupIdChank = options.groupId;
+        groupIdChunk = options.groupId;
       }
       const optForPolygon: DrawingOptions = cloneDeep(options);
       // Начало id должно быть общим для суммы сущностей одного сценария работы инструмента
-      optForPolygon.id = `${groupIdChank}-${this.toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`;
+      optForPolygon.id = `${groupIdChunk}-${this.toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`;
       this.counter++;
       optForPolygon.name = `${options.name || getRusDrawingToolName(this.toolName)} ${this.counter}`;
       const labelTextGagOne: string = 'Начальная точка';
@@ -183,7 +183,7 @@ export class DrawPolygonService {
       const polygonHierarchy: Cesium.PolygonHierarchy = new Cesium.PolygonHierarchy(); // polygon
       // "Сигналы" для колбэков ниже
       let polylinePositions: Array<Cesium.Cartesian3> = []; // positions
-      let labelPosition: Cesium.Cartesian3 = Cesium.Cartesian3.ZERO; // positionForPoligonEntity
+      let labelPosition: Cesium.Cartesian3 = Cesium.Cartesian3.ZERO; // positionForPolygonEntity
       // Присваиваются параметрам polygonEntity после ее создания
       const reactivePolylinePositions: Cesium.CallbackProperty = new Cesium.CallbackProperty(
         () => polylinePositions,
@@ -247,7 +247,7 @@ export class DrawPolygonService {
                   .temporalEntitiesList()
                   .findIndex((item) => item?.id === polygonEntity?.id) !== -1
               ) {
-                throw new Error('Entity already exist in temporal store by setPolygonEntity()');
+                throw new Error('Entity already exists in temporal store by setPolygonEntity()');
               }
               if (polygonEntity.polyline?.positions)
                 polygonEntity.polyline.positions = reactivePolylinePositions;
@@ -436,11 +436,11 @@ export class DrawPolygonService {
           polygonHierarchy.positions.push(startPos.clone());
 
           this.$drawingService.pushGroupFromTemporal(
-            groupIdChank,
+            groupIdChunk,
             options?.toolName,
             polygonEntity,
           );
-          this.$drawingService.clearTemporalEntitiesList(groupIdChank);
+          this.$drawingService.clearTemporalEntitiesList(groupIdChunk);
           this.$viewerService.setNewPickedEntity(polygonEntity);
 
           this.$toolsService.setDrawingsBlocker(false);

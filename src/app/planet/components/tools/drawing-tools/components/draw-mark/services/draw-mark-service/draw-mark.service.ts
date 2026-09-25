@@ -218,10 +218,10 @@ export class DrawMarkService {
       const addNewMark = async (movement?: Cesium.ScreenSpaceEventHandler.PositionedEvent) => {
         try {
           this.$viewerService.onEntityPickingBlock();
-          const groupIdChank: string = `${Math.ceil(Math.random() * 1000000)}`; // используется для смыслового объединения всех сущностей одного сценария работы инструмента (groupId)
+          const groupIdChunk: string = `${Math.ceil(Math.random() * 1000000)}`; // используется для смыслового объединения всех сущностей одного сценария работы инструмента (groupId)
           const optForPoint: DrawingOptions = cloneDeep(options);
           // Начало id должно быть общим для суммы сущностей одного сценария работы инструмента (для коллективного удаления)
-          optForPoint.id = `${groupIdChank}-${this.toolName}-point-${Math.ceil(Math.random() * 1000000)}`;
+          optForPoint.id = `${groupIdChunk}-${this.toolName}-point-${Math.ceil(Math.random() * 1000000)}`;
           if (!options?.name) optForPoint.name = 'Метка'; // контрольное присвоение
 
           let mouseEntity: Cesium.Entity | undefined = undefined;
@@ -279,7 +279,7 @@ export class DrawMarkService {
 
           this.$drawingService.pushGroupWithoutTemporalWithDrawing(
             [pointEntity],
-            groupIdChank,
+            groupIdChunk,
             optForPoint?.toolName,
             pointEntity,
           );

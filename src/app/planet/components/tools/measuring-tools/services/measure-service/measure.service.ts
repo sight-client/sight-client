@@ -66,29 +66,29 @@ export class MeasureService {
         else onFlag = true;
         untracked(() => {
           if (this._temporalEntitiesList()?.length) {
-            this.$toolsService.switchClampingToGroudForTemporalEntities(
+            this.$toolsService.switchClampingToGroundForTemporalEntities(
               this._temporalEntitiesList,
               onFlag,
               [],
             );
           }
           if (this._linearMesurmentsLinesList()?.length)
-            this.$toolsService.switchClampingToGroudForOneStoreEntities(
+            this.$toolsService.switchClampingToGroundForOneStoreEntities(
               this._linearMesurmentsLinesList,
               onFlag,
             );
           if (this._rectangleAreaMesurmentsList()?.length)
-            this.$toolsService.switchClampingToGroudForOneStoreEntities(
+            this.$toolsService.switchClampingToGroundForOneStoreEntities(
               this._rectangleAreaMesurmentsList,
               onFlag,
             );
           if (this._calculateCircleList()?.length)
-            this.$toolsService.switchClampingToGroudForOneStoreEntities(
+            this.$toolsService.switchClampingToGroundForOneStoreEntities(
               this._calculateCircleList,
               onFlag,
             );
           if (this._calculatePolygonList()?.length)
-            this.$toolsService.switchClampingToGroudForOneStoreEntities(
+            this.$toolsService.switchClampingToGroundForOneStoreEntities(
               this._calculatePolygonList,
               onFlag,
             );
@@ -108,13 +108,13 @@ export class MeasureService {
   // Реактивные массивы сущностей, созданных инструментами работы с картой. Также используются в плавающих окнах таких инструментов.
   // Используются для управления компонентами инструментов работы с картой и их плавающими окнами
   private _linearMesurmentsLinesList = signal<Array<EntitiesGroup | undefined>>([]);
-  get linearMeasurmentsLinesList() {
+  get linearMeasurementsLinesList() {
     return this._linearMesurmentsLinesList;
   }
   public readonly isLines = computed<boolean>(() => !!this._linearMesurmentsLinesList().length);
 
   private _rectangleAreaMesurmentsList = signal<Array<EntitiesGroup | undefined>>([]);
-  get rectangleAreaMeasurmentsList() {
+  get rectangleAreaMeasurementsList() {
     return this._rectangleAreaMesurmentsList;
   }
   public readonly isRectangles = computed<boolean>(
@@ -131,7 +131,7 @@ export class MeasureService {
   get calculatePolygonList() {
     return this._calculatePolygonList;
   }
-  public readonly isPoligons = computed<boolean>(
+  public readonly isPolygons = computed<boolean>(
     () => !!this._calculatePolygonList().length,
   );
 
@@ -322,14 +322,14 @@ export class MeasureService {
   //------------------------------------------------------------ //
 
   public changeDefaultEntityInGroup(
-    groupIdChank: string,
+    groupIdChunk: string,
     defaultEntity: Cesium.Entity | undefined,
     toolName: MeasuringToolName,
   ): boolean {
     try {
       const targetList: WritableSignal<Array<EntitiesGroup | undefined>> =
         this._allEntitiesListsLinks[toolName];
-      const index = targetList().findIndex((item) => item?.groupId === groupIdChank);
+      const index = targetList().findIndex((item) => item?.groupId === groupIdChunk);
       if (index !== -1) {
         targetList.update((arr) => {
           const group = arr[index];
@@ -350,7 +350,7 @@ export class MeasureService {
   // ------------------------------------------------- Блок управления временным хранилищем --------------------------------------- //
 
   public pushGroupFromTemporal(
-    groupIdChank: string,
+    groupIdChunk: string,
     toolName: MeasuringToolName | undefined,
     defaultEntity?: Cesium.Entity,
   ): boolean {
@@ -361,11 +361,11 @@ export class MeasureService {
       }
       const targetList: WritableSignal<Array<EntitiesGroup | undefined>> =
         this._allEntitiesListsLinks[toolName];
-      const index = targetList().findIndex((item) => item?.groupId === groupIdChank);
+      const index = targetList().findIndex((item) => item?.groupId === groupIdChunk);
       if (index === -1) {
         targetList.update((arr) => {
           arr.push({
-            groupId: groupIdChank,
+            groupId: groupIdChunk,
             entitiesList: this._temporalEntitiesList(),
             defaultEntity: defaultEntity || undefined,
           });
@@ -386,7 +386,7 @@ export class MeasureService {
 
   public pushGroupWithoutTemporal(
     entities: Array<Cesium.Entity | undefined>,
-    groupIdChank: string,
+    groupIdChunk: string,
     toolName: MeasuringToolName | undefined,
     defaultEntity?: Cesium.Entity,
   ): boolean {
@@ -395,14 +395,14 @@ export class MeasureService {
         console.info('toolName is undefined in pushGroupWithoutTemporal fn');
         return false;
       }
-      if (!entities.length) throw new Error('None entities in pushGroupWithoutTemporal fn');
+      if (!entities.length) throw new Error('No entities in pushGroupWithoutTemporal fn');
       const targetList: WritableSignal<Array<EntitiesGroup | undefined>> =
         this._allEntitiesListsLinks[toolName];
-      const index = targetList().findIndex((item) => item?.groupId === groupIdChank);
+      const index = targetList().findIndex((item) => item?.groupId === groupIdChunk);
       if (index === -1) {
         targetList.update((arr) => {
           arr.push({
-            groupId: groupIdChank,
+            groupId: groupIdChunk,
             entitiesList: entities,
             defaultEntity: defaultEntity || undefined,
           });
@@ -423,7 +423,7 @@ export class MeasureService {
 
   public pushGroupWithoutTemporalWithDrawing(
     entities: Array<Cesium.Entity | undefined>,
-    groupIdChank: string,
+    groupIdChunk: string,
     toolName: MeasuringToolName | undefined,
     defaultEntity?: Cesium.Entity,
   ): boolean {
@@ -432,8 +432,8 @@ export class MeasureService {
         console.info('toolName is undefined in pushGroupWithoutTemporalWithDrawing fn');
         return false;
       }
-      if (!entities.length) throw new Error('None entities in pushGroupWithoutTemporal fn');
-      if (this.pushGroupWithoutTemporal(entities, groupIdChank, toolName, defaultEntity) === true) {
+      if (!entities.length) throw new Error('No entities in pushGroupWithoutTemporal fn');
+      if (this.pushGroupWithoutTemporal(entities, groupIdChunk, toolName, defaultEntity) === true) {
         for (const entity of entities) {
           if (entity) this.addNewEntityToMeasureLayer(entity);
         }
@@ -448,12 +448,12 @@ export class MeasureService {
   //------------------------------------------------------------ //
 
   // Очистка временного стора без очистки холста от его сущностей
-  public clearTemporalEntitiesList(groupIdChank?: string): boolean {
+  public clearTemporalEntitiesList(groupIdChunk?: string): boolean {
     try {
       if (this._temporalEntitiesList().length) {
-        if (groupIdChank) {
+        if (groupIdChunk) {
           this._temporalEntitiesList.update((arr) => {
-            arr = arr.filter((item) => !item?.id.startsWith(groupIdChank));
+            arr = arr.filter((item) => !item?.id.startsWith(groupIdChunk));
             return [...arr];
           });
         } else {

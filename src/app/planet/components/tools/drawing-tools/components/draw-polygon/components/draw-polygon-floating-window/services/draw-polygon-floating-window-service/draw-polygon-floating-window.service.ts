@@ -21,7 +21,7 @@ export class DrawPolygonFloatingWindowService {
     this.toolName = this.$drawPolygonService.toolName;
     effect(() => {
       try {
-        if (this.$drawingService.isPoligons() === true) {
+        if (this.$drawingService.isPolygons() === true) {
           untracked(() => {
             this.$floatingWindowsService.addWindowItem(this.toolName);
             // Ситуация при импорте из файла (при отсутсвии таких сущностей)

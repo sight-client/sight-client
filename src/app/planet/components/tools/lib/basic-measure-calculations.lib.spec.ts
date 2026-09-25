@@ -1,8 +1,8 @@
 import * as Cesium from 'cesium';
 import {
-  calculatePosDistancesWhithoutHumanify,
+  calculatePosDistancesWithoutHumanify,
   calculatePosDistances,
-  calculateAreaWithTurfWhithoutHumanify,
+  calculateAreaWithTurfWithoutHumanify,
   transformCartesianArrayToWGS84Array,
 } from './basic-measure-calculations.lib';
 
@@ -11,12 +11,12 @@ const spb = Cesium.Cartesian3.fromDegrees(30.3351, 59.9343, 0);
 
 describe('basic-measure-calculations.lib', () => {
   it('returns 0 for empty or single-point distance', () => {
-    expect(calculatePosDistancesWhithoutHumanify([])).toBe(0);
-    expect(calculatePosDistancesWhithoutHumanify([moscow])).toBe(0);
+    expect(calculatePosDistancesWithoutHumanify([])).toBe(0);
+    expect(calculatePosDistancesWithoutHumanify([moscow])).toBe(0);
   });
 
   it('geodesic Moscow to Saint Petersburg is hundreds of kilometers', () => {
-    const m = calculatePosDistancesWhithoutHumanify([moscow, spb]);
+    const m = calculatePosDistancesWithoutHumanify([moscow, spb]);
     expect(m).toBeGreaterThan(600_000);
     expect(m).toBeLessThan(750_000);
   });
@@ -24,19 +24,19 @@ describe('basic-measure-calculations.lib', () => {
   it('adds height hypotenuse on top of surface distance', () => {
     const a = Cesium.Cartesian3.fromDegrees(37.6173, 55.7558, 0);
     const b = Cesium.Cartesian3.fromDegrees(37.6173, 55.7558, 300);
-    const m = calculatePosDistancesWhithoutHumanify([a, b]);
+    const m = calculatePosDistancesWithoutHumanify([a, b]);
     expect(m).toBeCloseTo(300, 0);
   });
 
   it('Turf area is 0 for fewer than 3 positions', () => {
-    expect(calculateAreaWithTurfWhithoutHumanify([moscow, spb])).toBe(0);
+    expect(calculateAreaWithTurfWithoutHumanify([moscow, spb])).toBe(0);
   });
 
   it('Turf area of a small closed triangle is positive', () => {
     const p0 = Cesium.Cartesian3.fromDegrees(37.6, 55.75, 0);
     const p1 = Cesium.Cartesian3.fromDegrees(37.61, 55.75, 0);
     const p2 = Cesium.Cartesian3.fromDegrees(37.61, 55.76, 0);
-    const area = calculateAreaWithTurfWhithoutHumanify([p0, p1, p2]);
+    const area = calculateAreaWithTurfWithoutHumanify([p0, p1, p2]);
     expect(area).toBeGreaterThan(0);
   });
 

@@ -22,7 +22,7 @@ parent: 2026-09-17-sight-product-design.md
 
 ## Theme
 
-Палитры в `src/app/global/configs/angular-material.config.scss` (`$theme-poletts-list` — имя как в репо):
+Палитры в `src/app/global/configs/angular-material.config.scss` (`$theme-palettes-list`):
 
 - `azure-blue` (по умолчанию)
 - `rose-red`
@@ -76,4 +76,4 @@ Hit-area: не уменьшать `.tool-panel-button`.
 
 ## Спроси до
 
-ngx-translate / i18n; включение landing; настоящий OAuth; палитра не из `$theme-poletts-list`; Zone.js; префикс селекторов `app-` / массовый ренейм в `*.component.ts`.
+ngx-translate / i18n; включение landing; настоящий OAuth; палитра не из `$theme-palettes-list`; Zone.js; префикс селекторов `app-` / массовый ренейм в `*.component.ts`.

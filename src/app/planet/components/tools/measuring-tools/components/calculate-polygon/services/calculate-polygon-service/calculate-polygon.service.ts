@@ -103,7 +103,7 @@ export class CalculatePolygonService {
   private toggleDrawing(): void {
     try {
       if (this.isActive() === false && !this.measuresBlocker()) {
-        if (this.$measureService.isPoligons() === true) {
+        if (this.$measureService.isPolygons() === true) {
           // Отработает effect с cancelThisTool() в сервисе плавающего окна
           this.$measureService.allToolEntitiesCleaning(this.toolName);
           // Ждем его и перезапускаем
@@ -137,15 +137,15 @@ export class CalculatePolygonService {
       if (this.$toolsService.drawingsBlocker() === true) return false;
       this.$toolsService.clearCommonHandler();
       this.$toolsService.setDrawingsBlocker(true);
-      let groupIdChank: string;
+      let groupIdChunk: string;
       if (options?.groupId === undefined) {
-        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+        groupIdChunk = `${Math.ceil(Math.random() * 1000000)}`;
       } else {
-        groupIdChank = options.groupId;
+        groupIdChunk = options.groupId;
       }
       const optForPolygon: MeasureOptions = cloneDeep(options);
       // Начало id должно быть общим для суммы сущностей одного сценария работы инструмента
-      optForPolygon.id = `${groupIdChank}-${this.toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`;
+      optForPolygon.id = `${groupIdChunk}-${this.toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`;
       if (options?.name) optForPolygon.name = options.name; // при завершении сценария прибавится площадь
 
       let polygonEntity: Cesium.Entity | undefined = undefined;
@@ -154,9 +154,9 @@ export class CalculatePolygonService {
       const polygonHierarchy: Cesium.PolygonHierarchy = new Cesium.PolygonHierarchy(); // polygon
       // "Сигналы" для колбэков ниже
       let polylinePositions: Array<Cesium.Cartesian3> = []; // positions
-      let labelPosition: Cesium.Cartesian3 = Cesium.Cartesian3.ZERO; // positionForPoligonEntity
+      let labelPosition: Cesium.Cartesian3 = Cesium.Cartesian3.ZERO; // positionForPolygonEntity
       const labelTextGag: string = 'Начальная точка';
-      let labelText: string = this.$toolsService.isMobile ? labelTextGag : ''; // poligonAreaDescriptionDynamic
+      let labelText: string = this.$toolsService.isMobile ? labelTextGag : ''; // polygonAreaDescriptionDynamic
       if (optForPolygon?.label) {
         optForPolygon.label.text = this.$toolsService.isMobile ? labelTextGag : labelText;
         optForPolygon.label.horizontalOrigin = Cesium.HorizontalOrigin.CENTER;
@@ -249,7 +249,7 @@ export class CalculatePolygonService {
                   .temporalEntitiesList()
                   .findIndex((item) => item?.id === polygonEntity?.id) !== -1
               ) {
-                throw new Error('Entity already exist in temporal store by setPolygonEntity()');
+                throw new Error('Entity already exists in temporal store by setPolygonEntity()');
               }
               if (polygonEntity.polyline?.positions)
                 polygonEntity.polyline.positions = reactivePolylinePositions;
@@ -474,11 +474,11 @@ export class CalculatePolygonService {
           }
 
           this.$measureService.pushGroupFromTemporal(
-            groupIdChank,
+            groupIdChunk,
             options?.toolName,
             polygonEntity,
           );
-          this.$measureService.clearTemporalEntitiesList(groupIdChank);
+          this.$measureService.clearTemporalEntitiesList(groupIdChunk);
           this.$viewerService.setNewPickedEntity(polygonEntity);
 
           this.$toolsService.setDrawingsBlocker(false);

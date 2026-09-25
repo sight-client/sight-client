@@ -60,7 +60,7 @@
     @for (store of $drawingsListService.drawingStores; track store.storeName) {
       <mat-accordion
         class="drawings-list-accordion"
-        [class.hiden-element-quickly]="!store.collection().length"
+        [class.hidden-element-quickly]="!store.collection().length"
       >
         <mat-expansion-panel class="drawings-list-item" expanded="true">
           <mat-expansion-panel-header
@@ -210,7 +210,7 @@
     <!-- для сущностей, не относящихся к конкретным инструментам -->
     <mat-accordion
       class="drawings-list-accordion"
-      [class.hiden-element-quickly]="!$drawingsListService.drawingStoreForOvers.collection().length"
+      [class.hidden-element-quickly]="!$drawingsListService.drawingStoreForOvers.collection().length"
     >
       <mat-expansion-panel class="drawings-list-item" expanded="true">
         <mat-expansion-panel-header

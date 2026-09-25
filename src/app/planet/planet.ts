@@ -218,7 +218,7 @@ export class Planet {
   // "Пустой" курсор 1x1 px
   protected emptyCursorStyle: string = 'url(assets/1x1_transparent.png) 0 1, auto';
 
-  // Состав табов - из номенклатуры пользоввательских модулей по БД
+  // Состав табов - из номенклатуры пользовательских модулей по БД
   protected tabs = signal<Array<string>>(['Рисование', 'Поиск', 'Пользовательские данные']);
   protected selectedTabIndex = signal<number>(0);
   private setSelectedTab(tabName: string) {

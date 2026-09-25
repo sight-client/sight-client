@@ -99,39 +99,39 @@ export class DrawingService {
         else onFlag = true;
         untracked(() => {
           if (this._temporalEntitiesList()?.length) {
-            this.$toolsService.switchClampingToGroudForTemporalEntities(
+            this.$toolsService.switchClampingToGroundForTemporalEntities(
               this._temporalEntitiesList,
               onFlag,
               ['vectorPolygons', 'addAnnotation', 'addPhoto', 'addDome', 'heatmap'],
             );
           }
           if (this._drawMarkEntitiesList()?.length)
-            this.$toolsService.switchClampingToGroudForOneStoreEntities(
+            this.$toolsService.switchClampingToGroundForOneStoreEntities(
               this._drawMarkEntitiesList,
               onFlag,
             );
           if (this._drawLineEntitiesList()?.length)
-            this.$toolsService.switchClampingToGroudForOneStoreEntities(
+            this.$toolsService.switchClampingToGroundForOneStoreEntities(
               this._drawLineEntitiesList,
               onFlag,
             );
           if (this._drawRectangleEntitiesList()?.length)
-            this.$toolsService.switchClampingToGroudForOneStoreEntities(
+            this.$toolsService.switchClampingToGroundForOneStoreEntities(
               this._drawRectangleEntitiesList,
               onFlag,
             );
           if (this._drawCircleEntitiesList()?.length)
-            this.$toolsService.switchClampingToGroudForOneStoreEntities(
+            this.$toolsService.switchClampingToGroundForOneStoreEntities(
               this._drawCircleEntitiesList,
               onFlag,
             );
           if (this._drawPolygonEntitiesList()?.length)
-            this.$toolsService.switchClampingToGroudForOneStoreEntities(
+            this.$toolsService.switchClampingToGroundForOneStoreEntities(
               this._drawPolygonEntitiesList,
               onFlag,
             );
           if (this._routeEntityList()?.length)
-            this.$toolsService.switchClampingToGroudForOneStoreEntities(
+            this.$toolsService.switchClampingToGroundForOneStoreEntities(
               this._routeEntityList,
               onFlag,
             );
@@ -149,7 +149,7 @@ export class DrawingService {
 
   // -------------------------------------------------- Блок размещения сторов инструментов --------------------------------------- //
 
-  // Реактивные массивы сущностей, созданных инструментами работы с картой. Также используются в плавающих окнах таких инструментов и в списке нанесенных сущностей в ппанели.
+  // Реактивные массивы сущностей, созданных инструментами работы с картой. Также используются в плавающих окнах таких инструментов и в списке нанесенных сущностей в панели.
   private _drawMarkEntitiesList = signal<Array<EntitiesGroup | undefined>>([]);
   get drawMarkEntitiesList() {
     return this._drawMarkEntitiesList;
@@ -178,7 +178,7 @@ export class DrawingService {
   get drawPolygonEntitiesList() {
     return this._drawPolygonEntitiesList;
   }
-  public readonly isPoligons = computed<boolean>(() => !!this._drawPolygonEntitiesList().length);
+  public readonly isPolygons = computed<boolean>(() => !!this._drawPolygonEntitiesList().length);
 
   private _vectorPolygonsList = signal<Array<EntitiesGroup | undefined>>([]);
   get vectorPolygonsList() {
@@ -476,7 +476,7 @@ export class DrawingService {
   //------------------------------------------------------------ //
 
   public changeDefaultEntityInGroup(
-    groupIdChank: string,
+    groupIdChunk: string,
     defaultEntity: Cesium.Entity | undefined,
     toolName?: DrawingToolName,
   ): boolean {
@@ -484,7 +484,7 @@ export class DrawingService {
       const targetList: WritableSignal<Array<EntitiesGroup | undefined>> = toolName
         ? this._allEntitiesListsLinks[toolName]
         : this._overEntitiesList;
-      const index = targetList().findIndex((item) => item?.groupId === groupIdChank);
+      const index = targetList().findIndex((item) => item?.groupId === groupIdChunk);
       if (index !== -1) {
         targetList.update((arr) => {
           const group = arr[index];
@@ -505,7 +505,7 @@ export class DrawingService {
   // ------------------------------------------------- Блок управления временным хранилищем --------------------------------------- //
 
   public pushGroupFromTemporal(
-    groupIdChank: string,
+    groupIdChunk: string,
     toolName?: DrawingToolName,
     defaultEntity?: Cesium.Entity,
   ): boolean {
@@ -513,11 +513,11 @@ export class DrawingService {
       const targetList: WritableSignal<Array<EntitiesGroup | undefined>> = toolName
         ? this._allEntitiesListsLinks[toolName]
         : this._overEntitiesList;
-      const index = targetList().findIndex((item) => item?.groupId === groupIdChank);
+      const index = targetList().findIndex((item) => item?.groupId === groupIdChunk);
       if (index === -1) {
         targetList.update((arr) => {
           arr.push({
-            groupId: groupIdChank,
+            groupId: groupIdChunk,
             entitiesList: this._temporalEntitiesList(),
             defaultEntity: defaultEntity || undefined,
           });
@@ -538,20 +538,20 @@ export class DrawingService {
 
   public pushGroupWithoutTemporal(
     entities: Array<Cesium.Entity | undefined>,
-    groupIdChank: string,
+    groupIdChunk: string,
     toolName?: DrawingToolName,
     defaultEntity?: Cesium.Entity,
   ): boolean {
     try {
-      if (!entities.length) throw new Error('None entities in pushGroupWithoutTemporal fn');
+      if (!entities.length) throw new Error('No entities in pushGroupWithoutTemporal fn');
       const targetList: WritableSignal<Array<EntitiesGroup | undefined>> = toolName
         ? this._allEntitiesListsLinks[toolName]
         : this._overEntitiesList;
-      const index = targetList().findIndex((item) => item?.groupId === groupIdChank);
+      const index = targetList().findIndex((item) => item?.groupId === groupIdChunk);
       if (index === -1) {
         targetList.update((arr) => {
           arr.push({
-            groupId: groupIdChank,
+            groupId: groupIdChunk,
             entitiesList: entities,
             defaultEntity: defaultEntity || undefined,
           });
@@ -572,13 +572,13 @@ export class DrawingService {
 
   public pushGroupWithoutTemporalWithDrawing(
     entities: Array<Cesium.Entity | undefined>,
-    groupIdChank: string,
+    groupIdChunk: string,
     toolName?: DrawingToolName,
     defaultEntity?: Cesium.Entity,
   ): boolean {
     try {
       if (!entities || !entities?.length)
-        throw new Error('None entities in pushGroupWithoutTemporal fn');
+        throw new Error('No entities in pushGroupWithoutTemporal fn');
       let validEntities: Array<Cesium.Entity | undefined> = [];
       let layer: Cesium.CustomDataSource | undefined = undefined;
       layer = this.$viewerService.viewer.dataSources?.getByName(this.drawingToolsLayerName)?.[0];
@@ -605,7 +605,7 @@ export class DrawingService {
       }
       // console.log(validEntities);
       if (
-        this.pushGroupWithoutTemporal(validEntities, groupIdChank, toolName, defaultEntity) === true
+        this.pushGroupWithoutTemporal(validEntities, groupIdChunk, toolName, defaultEntity) === true
       ) {
         for (const entity of validEntities) {
           if (entity) this.addNewEntityToDrawLayer(entity);
@@ -629,12 +629,12 @@ export class DrawingService {
   //------------------------------------------------------------ //
 
   // Очистка временного стора без очистки холста от его сущностей
-  public clearTemporalEntitiesList(groupIdChank?: string): boolean {
+  public clearTemporalEntitiesList(groupIdChunk?: string): boolean {
     try {
       if (this._temporalEntitiesList().length) {
-        if (groupIdChank) {
+        if (groupIdChunk) {
           this._temporalEntitiesList.update((arr) => {
-            arr = arr.filter((item) => !item?.id.startsWith(groupIdChank));
+            arr = arr.filter((item) => !item?.id.startsWith(groupIdChunk));
             return [...arr];
           });
         } else {

@@ -95,13 +95,13 @@
     pointer-events: none !important;
   }
 
-  .hiden-element-quickly {
+  .hidden-element-quickly {
     opacity: 0 !important;
     user-select: none !important;
     pointer-events: none !important;
   }
 
-  .hiden-element {
+  .hidden-element {
     opacity: 0 !important;
     transition: opacity 300ms ease-in-out !important;
     user-select: none !important;
@@ -147,7 +147,7 @@ body {
   overflow: auto !important;
 }
 
-// При перемещения модалки по экрану
+// При перемещении модалки по экрану
 body:has(.cdk-drag-dragging) {
   cursor: grabbing !important;
 

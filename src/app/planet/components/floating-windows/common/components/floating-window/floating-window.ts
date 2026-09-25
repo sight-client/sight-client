@@ -91,7 +91,7 @@ export class FloatingWindow implements OnInit {
     this.headerName = this.normalizeName(this.parentName);
   }
 
-  // Требуется преобразование, т.к. для инструментов работы с картой везде сохраняюся литералы из type типа "ToolName"
+  // Требуется преобразование, т.к. для инструментов работы с картой везде сохраняются литералы из type типа "ToolName"
   protected normalizeName = (name: WindowName): string => {
     if (isDrawingToolName(name)) {
       return getRusDrawingToolName(name);

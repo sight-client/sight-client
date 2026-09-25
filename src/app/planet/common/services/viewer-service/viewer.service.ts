@@ -147,13 +147,13 @@ export class ViewerService {
         /* Информационное окно для описания нанесенных на слои сущностей */
         infoBox: false,
         /* Вид отображения глобуса: 3D, 2D, перспектива */
-        sceneModePicker: false /* позже подключаем непосредственно в сооответствющем vue-модуле */,
+        sceneModePicker: false /* позже подключаем непосредственно в соответствющем vue-модуле */,
         /* Виджет для отображения индикатора на выбранном объекте (как в старых RTS) - некорректно работает на мультиполигонах, но можно использовать на 3D-моделях */
         selectionIndicator: false,
         /* Виджет для управления временем отображения сцены */
         timeline: false,
         /* Мануал по управлению навигацией по глобусу */
-        navigationHelpButton: false /* позже подключаем непосредственно в сооответствющем vue-модуле */,
+        navigationHelpButton: false /* позже подключаем непосредственно в соответствющем vue-модуле */,
         /* Установка на просмотр карты в 2D, 2,5D, 3D - по умолчанию */
         sceneMode: this._nowSceneMode(),
         /* При true геометрия будет отображаться только в 3D-режиме (для экономии памяти GPU) */
@@ -336,7 +336,7 @@ export class ViewerService {
       );
       /* Кастомная замена */
       this.viewer.screenSpaceEventHandler.setInputAction(
-        this.flyToEntityWhithItPicking.bind(this),
+        this.flyToEntityWithItPicking.bind(this),
         Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK,
       );
 
@@ -360,7 +360,7 @@ export class ViewerService {
       };
       this.viewer.scene.globe.tileLoadProgressEvent.addEventListener(firstRenderHandler);
 
-      // Предотвращение ухода камеры под подложку при использовании znenz navigation mixin (3d, в том числе рельеф, контролирует свойство viewer.scene.screenSpaceCameraController.enableCollisionDetection)
+      // Предотвращение ухода камеры под подложку при использовании znemz navigation mixin (3d, в том числе рельеф, контролирует свойство viewer.scene.screenSpaceCameraController.enableCollisionDetection)
       this.viewer.scene.camera.changed.addEventListener(this.controlCameraView);
   }
 
@@ -422,7 +422,7 @@ export class ViewerService {
     }
   }
 
-  // Флаг для блокировки конфликтных перемещений камеры во время вращения вокруг выбранной пользователем точки (инструмент "АднФкщгтв")
+  // Флаг для блокировки конфликтных перемещений камеры во время вращения вокруг выбранной пользователем точки (инструмент "FlyAround")
   public readonly cameraIsFlyingAround = signal<boolean>(false);
   public setCameraFlyingAroundFlag(newVal: boolean): void {
     if (typeof newVal === 'boolean') {
@@ -432,7 +432,7 @@ export class ViewerService {
 
   /* Альтернатива глобальному лисенеру 2хЛКМ */
   // async/await применена по причине возврата Promise из методов Cesium
-  public async flyToEntityWhithItPicking(
+  public async flyToEntityWithItPicking(
     cartesian2FromClick: Cesium.ScreenSpaceEventHandler.PositionedEvent,
   ): Promise<void> {
     if (this.cameraIsFlyingAround() === true) {
@@ -442,7 +442,7 @@ export class ViewerService {
         this.setNewPickedEntityByClickOnScene(cartesian2FromClick);
       if (!targetEntity || !(targetEntity instanceof Cesium.Entity)) {
         return;
-        // throw new Error('at flyToEntityWhithItPicking(): targetEntity is undefined');
+        // throw new Error('at flyToEntityWithItPicking(): targetEntity is undefined');
       }
       await this.flyTo(targetEntity);
   }
@@ -561,7 +561,7 @@ export class ViewerService {
       }
   }
 
-  // Используются, например, в скрвисах инструментов работы с картой (для действий по ЛКМ)
+  // Используются, например, в сервисах инструментов работы с картой (для действий по ЛКМ)
   private _entityPickingBlock = signal<boolean>(false);
   get entityPickingBlock() {
     return this._entityPickingBlock;
@@ -593,7 +593,7 @@ export class ViewerService {
       } else return undefined;
   }
 
-  // Если сущность уже была записана в сигнал forcedPickedEntity, он не оповестит наблюдателей об отработки хэндлера для ЛКМ.
+  // Если сущность уже была записана в сигнал forcedPickedEntity, он не оповестит наблюдателей об отработке хэндлера для ЛКМ.
   // Поэтому, для форсированного отслеживания используется специальный флаг (применять по месту).
   private _forcedEntityPickingEffectFlag = signal<boolean>(false); // "обманка" для эффекта
   get forcedEntityPickingEffectFlag() {

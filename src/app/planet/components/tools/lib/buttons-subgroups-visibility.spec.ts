@@ -2,7 +2,7 @@ import { ElementRef } from '@angular/core';
 
 import {
   setNormalButtonsVisibility,
-  toggleAuxillarySubgroupVisibility,
+  toggleAuxiliarySubgroupVisibility,
 } from './buttons-subgroups-visibility';
 
 function buttonEl(): HTMLButtonElement {
@@ -40,19 +40,19 @@ describe('buttons-subgroups-visibility', () => {
     });
   });
 
-  describe('toggleAuxillarySubgroupVisibility', () => {
+  describe('toggleAuxiliarySubgroupVisibility', () => {
     it('toggles auxiliary host display between block and none', () => {
       const defaultER = divRef([buttonEl()]);
       const hiddenER = divRef([buttonEl(), buttonEl()]);
       setNormalButtonsVisibility(defaultER, hiddenER);
 
-      expect(toggleAuxillarySubgroupVisibility(hiddenER)).toBe(true);
+      expect(toggleAuxiliarySubgroupVisibility(hiddenER)).toBe(true);
       for (const child of Array.from(hiddenER.nativeElement.children)) {
         expect(child instanceof HTMLElement).toBe(true);
         if (child instanceof HTMLElement) expect(child.style.display).toBe('block');
       }
 
-      expect(toggleAuxillarySubgroupVisibility(hiddenER)).toBe(true);
+      expect(toggleAuxiliarySubgroupVisibility(hiddenER)).toBe(true);
       for (const child of Array.from(hiddenER.nativeElement.children)) {
         expect(child instanceof HTMLElement).toBe(true);
         if (child instanceof HTMLElement) expect(child.style.display).toBe('none');

@@ -83,7 +83,7 @@ Picking: `setNewPickedEntity` обновляет и «new», и «forced» си�
 
 ## Coordinate systems
 
-Имя файла — существующая опечатка: `src/app/planet/common/lib/coord-sistems.lib.ts`.
+Файл: `src/app/planet/common/lib/coord-systems.lib.ts`.
 
 `crsLiterals`: `'WGS-84' | 'СК-42 м' | 'СК-42 °' | 'ПЗ-90.11'`.
 
@@ -102,7 +102,7 @@ Lon/lat cartographic для API Cesium — **радианы**. Градусы в
 
 `src/app/planet/components/tools/lib/basic-measure-calculations.lib.ts`:
 
-- Длина: `EllipsoidGeodesic.surfaceDistance` плюс гипотенуза по высоте (`calculatePosDistancesWhithoutHumanify`). `Cartesian3.distance` — **не** продуктовый путь (срезает дугу эллипсоида).
+- Длина: `EllipsoidGeodesic.surfaceDistance` плюс гипотенуза по высоте (`calculatePosDistancesWithoutHumanify`). `Cartesian3.distance` — **не** продуктовый путь (срезает дугу эллипсоида).
 - Площадь: Turf по массивам градусов WGS-84.
 - Отображение: `humanify.lib.ts`.
 

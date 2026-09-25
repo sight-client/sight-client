@@ -12,8 +12,8 @@ import {
 } from 'rxjs';
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
-import { CoordSystems } from '@/common/lib/coord-sistems.lib';
-import type { CRS } from '@/common/lib/coord-sistems.lib';
+import { CoordSystems } from '@/common/lib/coord-systems.lib';
+import type { CRS } from '@/common/lib/coord-systems.lib';
 import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 
 function cartesianFromValue(value: unknown): Cesium.Cartesian3 | undefined {

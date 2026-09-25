@@ -1,4 +1,4 @@
-import { CoordSystems } from './coord-sistems.lib';
+import { CoordSystems } from './coord-systems.lib';
 
 // Москва: 6° зона Гаусса–Крюгера №7 (lon_0 = 39°, x_0 = 7500000).
 // Независимые границы: Y (восточное смещение) в зоне 7, X (северное) около 55.8°N.

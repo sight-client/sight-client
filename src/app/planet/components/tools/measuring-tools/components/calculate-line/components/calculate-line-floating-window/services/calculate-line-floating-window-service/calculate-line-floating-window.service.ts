@@ -64,7 +64,7 @@ export class CalculateLineFloatingWindowService {
     //         if (index !== -1) {
     //           this.$floatingWindowsService.showActiveWindow(this.toolName, undefined, index);
     //         } else {
-    //           if (!this.$measureService.linearMeasurmentsLinesList().length) {
+    //           if (!this.$measureService.linearMeasurementsLinesList().length) {
     //             this.$floatingWindowsService.addWindowItem(this.toolName);
     //           }
     //         }
@@ -107,12 +107,12 @@ export class CalculateLineFloatingWindowService {
     // // Сокрытие (без удаления) окна при удалении активной (отображаемой в нем) сущности
     // effect(() => {
     //   try {
-    //     if (this.$calculateLineService.linearMeasurmentsLinesList().length) {
+    //     if (this.$calculateLineService.linearMeasurementsLinesList().length) {
     //       untracked(() => {
     //         if (this._validPickedEnttity()) {
     //         const nowGroupId: string | undefined = this._validPickedEnttity()?.id.split('-')[0];
     //         const index = this.$calculateLineService
-    //           .linearMeasurmentsLinesList()
+    //           .linearMeasurementsLinesList()
     //           .findIndex((item) => item?.groupId === nowGroupId);
     //         if (index === -1) this.$floatingWindowsService.hideWindowByToolName(this.toolName);
     //         }

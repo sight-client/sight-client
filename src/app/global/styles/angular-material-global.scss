@@ -42,10 +42,10 @@ body {
 /* ---------------------------- default preset (end) ------------------------------ */
 
 // Предустановка селекторов тем приложения для planet.ts и theme-color-palette.ts
-@each $name-chank-primary, $name-chank-tertiary, $primary-palette,
-  $tertiary-palette in config.$theme-poletts-list
+@each $name-chunk-primary, $name-chunk-tertiary, $primary-palette,
+  $tertiary-palette in config.$theme-palettes-list
 {
-  .#{$name-chank-primary}-#{$name-chank-tertiary}-theme {
+  .#{$name-chunk-primary}-#{$name-chunk-tertiary}-theme {
     @include mat.theme(
       (
         color: (

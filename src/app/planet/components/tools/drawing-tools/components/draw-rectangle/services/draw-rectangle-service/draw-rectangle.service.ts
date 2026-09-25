@@ -26,7 +26,7 @@ import * as MeasuresLib from '@/components/tools/lib/basic-measure-calculations.
 export class DrawRectangleService {
   // --------------------- Блок для хранения основных состояний сервиса (start) ----------------------- //
   // Еще используется в draw-rectangle-floating-window.ts
-  public readonly rectangleAreaMeasurmentsList = computed(() =>
+  public readonly rectangleAreaMeasurementsList = computed(() =>
     this.$drawingService.drawRectangleEntitiesList(),
   );
   // Еще используется в draw-rectangle.ts
@@ -49,7 +49,7 @@ export class DrawRectangleService {
     // ------------------ Блок логики автоматической деактивации инструмента (start) ------------------ //
     effect(() => {
       try {
-        if (this.rectangleAreaMeasurmentsList()) {
+        if (this.rectangleAreaMeasurementsList()) {
           untracked(() => {
             if (this.hasErasedAll()) {
               this.counter = 0;
@@ -65,7 +65,7 @@ export class DrawRectangleService {
     });
   }
   private readonly rectangleAreaGroupsCounter = computed<number>(
-    () => this.rectangleAreaMeasurmentsList().length,
+    () => this.rectangleAreaMeasurementsList().length,
   );
   private readonly hasErasedAll = linkedSignal<number, boolean>({
     source: this.rectangleAreaGroupsCounter,
@@ -138,15 +138,15 @@ export class DrawRectangleService {
       if (this.$toolsService.drawingsBlocker() === true) return false;
       this.$toolsService.clearCommonHandler();
       this.$toolsService.setDrawingsBlocker(true);
-      let groupIdChank: string;
+      let groupIdChunk: string;
       if (options?.groupId === undefined) {
-        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+        groupIdChunk = `${Math.ceil(Math.random() * 1000000)}`;
       } else {
-        groupIdChank = options.groupId;
+        groupIdChunk = options.groupId;
       }
       const optForPolygon: DrawingOptions = cloneDeep(options);
       // Начало id должно быть общим для суммы сущностей одного сценария работы инструмента
-      optForPolygon.id = `${groupIdChank}-${this.toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`;
+      optForPolygon.id = `${groupIdChunk}-${this.toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`;
       this.counter++;
       optForPolygon.name = `${options.name || getRusDrawingToolName(this.toolName)} ${this.counter}`;
       const labelTextGagOne: string = 'Начальная точка диагонали';
@@ -247,7 +247,7 @@ export class DrawRectangleService {
                 .temporalEntitiesList()
                 .findIndex((item) => item?.id === polygonEntity?.id) !== -1
             ) {
-              throw new Error('Entity already exist in temporal store by setPolygonEntity()');
+              throw new Error('Entity already exists in temporal store by setPolygonEntity()');
             }
             if (polygonEntity.polyline?.positions)
               polygonEntity.polyline.positions = reactivePolylinePositions;
@@ -394,11 +394,11 @@ export class DrawRectangleService {
           //   polygonHierarchy.positions = polylinePositions;
 
           this.$drawingService.pushGroupFromTemporal(
-            groupIdChank,
+            groupIdChunk,
             options?.toolName,
             polygonEntity,
           );
-          this.$drawingService.clearTemporalEntitiesList(groupIdChank);
+          this.$drawingService.clearTemporalEntitiesList(groupIdChunk);
           this.$viewerService.setNewPickedEntity(polygonEntity);
 
           this.$toolsService.setDrawingsBlocker(false);

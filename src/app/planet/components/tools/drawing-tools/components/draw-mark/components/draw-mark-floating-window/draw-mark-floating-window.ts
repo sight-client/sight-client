@@ -28,7 +28,7 @@ import { DrawMarkService } from '../../services/draw-mark-service/draw-mark.serv
 import { DrawMarkFloatingWindowService } from '@/components/tools/drawing-tools/components/draw-mark/components/draw-mark-floating-window/services/draw-mark-floating-window-service/draw-mark-floating-window.service';
 
 import { FloatingWindow } from '@/components/floating-windows/common/components/floating-window/floating-window';
-import { CoordSystems, isCRS, type CRS } from '@/common/lib/coord-sistems.lib';
+import { CoordSystems, isCRS, type CRS } from '@/common/lib/coord-systems.lib';
 
 // interface iconsOption {
 //   id: number;

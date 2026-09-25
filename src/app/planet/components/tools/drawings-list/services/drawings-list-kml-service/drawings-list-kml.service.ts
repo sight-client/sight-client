@@ -1131,7 +1131,7 @@ export class DrawingsListKmlService {
           // Если оставить, возможный последующий экспорт пропустит такую сущность. Или просто удаляем за ненадобностью.
           // if (entity.description) entity.description = undefined;
           // Прикрепление к рельефу (принудительно) в зависимости от режима отображения карты
-          this.$toolsService.setClampingToGroudForEntity(entity);
+          this.$toolsService.setClampingToGroundForEntity(entity);
         }
       }
       return entities;
@@ -1298,7 +1298,7 @@ export class DrawingsListKmlService {
   ): { groupId: string; toolName: DrawingToolName } | undefined {
     try {
       if (!entityId) throw new Error('Invalid entity in fn');
-      // Notice: шаблон нашего id: `${groupIdChank}-${ToolName}-${entytyType}-${'(auxiliary)' - опционально}-${unicRandomIdChank}-`
+      // Notice: шаблон нашего id: `${groupIdChunk}-${ToolName}-${entityType}-${'(auxiliary)' - опционально}-${uniqueRandomIdChunk}-`
       const newIdArr: string[] = entityId.split('-');
 
       // Отбраковка в over-список

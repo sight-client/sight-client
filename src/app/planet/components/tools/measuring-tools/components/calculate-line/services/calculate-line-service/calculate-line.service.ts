@@ -60,7 +60,7 @@ export class CalculateLineService {
             return;
             // При наличии результата выполнения сценария работы инструмента
           } else {
-            // Notice: в отсутствие рельефа чекбокс блокируется в методе this.checkMostDetailedToggling (для this.checkboxHendler)
+            // Notice: в отсутствие рельефа чекбокс блокируется в методе this.checkMostDetailedToggling (для this.checkboxHandler)
             // При отключении рельефа происходит только перерисовка подписей сущностей на холсте (без учета расчетов по рельефу)
             if (currentTerrainName === undefined) {
               this._mostDetailed.set(false);
@@ -106,7 +106,7 @@ export class CalculateLineService {
     });
   }
   private readonly linesGroupsCounter = computed<number>(
-    () => this.linearMeasurmentsLinesList().length,
+    () => this.linearMeasurementsLinesList().length,
   );
   // Еще используется в calculate-line-floating-window.service.ts
   public readonly hasErasedAll = linkedSignal<number, boolean>({
@@ -143,8 +143,8 @@ export class CalculateLineService {
 
   // -------------------------------------------- //
   // Еще используется в calculate-line-floating-window.service.ts
-  public readonly linearMeasurmentsLinesList = computed(() =>
-    this.$measureService.linearMeasurmentsLinesList(),
+  public readonly linearMeasurementsLinesList = computed(() =>
+    this.$measureService.linearMeasurementsLinesList(),
   );
   // Еще используется в calculate-line.ts (для деактивации кнопки инструмента на правой панели приложения)
   public readonly measuresBlocker = computed(() => this.$toolsService.drawingsBlocker());
@@ -164,12 +164,12 @@ export class CalculateLineService {
     let targetEntity: Cesium.Entity | undefined = undefined;
     untracked(() => {
       if (selectedEntity?.toolName !== this.toolName) return;
-      if (!this.linearMeasurmentsLinesList().length) return;
-      const indexGroup = this.linearMeasurmentsLinesList().findIndex((group) =>
+      if (!this.linearMeasurementsLinesList().length) return;
+      const indexGroup = this.linearMeasurementsLinesList().findIndex((group) =>
         !!group && selectedEntity.id.startsWith(group.groupId),
       );
       if (indexGroup === -1) return;
-      const group = this.linearMeasurmentsLinesList()[indexGroup];
+      const group = this.linearMeasurementsLinesList()[indexGroup];
       if (group?.defaultEntity) {
         targetEntity = group.defaultEntity;
       } else {
@@ -253,22 +253,22 @@ export class CalculateLineService {
       if (this.$toolsService.drawingsBlocker() === true) return false;
       this.$toolsService.clearCommonHandler();
       this.$toolsService.setDrawingsBlocker(true);
-      let groupIdChank: string;
+      let groupIdChunk: string;
       if (options?.groupId === undefined) {
-        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+        groupIdChunk = `${Math.ceil(Math.random() * 1000000)}`;
       } else {
-        groupIdChank = options.groupId;
+        groupIdChunk = options.groupId;
       }
       const optForPoint: MeasureOptions = cloneDeep(options);
       // Начало id должно быть общим для суммы сущностей одного сценария работы инструмента
-      optForPoint.id = `${groupIdChank}-${this.toolName}-point-${Math.ceil(Math.random() * 1000000)}`;
+      optForPoint.id = `${groupIdChunk}-${this.toolName}-point-${Math.ceil(Math.random() * 1000000)}`;
       const optForLine: MeasureOptions = cloneDeep(options);
-      optForLine.id = `${groupIdChank}-${this.toolName}-line-${Math.ceil(Math.random() * 1000000)}`;
+      optForLine.id = `${groupIdChunk}-${this.toolName}-line-${Math.ceil(Math.random() * 1000000)}`;
       if (options?.mostDetailed) {
-        optForLine.id = `${groupIdChank}-${this.toolName}-line-mostDetailed-${options?.distanceSegmentLengthM || this.$viewerService.distanceSegmentLengthM}-${Math.ceil(Math.random() * 1000000)}`;
+        optForLine.id = `${groupIdChunk}-${this.toolName}-line-mostDetailed-${options?.distanceSegmentLengthM || this.$viewerService.distanceSegmentLengthM}-${Math.ceil(Math.random() * 1000000)}`;
       }
-      if (options?.name) optForPoint.name = options.name + ' ' + '(auxiliary)' + ' ' + groupIdChank;
-      // if (options?.name) optForLine.name = options.name + ' ' + groupIdChank;
+      if (options?.name) optForPoint.name = options.name + ' ' + '(auxiliary)' + ' ' + groupIdChunk;
+      // if (options?.name) optForLine.name = options.name + ' ' + groupIdChunk;
       if (options?.name) optForLine.name = options.name; // при завершении сценария прибавится дистанция
       if (optForLine?.label) {
         optForLine.label.pixelOffset = new Cesium.Cartesian2(-20, -40);
@@ -284,7 +284,7 @@ export class CalculateLineService {
       let labelText: string = '';
       // Служит для возможности расчета $viewerService.calculatePosDistances() только по последнему отрезку (а не каждый раз по всему массиву точек полилинии)
       // Возрастает по ЛКМ, ПКМ при детальном расчете дистанции.
-      let distanceChanks: number = 0;
+      let distanceChunks: number = 0;
       let fullDistanceWithoutTerrain: number = 0;
       const cachedPointsData: Array<{
         position: Cesium.Cartesian3;
@@ -380,15 +380,15 @@ export class CalculateLineService {
               .temporalEntitiesList()
               .findIndex((item) => item?.id === pointEntity?.id) !== -1
           ) {
-            throw new Error('Entity already exist in temporal store by setPointEntity()');
+            throw new Error('Entity already exists in temporal store by setPointEntity()');
           }
 
           if (polylinePositions.length === 0) {
             polylinePositions.push(nowPos);
             cachedPointsData.push({
               position: polylinePositions[polylinePositions.length - 1],
-              distance: distanceChanks,
-              distanceText: Humanify.distanceM(distanceChanks),
+              distance: distanceChunks,
+              distanceText: Humanify.distanceM(distanceChunks),
             });
             // Первая точка - нулевая, детальный расчет не нужен
             if (pointEntity?.label) {
@@ -414,23 +414,23 @@ export class CalculateLineService {
               labelText = '...детальный расчет';
               if (pointEntity?.label) {
                 // Notice: дубликат для стирания в первом mousemove-событии не должен попасть в текущий расчет
-                const chankMeasurement = await this.$viewerService.calculatePosDistances(
+                const chunkMeasurement = await this.$viewerService.calculatePosDistances(
                   polylinePositions.slice(polylinePositions.length - 2),
                   true,
                   options?.distanceSegmentLengthM,
                   false,
                 );
-                if (typeof chankMeasurement === 'number') {
-                  distanceChanks += chankMeasurement;
-                  const nowLabelText = Humanify.distanceM(distanceChanks);
+                if (typeof chunkMeasurement === 'number') {
+                  distanceChunks += chunkMeasurement;
+                  const nowLabelText = Humanify.distanceM(distanceChunks);
                   cachedPointsData.push({
                     position: polylinePositions[polylinePositions.length - 1],
-                    distance: distanceChanks,
+                    distance: distanceChunks,
                     distanceText: nowLabelText,
                   });
                   pointEntity.label.text = new Cesium.ConstantProperty(nowLabelText);
                 } else {
-                  console.info('distanceChanks increasing failed');
+                  console.info('distanceChunks increasing failed');
                 }
               }
               labelText = '...ожидание точки';
@@ -461,8 +461,8 @@ export class CalculateLineService {
               // В любом случае добавляем в кэш
               cachedPointsData.push({
                 position: polylinePositions[polylinePositions.length - 1],
-                distance: fullDistanceWithoutTerrain, // уже расчитано при mousemove
-                distanceText: labelText, // уже расчитано при mousemove
+                distance: fullDistanceWithoutTerrain, // уже рассчитано при mousemove
+                distanceText: labelText, // уже рассчитано при mousemove
               });
             }
           }
@@ -485,7 +485,7 @@ export class CalculateLineService {
                   .temporalEntitiesList()
                   .findIndex((item) => item?.id === lineEntity?.id) !== -1
               ) {
-                throw new Error('Entity already exist in temporal store by setLineEntity()');
+                throw new Error('Entity already exists in temporal store by setLineEntity()');
               }
               if (lineEntity.position) lineEntity.position = reactiveLabelPosition;
               if (lineEntity.label?.text) lineEntity.label.text = reactiveLabelText;
@@ -527,7 +527,7 @@ export class CalculateLineService {
             polylinePositions.push(movePos); // добавление актуальной позиции по mousemove
             // При детальном расчете - нерационально (в подписи остается заглушка, оставшаяся после клика)
             if (!options?.mostDetailed) {
-              // Задействован весь массив polylinePositions (distanceChanks не участвует)
+              // Задействован весь массив polylinePositions (distanceChunks не участвует)
               const fullDistanceCalculation = await this.$viewerService.calculatePosDistances(
                 polylinePositions,
                 false,
@@ -597,29 +597,29 @@ export class CalculateLineService {
 
               if (options?.mostDetailed) {
                 labelText = '...детальный расчет';
-                const chankMeasurement = await this.$viewerService.calculatePosDistances(
+                const chunkMeasurement = await this.$viewerService.calculatePosDistances(
                   polylinePositions.slice(polylinePositions.length - 2),
                   true,
                   options?.distanceSegmentLengthM,
                   false,
                 );
-                if (typeof chankMeasurement === 'number') {
-                  distanceChanks += chankMeasurement;
-                  const nowLabelText = Humanify.distanceM(distanceChanks);
+                if (typeof chunkMeasurement === 'number') {
+                  distanceChunks += chunkMeasurement;
+                  const nowLabelText = Humanify.distanceM(distanceChunks);
                   cachedPointsData.push({
                     position: polylinePositions[polylinePositions.length - 1],
-                    distance: distanceChanks,
+                    distance: distanceChunks,
                     distanceText: nowLabelText,
                   });
                   labelText = nowLabelText;
-                  this._distanceWithTerrain.set(distanceChanks);
+                  this._distanceWithTerrain.set(distanceChunks);
                 } else {
                   throw new Error(
-                    'distanceChanks increasing failed, distanceWithTerrain has not calculated',
+                    'distanceChunks increasing failed, distanceWithTerrain has not been calculated',
                   );
                 }
                 // Расчет для отображения в плавающем окне инструмента (без привязки к подписям сущностей), плюс, для кэша
-                // Задействован весь массив polylinePositions (distanceChanks не участвует)
+                // Задействован весь массив polylinePositions (distanceChunks не участвует)
                 const fullDistanceCalculation = await this.$viewerService.calculatePosDistances(
                   polylinePositions,
                   false,
@@ -630,7 +630,7 @@ export class CalculateLineService {
                   fullDistanceWithoutTerrain = fullDistanceCalculation;
                   this._distanceWithoutTerrain.set(fullDistanceCalculation);
                 } else {
-                  throw new Error('distanceWithoutTerrain has not calculated');
+                  throw new Error('distanceWithoutTerrain has not been calculated');
                 }
               } else {
                 const fullDistanceCalculation = await this.$viewerService.calculatePosDistances(
@@ -651,7 +651,7 @@ export class CalculateLineService {
                   this._distanceWithoutTerrain.set(fullDistanceCalculation);
                 } else {
                   labelText = fullDistanceCalculation;
-                  throw new Error('distanceWithoutTerrain has not calculated');
+                  throw new Error('distanceWithoutTerrain has not been calculated');
                 }
               }
             } else {
@@ -688,7 +688,7 @@ export class CalculateLineService {
                   .temporalEntitiesList()
                   .findIndex((item) => item?.id === lastPointEntity?.id) !== -1
               ) {
-                throw new Error('Entity already exist in temporal store by setPointEntity()');
+                throw new Error('Entity already exists in temporal store by setPointEntity()');
               }
 
               this.$measureService.addNewEntityToMeasureLayer(lastPointEntity);
@@ -708,8 +708,8 @@ export class CalculateLineService {
               );
             }
 
-            this.$measureService.pushGroupFromTemporal(groupIdChank, options?.toolName, lineEntity);
-            this.$measureService.clearTemporalEntitiesList(groupIdChank);
+            this.$measureService.pushGroupFromTemporal(groupIdChunk, options?.toolName, lineEntity);
+            this.$measureService.clearTemporalEntitiesList(groupIdChunk);
             this.$viewerService.setNewPickedEntity(lineEntity);
 
             if (options?.mostDetailed) {
@@ -720,7 +720,7 @@ export class CalculateLineService {
                 distanceWithoutTerrain: fullDistanceWithoutTerrain,
               };
               const newCacheValue: CalculationsCacheValue = {
-                distanceWithTerrain: distanceChanks,
+                distanceWithTerrain: distanceChunks,
                 distanceWithoutTerrain: fullDistanceWithoutTerrain,
                 points: cachedPointsData,
               };
@@ -792,7 +792,7 @@ export class CalculateLineService {
   }
 
   // Используются в calculate-line-floating-window.html
-  public async checkboxHendler(event: MatCheckboxChange): Promise<boolean> {
+  public async checkboxHandler(event: MatCheckboxChange): Promise<boolean> {
     try {
       const mostDetailedTogglingOk: boolean = this.checkMostDetailedToggling(event);
       if (this.validPickedEnttity() && mostDetailedTogglingOk) {
@@ -831,7 +831,7 @@ export class CalculateLineService {
   }
 
   // Используются в calculate-line-floating-window.html
-  public async segmentLengthInputHendler(event: Event): Promise<boolean> {
+  public async segmentLengthInputHandler(event: Event): Promise<boolean> {
     try {
       this.setDistanceSegmentLengthM(event);
       this._recalculationFlag.set(true);
@@ -1055,19 +1055,19 @@ export class CalculateLineService {
         for (let i = 1; i <= polylinePositions.length - 1; i++) {
           const prevPos = polylinePositions[i - 1];
           const nowPos = polylinePositions[i];
-          const distanceChank = await this.$viewerService.calculatePosDistances(
+          const distanceChunk = await this.$viewerService.calculatePosDistances(
             [prevPos, nowPos],
             true,
             newSegment || this.distanceSegmentLengthM(),
             false,
           );
-          if (typeof distanceChank === 'number') {
-            distance += distanceChank;
-            const distanceChankText = Humanify.distanceM(distance);
+          if (typeof distanceChunk === 'number') {
+            distance += distanceChunk;
+            const distanceChunkText = Humanify.distanceM(distance);
             cachedPointsData.push({
               position: nowPos,
               distance: distance,
-              distanceText: distanceChankText,
+              distanceText: distanceChunkText,
             });
             if (i === polylinePositions.length - 1) {
               const calculationsCacheValue: CalculationsCacheValue = {
@@ -1082,7 +1082,7 @@ export class CalculateLineService {
               // console.log(this.getCalculationsFromCache(newCacheKey));
             }
           } else {
-            throw new Error('Invalid distanceChank result in setDistanceWithTerrain fn');
+            throw new Error('Invalid distanceChunk result in setDistanceWithTerrain fn');
           }
         }
         return true;
@@ -1216,19 +1216,19 @@ export class CalculateLineService {
         for (let i = 1; i <= polylinePositions.length - 1; i++) {
           const prevPos = polylinePositions[i - 1];
           const nowPos = polylinePositions[i];
-          const distanceChank = await this.$viewerService.calculatePosDistances(
+          const distanceChunk = await this.$viewerService.calculatePosDistances(
             [prevPos, nowPos],
             false,
             undefined,
             false,
           );
-          if (typeof distanceChank === 'number') {
-            distance += distanceChank;
-            const distanceChankText = Humanify.distanceM(distance);
+          if (typeof distanceChunk === 'number') {
+            distance += distanceChunk;
+            const distanceChunkText = Humanify.distanceM(distance);
             cachedPointsData.push({
               position: nowPos,
               distance: distance,
-              distanceText: distanceChankText,
+              distanceText: distanceChunkText,
             });
             if (i === polylinePositions.length - 1) {
               const calculationsCacheValue: CalculationsCacheValue = {
@@ -1244,7 +1244,7 @@ export class CalculateLineService {
               // console.log(this.getCalculationsFromCache(newCacheKey));
             }
           } else {
-            throw new Error('Invalid distanceChank result in setDistanceWithoutTerrain fn');
+            throw new Error('Invalid distanceChunk result in setDistanceWithoutTerrain fn');
           }
         }
         return true;
@@ -1327,14 +1327,14 @@ export class CalculateLineService {
         return false;
       }
       // ------------------------------- //
-      const indexGroup = this.linearMeasurmentsLinesList().findIndex((group) =>
+      const indexGroup = this.linearMeasurementsLinesList().findIndex((group) =>
         !!group && validPickedEnttity.id.startsWith(group.groupId),
       );
       if (indexGroup === -1) {
         console.info("Index for entities group in store hasn't found in setNewEntityLabelsText fn");
         return false;
       }
-      const group = this.linearMeasurmentsLinesList()[indexGroup];
+      const group = this.linearMeasurementsLinesList()[indexGroup];
       const entitiesList = group?.entitiesList;
       // Notice: минимально - две точки и линия
       if (!entitiesList || entitiesList.length < 3) {
@@ -1439,17 +1439,17 @@ export class CalculateLineService {
           continue;
         } else {
           let distanceText;
-          const distanceChank = await this.$viewerService.calculatePosDistances(
+          const distanceChunk = await this.$viewerService.calculatePosDistances(
             [prevPos, nowPos],
             detailed,
             distanceSegmentLengthM || this.distanceSegmentLengthM(),
             false,
           );
-          if (typeof distanceChank === 'number') {
-            distance += distanceChank;
+          if (typeof distanceChunk === 'number') {
+            distance += distanceChunk;
             distanceText = Humanify.distanceM(distance);
           } else {
-            throw new Error('Invalid distanceChank result in setNewEntityLabelsText fn');
+            throw new Error('Invalid distanceChunk result in setNewEntityLabelsText fn');
           }
           const targetEntity = entitiesList[targetEntityIndex];
           if (typeof distanceText === 'string' && targetEntity?.label) {

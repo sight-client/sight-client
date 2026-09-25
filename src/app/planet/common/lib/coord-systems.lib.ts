@@ -297,7 +297,7 @@ export class CoordSystems {
 //   // Определения систем координат
 //   /* eslint-disable */
 //   static DEFS = {
-//     /* eslint-enaable */
+//     /* eslint-enable */
 //     'WGS-84': {
 //       units: 'degrees',
 //       output: ['B', 'L'],

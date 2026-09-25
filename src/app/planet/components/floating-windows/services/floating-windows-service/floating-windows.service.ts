@@ -202,7 +202,7 @@ export class FloatingWindowsService {
       }
       const hiddenName = this._floatingWindowsList()[index]?.windowName;
       if (hiddenName && isMeasuringToolName(hiddenName)) {
-        console.info('measuring tool has hiden');
+        console.info('measuring tool has hidden');
       }
       const windowItem = this._floatingWindowsList()[index];
       if (windowItem?.hidden() === false) {

@@ -3,13 +3,13 @@ import { ElementRef } from '@angular/core';
 
 export function setNormalButtonsVisibility(
   defaultDivER: ElementRef<HTMLElement>,
-  hidenDivER: ElementRef<HTMLElement>,
+  hiddenDivER: ElementRef<HTMLElement>,
 ): boolean {
   try {
     const childInDefaultER = defaultDivER?.nativeElement?.firstChild;
     if (childInDefaultER) setBtnVisibilityAttr(childInDefaultER, 'true');
     else throw new Error('defaultSubGroup is empty in setNormalButtonsVisibility fn');
-    if (hideAuxillarySubgroup(hidenDivER) === true) return true;
+    if (hideAuxiliarySubgroup(hiddenDivER) === true) return true;
     else return false;
   } catch (error: unknown) {
     reportError(error);
@@ -17,12 +17,12 @@ export function setNormalButtonsVisibility(
   }
 }
 
-export function hideAuxillarySubgroup(hidenDivER: ElementRef<HTMLElement>): boolean {
+export function hideAuxiliarySubgroup(hiddenDivER: ElementRef<HTMLElement>): boolean {
   try {
-    const childrenInHidenER = Array.from(hidenDivER?.nativeElement?.children);
-    if (!childrenInHidenER.length)
-      throw new Error('hidenSubGroup is empty in hideAuxillarySubgroup fn');
-    childrenInHidenER.forEach((el: unknown) => {
+    const childrenInHiddenER = Array.from(hiddenDivER?.nativeElement?.children);
+    if (!childrenInHiddenER.length)
+      throw new Error('hiddenSubGroup is empty in hideAuxiliarySubgroup fn');
+    childrenInHiddenER.forEach((el: unknown) => {
       setBtnVisibilityAttr(el, 'false');
     });
     return true;
@@ -32,12 +32,12 @@ export function hideAuxillarySubgroup(hidenDivER: ElementRef<HTMLElement>): bool
   }
 }
 
-export function showAuxillarySubgroup(hidenDivER: ElementRef<HTMLElement>): boolean {
+export function showAuxiliarySubgroup(hiddenDivER: ElementRef<HTMLElement>): boolean {
   try {
-    const childrenInHidenER = Array.from(hidenDivER?.nativeElement?.children);
-    if (!childrenInHidenER.length)
-      throw new Error('hidenSubGroup is empty in showAuxillarySubgroup fn');
-    childrenInHidenER.forEach((el: unknown) => {
+    const childrenInHiddenER = Array.from(hiddenDivER?.nativeElement?.children);
+    if (!childrenInHiddenER.length)
+      throw new Error('hiddenSubGroup is empty in showAuxiliarySubgroup fn');
+    childrenInHiddenER.forEach((el: unknown) => {
       setBtnVisibilityAttr(el, 'true');
     });
     return true;
@@ -47,21 +47,21 @@ export function showAuxillarySubgroup(hidenDivER: ElementRef<HTMLElement>): bool
   }
 }
 
-export function toggleAuxillarySubgroupVisibility(hidenDivER: ElementRef<HTMLElement>): boolean {
+export function toggleAuxiliarySubgroupVisibility(hiddenDivER: ElementRef<HTMLElement>): boolean {
   try {
-    const childrenInHidenER = Array.from(hidenDivER?.nativeElement?.children);
-    if (!childrenInHidenER.length)
-      throw new Error('hidenSubGroup is empty in toggleAuxillarySubgroupVisibility fn');
-    childrenInHidenER.forEach((el: unknown) => {
+    const childrenInHiddenER = Array.from(hiddenDivER?.nativeElement?.children);
+    if (!childrenInHiddenER.length)
+      throw new Error('hiddenSubGroup is empty in toggleAuxiliarySubgroupVisibility fn');
+    childrenInHiddenER.forEach((el: unknown) => {
       if (!(el instanceof HTMLElement))
-        throw new Error('el is not an HTMLElement in toggleAuxillarySubgroupVisibility fn');
+        throw new Error('el is not an HTMLElement in toggleAuxiliarySubgroupVisibility fn');
       if (el.style.display === 'none') {
         setBtnVisibilityAttr(el, 'true');
       } else if (el.style.display === 'block') {
         setBtnVisibilityAttr(el, 'false');
       } else {
         throw new Error(
-          "el's display is unset in toggleAuxillarySubgroupVisibility fn",
+          "el's display is unset in toggleAuxiliarySubgroupVisibility fn",
         );
       }
     });

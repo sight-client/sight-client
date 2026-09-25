@@ -125,7 +125,7 @@ describe('MeasureService', () => {
     expect(service.isLines()).toBe(false);
     expect(service.isRectangles()).toBe(false);
     expect(service.isCircles()).toBe(false);
-    expect(service.isPoligons()).toBe(false);
+    expect(service.isPolygons()).toBe(false);
   });
 
   it('pushGroupWithoutTemporal adds a calculateLine group and isLines becomes true', () => {
@@ -136,9 +136,9 @@ describe('MeasureService', () => {
       service.pushGroupWithoutTemporal([entity], 'line-group-1', 'calculateLine', defaultEntity),
     ).toBe(true);
     expect(service.isLines()).toBe(true);
-    expect(service.linearMeasurmentsLinesList()[0]?.groupId).toBe('line-group-1');
-    expect(service.linearMeasurmentsLinesList()[0]?.entitiesList).toEqual([entity]);
-    expect(service.linearMeasurmentsLinesList()[0]?.defaultEntity).toBe(defaultEntity);
+    expect(service.linearMeasurementsLinesList()[0]?.groupId).toBe('line-group-1');
+    expect(service.linearMeasurementsLinesList()[0]?.entitiesList).toEqual([entity]);
+    expect(service.linearMeasurementsLinesList()[0]?.defaultEntity).toBe(defaultEntity);
   });
 
   it('removeEntitiesByGroupId removes the group from the store so isLines is false', () => {
@@ -146,7 +146,7 @@ describe('MeasureService', () => {
     service.pushGroupWithoutTemporal([entity], 'line-rm-group', 'calculateLine');
     expect(service.isLines()).toBe(true);
 
-    service.removeEntitiesByGroupId('line-rm-group', service.linearMeasurmentsLinesList);
+    service.removeEntitiesByGroupId('line-rm-group', service.linearMeasurementsLinesList);
 
     expect(service.isLines()).toBe(false);
   });

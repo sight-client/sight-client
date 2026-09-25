@@ -18,7 +18,7 @@ import {
   uploadBlob,
 } from '@global/lib/common-global.lib';
 
-import { CoordSystems, isCRS } from '@/common/lib/coord-sistems.lib';
+import { CoordSystems, isCRS } from '@/common/lib/coord-systems.lib';
 import * as Humanify from '@/common/lib/humanify.lib';
 
 import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
@@ -288,14 +288,14 @@ export class DrawingsListReportService {
       for (const group of allStoresObj[toolName]()) {
         if (!group) {
           console.info(
-            `Group is undefined in store: ${toolName} (by getSheetRows fn). Result will be skiped within .ods document`,
+            `Group is undefined in store: ${toolName} (by getSheetRows fn). Result will be skipped within .ods document`,
           );
           continue;
         }
         const defaultEntity = group?.defaultEntity;
         if (defaultEntity === undefined || !(defaultEntity instanceof Cesium.Entity)) {
           console.info(
-            `Group's defaultEntity is undefined in store: ${toolName} (by getSheetRows fn). Result will be skiped within .ods document`,
+            `Group's defaultEntity is undefined in store: ${toolName} (by getSheetRows fn). Result will be skipped within .ods document`,
           );
           continue;
         }
@@ -307,8 +307,8 @@ export class DrawingsListReportService {
           if (newIdArr.length < 2 || !idToolName || !isDrawingToolName(idToolName)) {
             entityName = 'имя не определено';
           } else {
-            const unicId = newIdArr[newIdArr.length - 1];
-            entityName = `${getRusDrawingToolName(idToolName)}-${unicId}`;
+            const uniqueId = newIdArr[newIdArr.length - 1];
+            entityName = `${getRusDrawingToolName(idToolName)}-${uniqueId}`;
           }
         } else {
           if (isDrawingToolName(entityName)) {
@@ -331,13 +331,13 @@ export class DrawingsListReportService {
                 positions[i],
                 typeof sk === 'string' && isCRS(sk) ? sk : undefined,
               );
-              let tagetRow: Array<OdsCellValue> = [];
+              let targetRow: Array<OdsCellValue> = [];
               if (i === 0) {
-                tagetRow = rowWithName;
+                targetRow = rowWithName;
               } else {
-                tagetRow = []; // для последующих строк в объединении значение первой колонки уже не требуется
+                targetRow = []; // для последующих строк в объединении значение первой колонки уже не требуется
               }
-              tagetRow.push(
+              targetRow.push(
                 {
                   value: posObj?.latitude ? posObj.latitude : gag,
                   type: posObj?.latitude ? 'float' : 'string',
@@ -352,7 +352,7 @@ export class DrawingsListReportService {
                 },
                 posObj?.crs || gag,
               );
-              sheetRows.push(tagetRow);
+              sheetRows.push(targetRow);
               const nameCell = rowWithName[0];
               if (i > 0 && isOdsCellObject(nameCell) && nameCell.rowSpan !== undefined) {
                 nameCell.rowSpan++;
@@ -484,7 +484,7 @@ export class DrawingsListReportService {
       // Уровень таблиц
       for (const sheet of sheets) {
         if (!sheet?.rows?.length) {
-          console.info('Empty sheet. Sheet will be skiped.');
+          console.info('Empty sheet. Sheet will be skipped.');
           continue;
         }
         // Обязательные колонки
@@ -496,7 +496,7 @@ export class DrawingsListReportService {
           sheet.rows[0]?.cells?.[4]?.value !== this.fifthColumnName // 'СК'
         ) {
           console.info(
-            "Invalid row's construction in sheet (default columns). Sheet will be skiped.",
+            "Invalid row's construction in sheet (default columns). Sheet will be skipped.",
           );
           continue;
         }
@@ -506,17 +506,17 @@ export class DrawingsListReportService {
           sheet.rows[0].cells[5].value !== this.sixthColumnName // 'Радиус, м'
         ) {
           console.info(
-            "Invalid row's construction in sheet (optional columns). Sheet will be skiped.",
+            "Invalid row's construction in sheet (optional columns). Sheet will be skipped.",
           );
           continue;
         }
         if (sheet.rows[0].cells[0].value === this.firstColumnName && sheet.rows.length === 1) {
-          console.info('Empty rows in sheet is undefined. Sheet will be skiped.');
+          console.info('Empty rows in sheet is undefined. Sheet will be skipped.');
           continue;
         }
         const rusToolName = sheet?.name;
         if (typeof rusToolName !== 'string' || !isDrawingToolNameRus(rusToolName)) {
-          console.info('Invalid toolName in sheet. Sheet will be skiped.');
+          console.info('Invalid toolName in sheet. Sheet will be skipped.');
           continue;
         }
         const toolName = getOriginDrawingToolName(rusToolName);
@@ -607,7 +607,7 @@ export class DrawingsListReportService {
                   }
                 } else {
                   console.info(
-                    `Invalid coord sistem in tool's "${toolName}" row. Row will be skiped.`,
+                    `Invalid coord system in tool's "${toolName}" row. Row will be skipped.`,
                   );
                   continue;
                 }
@@ -667,7 +667,7 @@ export class DrawingsListReportService {
 
         for (const entityObj of toolObj.entitiesList) {
           const entityName = entityObj.name;
-          const groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+          const groupIdChunk = `${Math.ceil(Math.random() * 1000000)}`;
           // ----------------------------------------------------------- //
           // ----------------------------------------------------------- //
           // ----------------------------------------------------------- //
@@ -681,7 +681,7 @@ export class DrawingsListReportService {
               ...cloneDeep(this.$drawMarkService.optForMark),
               ...{
                 name: entityName,
-                id: `${groupIdChank}-${toolName}-point-${Math.ceil(Math.random() * 1000000)}`,
+                id: `${groupIdChunk}-${toolName}-point-${Math.ceil(Math.random() * 1000000)}`,
               },
             };
             if (optForMark.label) optForMark.label.text = entityName;
@@ -693,7 +693,7 @@ export class DrawingsListReportService {
             }
             this.$drawingService.pushGroupWithoutTemporalWithDrawing(
               [entity],
-              groupIdChank,
+              groupIdChunk,
               toolName,
               entity,
             );
@@ -710,7 +710,7 @@ export class DrawingsListReportService {
             }
             const optForLine = {
               name: entityName,
-              id: `${groupIdChank}-${toolName}-line-${Math.ceil(Math.random() * 1000000)}`,
+              id: `${groupIdChunk}-${toolName}-line-${Math.ceil(Math.random() * 1000000)}`,
               toolName: toolName,
               clampToGround: true,
               properties: {
@@ -730,7 +730,7 @@ export class DrawingsListReportService {
             }
             this.$drawingService.pushGroupWithoutTemporalWithDrawing(
               [entity],
-              groupIdChank,
+              groupIdChunk,
               toolName,
               entity,
             );
@@ -747,7 +747,7 @@ export class DrawingsListReportService {
             }
             const optForPolygon = {
               name: entityName,
-              id: `${groupIdChank}-${toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`,
+              id: `${groupIdChunk}-${toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`,
               toolName: toolName,
               clampToGround: true,
             };
@@ -766,7 +766,7 @@ export class DrawingsListReportService {
             }
             this.$drawingService.pushGroupWithoutTemporalWithDrawing(
               [entity],
-              groupIdChank,
+              groupIdChunk,
               toolName,
               entity,
             );
@@ -807,7 +807,7 @@ export class DrawingsListReportService {
             const polylinePositionsRadius = [startPoint, endPoint];
             const optForLine = {
               name: entityName + ' ' + '(auxiliary)',
-              id: `${groupIdChank}-${toolName}-line-${Math.ceil(Math.random() * 1000000)}`,
+              id: `${groupIdChunk}-${toolName}-line-${Math.ceil(Math.random() * 1000000)}`,
               toolName: toolName,
               clampToGround: true,
             };
@@ -826,7 +826,7 @@ export class DrawingsListReportService {
 
             const optForEllipse: ToolOptions = {
               name: entityName,
-              id: `${groupIdChank}-${toolName}-ellipse-${Math.ceil(Math.random() * 1000000)}`,
+              id: `${groupIdChunk}-${toolName}-ellipse-${Math.ceil(Math.random() * 1000000)}`,
               toolName: toolName,
               clampToGround: true,
               ellipse: {
@@ -867,7 +867,7 @@ export class DrawingsListReportService {
 
             this.$drawingService.pushGroupWithoutTemporalWithDrawing(
               [ellipseEntity, lineEntity],
-              groupIdChank,
+              groupIdChunk,
               toolName,
               ellipseEntity,
             );
@@ -884,7 +884,7 @@ export class DrawingsListReportService {
             }
             const optForPolygon = {
               name: entityName,
-              id: `${groupIdChank}-${toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`,
+              id: `${groupIdChunk}-${toolName}-polygon-${Math.ceil(Math.random() * 1000000)}`,
               toolName: toolName,
               clampToGround: true,
             };
@@ -903,7 +903,7 @@ export class DrawingsListReportService {
             }
             this.$drawingService.pushGroupWithoutTemporalWithDrawing(
               [entity],
-              groupIdChank,
+              groupIdChunk,
               toolName,
               entity,
             );
@@ -944,7 +944,7 @@ export class DrawingsListReportService {
             const polylinePositionsRadius = [startPoint, endPoint];
             const optForEllipsoid = {
               name: entityName,
-              id: `${groupIdChank}-${toolName}-ellipsoid-${Math.ceil(Math.random() * 1000000)}`,
+              id: `${groupIdChunk}-${toolName}-ellipsoid-${Math.ceil(Math.random() * 1000000)}`,
               toolName: toolName,
               withPoint: true,
               arrow: true,
@@ -966,7 +966,7 @@ export class DrawingsListReportService {
             }
             this.$drawingService.pushGroupWithoutTemporalWithDrawing(
               [entity],
-              groupIdChank,
+              groupIdChunk,
               toolName,
               entity,
             );
@@ -981,7 +981,7 @@ export class DrawingsListReportService {
               // сработает один раз для одного типа инструментов
               const groupIndexInToolStore = this.$drawingService.allEntitiesListsLinks[
                 toolName
-              ]?.().findIndex((groupInToolStore) => groupInToolStore?.groupId === groupIdChank);
+              ]?.().findIndex((groupInToolStore) => groupInToolStore?.groupId === groupIdChunk);
               if (groupIndexInToolStore !== -1) {
                 const activeGroupInStore =
                   this.$drawingService.allEntitiesListsLinks[toolName]()?.[groupIndexInToolStore];

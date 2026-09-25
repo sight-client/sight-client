@@ -49,12 +49,12 @@ export class DrawRectangleFloatingWindowService {
     });
     effect(() => {
       try {
-        if (this.$drawRectangleService.rectangleAreaMeasurmentsList().length) {
+        if (this.$drawRectangleService.rectangleAreaMeasurementsList().length) {
           untracked(() => {
             if (this._validPickedEnttity()) {
               const nowGroupId: string | undefined = this._validPickedEnttity()?.id.split('-')[0];
               const index = this.$drawRectangleService
-                .rectangleAreaMeasurmentsList()
+                .rectangleAreaMeasurementsList()
                 .findIndex((item) => item?.groupId === nowGroupId);
               if (index === -1) this.$floatingWindowsService.hideWindowByToolName(this.toolName);
             }
@@ -82,12 +82,12 @@ export class DrawRectangleFloatingWindowService {
     let targetEntity: Cesium.Entity | undefined = undefined;
     untracked(() => {
       if (selectedEntity?.toolName !== this.toolName) return;
-      if (!this.$drawRectangleService.rectangleAreaMeasurmentsList().length) return;
+      if (!this.$drawRectangleService.rectangleAreaMeasurementsList().length) return;
       const indexGroup = this.$drawRectangleService
-        .rectangleAreaMeasurmentsList()
+        .rectangleAreaMeasurementsList()
         .findIndex((group) => !!group && selectedEntity.id.startsWith(group.groupId));
       if (indexGroup === -1) return;
-      const group = this.$drawRectangleService.rectangleAreaMeasurmentsList()[indexGroup];
+      const group = this.$drawRectangleService.rectangleAreaMeasurementsList()[indexGroup];
       if (group?.defaultEntity) {
         targetEntity = group.defaultEntity;
       } else {

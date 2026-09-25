@@ -42,7 +42,7 @@ export class EntityRubberService {
       !this.$drawingService.isLines() &&
       !this.$drawingService.isRectangles() &&
       !this.$drawingService.isCircles() &&
-      !this.$drawingService.isPoligons() &&
+      !this.$drawingService.isPolygons() &&
       !this.$drawingService.isVectorPolygons() &&
       !this.$drawingService.isAnnotations() &&
       !this.$drawingService.isPhotos() &&

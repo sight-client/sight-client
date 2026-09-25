@@ -26,7 +26,7 @@ export class CalculatePolygonFloatingWindowService {
     // Существование окна по условию наличия сущностей его инструмента
     effect(() => {
       try {
-        if (this.$measureService.isPoligons() === true) {
+        if (this.$measureService.isPolygons() === true) {
           untracked(() => {
             this.$floatingWindowsService.addWindowItem(this.toolName);
           });
@@ -65,7 +65,7 @@ export class CalculatePolygonFloatingWindowService {
         if (this.floatingWindowHasClosed() === true) {
           untracked(() => {
             this._validPickedEnttity.set(undefined);
-            if (this.$measureService.isPoligons() === true) {
+            if (this.$measureService.isPolygons() === true) {
               this.$measureService.allToolEntitiesCleaning(this.toolName);
             }
             if (
@@ -148,7 +148,7 @@ export class CalculatePolygonFloatingWindowService {
           polygonPolylinePositions?.length &&
           polygonPolylinePositions[0] instanceof Cesium.Cartesian3
         ) {
-          area = MeasuresLib.calculateAreaWithTurfWhithoutHumanify(polygonPolylinePositions);
+          area = MeasuresLib.calculateAreaWithTurfWithoutHumanify(polygonPolylinePositions);
         } else {
           console.info('Invalid polygonPolylinePositions array in validPickedEnttity signal');
         }
@@ -187,7 +187,7 @@ export class CalculatePolygonFloatingWindowService {
           polygonPolylinePositions?.length &&
           polygonPolylinePositions[0] instanceof Cesium.Cartesian3
         ) {
-          perimeter = MeasuresLib.calculatePosDistancesWhithoutHumanify(polygonPolylinePositions);
+          perimeter = MeasuresLib.calculatePosDistancesWithoutHumanify(polygonPolylinePositions);
         } else {
           console.info('Invalid polygonPolylinePositions array in validPickedEnttity signal');
         }

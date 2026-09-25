@@ -140,17 +140,17 @@ export class DrawLineService {
       if (this.$toolsService.drawingsBlocker() === true) return false;
       this.$toolsService.clearCommonHandler();
       this.$toolsService.setDrawingsBlocker(true);
-      let groupIdChank: string;
+      let groupIdChunk: string;
       if (options?.groupId === undefined) {
-        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+        groupIdChunk = `${Math.ceil(Math.random() * 1000000)}`;
       } else {
-        groupIdChank = options.groupId;
+        groupIdChunk = options.groupId;
       }
       const optForPoint: DrawingOptions = cloneDeep(options);
-      optForPoint.id = `${groupIdChank}-${this.toolName}-point-${Math.ceil(Math.random() * 1000000)}`;
-      if (options?.name) optForPoint.name = options.name + ' ' + '(auxiliary)' + ' ' + groupIdChank;
+      optForPoint.id = `${groupIdChunk}-${this.toolName}-point-${Math.ceil(Math.random() * 1000000)}`;
+      if (options?.name) optForPoint.name = options.name + ' ' + '(auxiliary)' + ' ' + groupIdChunk;
       const optForLine: DrawingOptions = cloneDeep(options);
-      optForLine.id = `${groupIdChank}-${this.toolName}-line-${Math.ceil(Math.random() * 1000000)}`;
+      optForLine.id = `${groupIdChunk}-${this.toolName}-line-${Math.ceil(Math.random() * 1000000)}`;
       this.counter++;
       optForLine.name = `${options.name || getRusDrawingToolName(this.toolName)} ${this.counter}`;
       const labelText = optForLine.name;
@@ -254,7 +254,7 @@ export class DrawLineService {
               .temporalEntitiesList()
               .findIndex((item) => item?.id === pointEntity?.id) !== -1
           ) {
-            throw new Error('Entity already exist in temporal store by setPointEntity()');
+            throw new Error('Entity already exists in temporal store by setPointEntity()');
           }
           this.$drawingService.addNewEntityToDrawLayer(pointEntity);
           this.$drawingService.temporalEntitiesList.update((arr) => [...arr, pointEntity]);
@@ -273,7 +273,7 @@ export class DrawLineService {
                   .temporalEntitiesList()
                   .findIndex((item) => item?.id === lineEntity?.id) !== -1
               ) {
-                throw new Error('Entity already exist in temporal store by setLineEntity()');
+                throw new Error('Entity already exists in temporal store by setLineEntity()');
               }
               if (lineEntity.position) lineEntity.position = reactiveLabelPosition;
               if (lineEntity.polyline?.positions)
@@ -387,7 +387,7 @@ export class DrawLineService {
             //       .temporalEntitiesList()
             //       .findIndex((item) => item?.id === lastPointEntity?.id) !== -1
             //   ) {
-            //     throw new Error('Entity already exist in temporal store by setPointEntity()');
+            //     throw new Error('Entity already exists in temporal store by setPointEntity()');
             //   }
 
             //   this.$drawingService.addNewEntityToDrawLayer(lastPointEntity);
@@ -414,7 +414,7 @@ export class DrawLineService {
                   .temporalEntitiesList()
                   .findIndex((item) => item?.id === lastPointEntity?.id) !== -1
               ) {
-                throw new Error('Entity already exist in temporal store by setPointEntity()');
+                throw new Error('Entity already exists in temporal store by setPointEntity()');
               }
               this.$drawingService.addNewEntityToDrawLayer(lastPointEntity);
               this.$drawingService.temporalEntitiesList.update((arr) => [...arr, lastPointEntity]);
@@ -457,8 +457,8 @@ export class DrawLineService {
                 lineColor: undefined,
               };
             }
-            this.$drawingService.pushGroupFromTemporal(groupIdChank, options?.toolName, lineEntity);
-            this.$drawingService.clearTemporalEntitiesList(groupIdChank);
+            this.$drawingService.pushGroupFromTemporal(groupIdChunk, options?.toolName, lineEntity);
+            this.$drawingService.clearTemporalEntitiesList(groupIdChunk);
             this.$viewerService.setNewPickedEntity(lineEntity);
           }
 

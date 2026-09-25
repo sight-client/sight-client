@@ -58,7 +58,7 @@ parent: none
 - Standalone: `imports: [ComponentUnderTest]`, не `declarations`.
 - Vitest: `toBe(true)` / `toBe(false)`, не Jasmine `toBeTrue()` / `toBeFalse()`.
 - Геодезия: `toBeCloseTo`, не `===` для float.
-- Чистые lib (`humanify.lib.ts`, `common-global.lib.ts`, `coord-sistems.lib.ts`, `basic-measure-calculations.lib.ts`, `buttons-subgroups-visibility.ts`) — без TestBed, прямые вызовы.
+- Чистые lib (`humanify.lib.ts`, `common-global.lib.ts`, `coord-systems.lib.ts`, `basic-measure-calculations.lib.ts`, `buttons-subgroups-visibility.ts`) — без TestBed, прямые вызовы.
 - Не добавлять production-методы только для тестов.
 - Ожидания — литералы / ручные фикстуры, не зеркало кода под тестом.
 

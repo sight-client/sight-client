@@ -2,7 +2,7 @@
 @use "sass:list";
 
 /* ---------------------------- themes palettes (start) --------------------------- */
-$theme-poletts-list: (
+$theme-palettes-list: (
   "azure" "blue" mat.$azure-palette mat.$blue-palette,
   "rose" "red" mat.$rose-palette mat.$red-palette,
   "magenta" "violet" mat.$magenta-palette mat.$violet-palette,
@@ -29,23 +29,23 @@ $theme-poletts-list: (
 // mat.$spring-green-palette
 
 $default-theme-palettes-for-css: #{list.nth(
-    list.nth($theme-poletts-list, 1),
+    list.nth($theme-palettes-list, 1),
     1
-  )}-#{list.nth(list.nth($theme-poletts-list, 1), 2)};
+  )}-#{list.nth(list.nth($theme-palettes-list, 1), 2)};
 
 $theme-palettes-for-css: "";
-@for $i from 1 through list.length($theme-poletts-list) {
-  @if ($i != list.length($theme-poletts-list)) {
+@for $i from 1 through list.length($theme-palettes-list) {
+  @if ($i != list.length($theme-palettes-list)) {
     $theme-palettes-for-css: #{$theme-palettes-for-css +
-      list.nth(list.nth($theme-poletts-list, $i), 1)}-#{list.nth(
-        list.nth($theme-poletts-list, $i),
+      list.nth(list.nth($theme-palettes-list, $i), 1)}-#{list.nth(
+        list.nth($theme-palettes-list, $i),
         2
       ) +
       " "};
   } @else {
     $theme-palettes-for-css: #{$theme-palettes-for-css +
-      list.nth(list.nth($theme-poletts-list, $i), 1)}-#{list.nth(
-        list.nth($theme-poletts-list, $i),
+      list.nth(list.nth($theme-palettes-list, $i), 1)}-#{list.nth(
+        list.nth($theme-palettes-list, $i),
         2
       )};
   }

@@ -185,7 +185,7 @@ export class CalculateCircleFloatingWindowService {
             radiusPolylinePositions?.length &&
             radiusPolylinePositions[0] instanceof Cesium.Cartesian3
           ) {
-            radius = MeasuresLib.calculatePosDistancesWhithoutHumanify(radiusPolylinePositions);
+            radius = MeasuresLib.calculatePosDistancesWithoutHumanify(radiusPolylinePositions);
           } else {
             console.info('Invalid radiusPolylinePositions array in validAuxiliaryEntity signal');
           }

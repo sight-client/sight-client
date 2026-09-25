@@ -129,7 +129,7 @@ describe('DrawingService', () => {
     expect(service.isLines()).toBe(false);
     expect(service.isRectangles()).toBe(false);
     expect(service.isCircles()).toBe(false);
-    expect(service.isPoligons()).toBe(false);
+    expect(service.isPolygons()).toBe(false);
   });
 
   it('pushGroupWithoutTemporal adds a drawMark group and isMarks becomes true', () => {

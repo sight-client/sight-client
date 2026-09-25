@@ -9,8 +9,8 @@ import type { CameraToolName } from '@/components/tools/camera-view-tools/servic
 
 import { ViewerService } from '@/common/services/viewer-service/viewer.service';
 import type { CustomViewer } from '@/common/services/viewer-service/viewer.service';
-import { CoordSystems } from '@/common/lib/coord-sistems.lib';
-import type { CRS } from '@/common/lib/coord-sistems.lib';
+import { CoordSystems } from '@/common/lib/coord-systems.lib';
+import type { CRS } from '@/common/lib/coord-systems.lib';
 import { CursorCoordsService } from '@/common/services/cursor-coords-service/cursor-coords.service';
 import { CheckMobileDeviceService } from '@global/services/check-mobile-device-service/check-mobile-device.service';
 
@@ -161,12 +161,12 @@ export class ToolsService {
 
   //------------------------------------------------------------ //
 
-  // Флаги для отслеживания активных инструментов посредством this._commonHendler
+  // Флаги для отслеживания активных инструментов посредством this._commonHandler
   private _activeTool = signal<ActiveToolName | undefined>(undefined);
   get activeTool() {
     return this._activeTool;
   }
-  // Флаг "activeTool" также можно применять в инструментах, не использующих this._commonHendler
+  // Флаг "activeTool" также можно применять в инструментах, не использующих this._commonHandler
   public setActiveTool(name: ActiveToolName) {
     this._activeTool.set(name);
   }
@@ -241,7 +241,7 @@ export class ToolsService {
             this._commonHandler.set(undefined);
             return true;
           } else {
-            throw new Error('Error whith cleaning drawing _commonHandler');
+            throw new Error('Error with cleaning drawing _commonHandler');
           }
         } else {
           this._commonHandler.set(undefined);
@@ -313,7 +313,7 @@ export class ToolsService {
       if (position === undefined) throw new Error('Position arg is undefined in setPointEntity()');
       const id: string = options?.id ? options?.id : `${Math.ceil(Math.random() * 1000000)}`;
       if (this._viewer.entities?.getById(id)) {
-        throw new Error('Entity already exist on draw layer in setPointEntity()');
+        throw new Error('Entity already exists on draw layer in setPointEntity()');
       }
       const pointEntity = new Cesium.Entity({
         id: id,
@@ -380,12 +380,12 @@ export class ToolsService {
             : new Cesium.ConstantProperty(Cesium.HeightReference.NONE);
         }
         if (clampToGround === true) {
-          this.setClampingToGroudForEntity(pointEntity);
+          this.setClampingToGroundForEntity(pointEntity);
         }
       }
       if (options?.clampToGround === true) {
         // Проверка на разрешение прикрепления сущности к земле (разрешено только для this.$viewerService.viewer.scene.mode === 3 - "3D")
-        this.setClampingToGroudForEntity(pointEntity);
+        this.setClampingToGroundForEntity(pointEntity);
       }
       if (options.toolName) pointEntity.toolName = options.toolName;
       return pointEntity;
@@ -407,7 +407,7 @@ export class ToolsService {
         throw new Error('Positions arg is undefined in setLineEntity()');
       const id: string = options?.id ? options?.id : `${Math.ceil(Math.random() * 1000000)}`;
       if (this._viewer.entities?.getById(id)) {
-        throw new Error('Entity already exist on draw layer in setLineEntity()');
+        throw new Error('Entity already exists on draw layer in setLineEntity()');
       }
       if (options?.clampToGround === undefined)
         options.clampToGround = this.$viewerService?.clampToGroundSignal?.();
@@ -478,7 +478,7 @@ export class ToolsService {
       // console.log('lineEntity :>> ', lineEntity);
       if (options?.clampToGround === true) {
         // Проверка на разрешение прикрепления сущности к земле (разрешено только для this.$viewerService.viewer.scene.mode === 3 - "3D")
-        this.setClampingToGroudForEntity(lineEntity);
+        this.setClampingToGroundForEntity(lineEntity);
       }
       if (options.toolName) lineEntity.toolName = options.toolName;
       return lineEntity;
@@ -501,11 +501,11 @@ export class ToolsService {
         throw new Error('Positions arg is undefined in setLineEntity()');
       const id: string = options?.id ? options?.id : `${Math.ceil(Math.random() * 1000000)}`;
       if (this._viewer.entities?.getById(id)) {
-        throw new Error('Entity already exist on draw layer in setPolygonEntity()');
+        throw new Error('Entity already exists on draw layer in setPolygonEntity()');
       }
       if (options?.clampToGround === undefined)
         options.clampToGround = this.$viewerService?.clampToGroundSignal?.();
-      const poligonEntity = new Cesium.Entity({
+      const polygonEntity = new Cesium.Entity({
         id: id,
         name: options?.name ? options?.name : options?.id ? `${id}` : `${'polygon'}-${id}`,
         position: labelPosition,
@@ -587,10 +587,10 @@ export class ToolsService {
       });
       if (options?.clampToGround === true) {
         // Проверка на разрешение прикрепления сущности к земле (разрешено только для this.$viewerService.viewer.scene.mode === 3 - "3D")
-        this.setClampingToGroudForEntity(poligonEntity);
+        this.setClampingToGroundForEntity(polygonEntity);
       }
-      if (options.toolName) poligonEntity.toolName = options.toolName;
-      return poligonEntity;
+      if (options.toolName) polygonEntity.toolName = options.toolName;
+      return polygonEntity;
     } catch (error: unknown) {
       this.alertAboutToolError(this._lastActiveTool());
       reportError(error);
@@ -612,7 +612,7 @@ export class ToolsService {
         throw new Error('Positions arg is undefined in setEllipseEntity()');
       const id: string = options?.id ? options?.id : `${Math.ceil(Math.random() * 1000000)}`;
       if (this._viewer.entities?.getById(id)) {
-        throw new Error('Entity already exist on draw layer in setEllipseEntity()');
+        throw new Error('Entity already exists on draw layer in setEllipseEntity()');
       }
       if (options?.clampToGround === undefined)
         options.clampToGround = this.$viewerService?.clampToGroundSignal?.();
@@ -714,7 +714,7 @@ export class ToolsService {
       });
       if (options?.clampToGround === true) {
         // Проверка на разрешение прикрепления сущности к земле (разрешено только для this.$viewerService.viewer.scene.mode === 3 - "3D")
-        this.setClampingToGroudForEntity(ellipseEntity);
+        this.setClampingToGroundForEntity(ellipseEntity);
       }
       if (options.toolName) ellipseEntity.toolName = options.toolName;
       return ellipseEntity;
@@ -739,7 +739,7 @@ export class ToolsService {
         throw new Error('Positions arg is undefined in setEllipsoidEntity()');
       const id: string = options?.id ? options?.id : `${Math.ceil(Math.random() * 1000000)}`;
       if (this._viewer.entities?.getById(id)) {
-        throw new Error('Entity already exist on draw layer in setEllipsoidEntity()');
+        throw new Error('Entity already exists on draw layer in setEllipsoidEntity()');
       }
       const ellipsoidMaterial = options?.color
         ? options?.color
@@ -886,7 +886,7 @@ export class ToolsService {
       });
       // if (options?.clampToGround === true) {
       //   // Проверка на разрешение прикрепления сущности к земле (разрешено только для this.$viewerService.viewer.scene.mode === 3 - "3D")
-      //   this.setClampingToGroudForEntity(ellipsoidEntity);
+      //   this.setClampingToGroundForEntity(ellipsoidEntity);
       // }
       if (options.toolName) ellipsoidEntity.toolName = options.toolName;
       return ellipsoidEntity;
@@ -1006,8 +1006,8 @@ export class ToolsService {
   // Методы могут применяться в эффектах main-сервисов нуждающихся в таком переключении инструментов.
 
   // Deprecated
-  // Заменено на адресное применение в this.switchClampingToGroudForOneStoreEntities()
-  // public switchClampingToGroudForAllStoresEntities(
+  // Заменено на адресное применение в this.switchClampingToGroundForOneStoreEntities()
+  // public switchClampingToGroundForAllStoresEntities(
   //   stores: Array<WritableSignal<Array<EntitiesGroup | undefined>>>,
   //   isClamped: boolean,
   // ): boolean {
@@ -1016,7 +1016,7 @@ export class ToolsService {
   //     let counter: number = 0;
   //     for (const store of stores) {
   //       if (!store().length) continue;
-  //       const isRes = this.switchClampingToGroudForOneStoreEntities(store, isClamped);
+  //       const isRes = this.switchClampingToGroundForOneStoreEntities(store, isClamped);
   //       if (isRes) counter++;
   //     }
   //     if (counter === stores.length) return true;
@@ -1027,12 +1027,12 @@ export class ToolsService {
   //   }
   // }
 
-  public switchClampingToGroudForOneStoreEntities(
+  public switchClampingToGroundForOneStoreEntities(
     store: WritableSignal<Array<EntitiesGroup | undefined>>,
     isClamped: boolean,
   ): boolean {
     try {
-      console.info(`Switching clamping to groud for entities in store: "${store.name}"`);
+      console.info(`Switching clamping to ground for entities in store: "${store.name}"`);
       if (!store().length) return false;
       let counter: number = 0;
       let counterTwo: number = 0;
@@ -1041,7 +1041,7 @@ export class ToolsService {
         counterTwo = counterTwo + group.entitiesList.length;
         for (const entity of group.entitiesList) {
           if (entity instanceof Cesium.Entity) {
-            const isRes = this.switchClampingToGroudForEntity(entity, isClamped);
+            const isRes = this.switchClampingToGroundForEntity(entity, isClamped);
             if (isRes) counter++;
           }
         }
@@ -1054,7 +1054,7 @@ export class ToolsService {
     }
   }
 
-  public switchClampingToGroudForTemporalEntities(
+  public switchClampingToGroundForTemporalEntities(
     temporalStore: WritableSignal<Array<Cesium.Entity | undefined>>,
     isClamped: boolean,
     exceptions?: Array<string>,
@@ -1074,11 +1074,11 @@ export class ToolsService {
               }
             }
             if (!isException) {
-              const isRes = this.switchClampingToGroudForEntity(entity, isClamped);
+              const isRes = this.switchClampingToGroundForEntity(entity, isClamped);
               if (isRes) counter++;
             }
           } else {
-            const isRes = this.switchClampingToGroudForEntity(entity, isClamped);
+            const isRes = this.switchClampingToGroundForEntity(entity, isClamped);
             if (isRes) counter++;
           }
         }
@@ -1092,7 +1092,7 @@ export class ToolsService {
   }
 
   // Для конструкторов сущностей
-  public setClampingToGroudForEntity(entity: Cesium.Entity): boolean {
+  public setClampingToGroundForEntity(entity: Cesium.Entity): boolean {
     try {
       let isClamped: boolean = true;
       if (
@@ -1101,7 +1101,7 @@ export class ToolsService {
       ) {
         isClamped = false;
       }
-      return this.switchClampingToGroudForEntity(entity, isClamped);
+      return this.switchClampingToGroundForEntity(entity, isClamped);
     } catch (error: unknown) {
       reportError(error);
       return false;
@@ -1109,7 +1109,7 @@ export class ToolsService {
   }
 
   // Для массового переключения
-  public switchClampingToGroudForEntity(entity: Cesium.Entity, isClamped: boolean): boolean {
+  public switchClampingToGroundForEntity(entity: Cesium.Entity, isClamped: boolean): boolean {
     try {
       if (entity?.point) {
         isClamped

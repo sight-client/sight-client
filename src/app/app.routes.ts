@@ -5,7 +5,7 @@ import { Planet } from '@/planet';
 
 export const routes: Routes = [
   {
-    // path: 'client', // нейтральный путь, но нужен хук с добавленем копии index.html под именем "404.html"
+    // path: 'client', // нейтральный путь, но нужен хук с добавлением копии index.html под именем "404.html"
     // path: 'sight-client', // не выставлять, т.к. дублирует имя репозитория
     path: '', // подходит для github pages
     component: Planet,

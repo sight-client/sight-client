@@ -12,7 +12,7 @@
         <mat-checkbox
           [disabled]="$calculateLineService.waitingForCalculations() === true"
           [(ngModel)]="$calculateLineService.mostDetailed"
-          (change)="$calculateLineService.checkboxHendler($event)"
+          (change)="$calculateLineService.checkboxHandler($event)"
           matTooltip="Детальный расчет с учетом рельефа"
           matTooltipShowDelay="1000"
         >
@@ -37,7 +37,7 @@
           $calculateLineService.waitingForCalculations() === true
         "
         [(ngModel)]="$calculateLineService.distanceSegmentLengthM"
-        (change)="$calculateLineService.segmentLengthInputHendler($event)"
+        (change)="$calculateLineService.segmentLengthInputHandler($event)"
       /><span
         [style]="
           !$calculateLineService.mostDetailed()

@@ -124,19 +124,19 @@ export class DrawingToolBlankService {
       if (this.$toolsService.drawingsBlocker() === true) return false;
       this.$toolsService.clearCommonHandler();
       this.$toolsService.setDrawingsBlocker(true);
-      let groupIdChank: string;
+      let groupIdChunk: string;
       if (options?.groupId === undefined) {
-        groupIdChank = `${Math.ceil(Math.random() * 1000000)}`;
+        groupIdChunk = `${Math.ceil(Math.random() * 1000000)}`;
       } else {
-        groupIdChank = options.groupId;
+        groupIdChunk = options.groupId;
       }
       const optForPoint: DrawingOptions = cloneDeep(options);
       // Начало id должно быть общим для суммы сущностей одного сценария работы инструмента
-      optForPoint.id = `${groupIdChank}-${this.toolName}-point-${Math.ceil(Math.random() * 1000000)}`;
+      optForPoint.id = `${groupIdChunk}-${this.toolName}-point-${Math.ceil(Math.random() * 1000000)}`;
       const optForLine: DrawingOptions = cloneDeep(options);
-      optForLine.id = `${groupIdChank}-${this.toolName}-line-${Math.ceil(Math.random() * 1000000)}`;
-      if (options?.name) optForPoint.name = options.name + ' ' + groupIdChank;
-      if (options?.name) optForLine.name = options.name + ' ' + groupIdChank;
+      optForLine.id = `${groupIdChunk}-${this.toolName}-line-${Math.ceil(Math.random() * 1000000)}`;
+      if (options?.name) optForPoint.name = options.name + ' ' + groupIdChunk;
+      if (options?.name) optForLine.name = options.name + ' ' + groupIdChunk;
 
       // ...логика, характерная для настоящего инструмента
 
