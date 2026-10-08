@@ -1,7 +1,4 @@
 {
-  // Sight: Auto-review guidance for agents and subagents.
-  // Prefix "git" is too broad (matches git push). Keep read-only git prefixes only.
-  // IDE: Settings → Agents → Approvals & Execution → Auto-review.
   "terminalAllowlist": [
     "git status",
     "git diff",

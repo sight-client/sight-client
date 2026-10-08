@@ -78,23 +78,45 @@ export class MainMenu {
       <h2 mat-dialog-title>Приветствую!</h2>
       <mat-dialog-content style="text-align: justify;">
         <br />Это некоммерческий проект на бесплатном хостинге Github Pages. Я создал его в
-        свободное время для своего
-        <a href="https://hh.ru/resume/8bbb00a0ff0fe0c1af0039ed1f57476e457858">резюме</a>. Если кому
-        пригодится – пользуйтесь на здоровье. Ссылка на репозиторий:
-        <a href="https://github.com/sight-client/sight-client"
+        свободное время для своего резюме (<a
+          href="https://hh.ru/resume/25e17b80ff112dcf540039ed1f73544f716a6a"
+          target="_blank"
+          rel="noopener noreferrer"
+          >hh.ru (сжатое)</a
+        >,
+        <a
+          href="https://drive.google.com/file/d/1KoL0vl46ANPWNx3-11SAWBzwXvtSZ5jx/view?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+          >drive.google.com (подробное)</a
+        >). Если кому пригодится – пользуйтесь на здоровье. Ссылка на репозиторий:
+        <a
+          href="https://github.com/sight-client/sight-client"
+          target="_blank"
+          rel="noopener noreferrer"
           >https://github.com/sight-client/sight-client</a
         >
         <br />Карта работает и на мобильных устройствах. Если буду успевать, планирую добавить
         поиск, навигацию, l10n (eng), а также возможность загрузки и отображения на карте
         пользовательских растровых, векторных и 3d-изображений. <br /><br />Мои контакты:
-        <br />e-mail: <a href="mailto:porphirik@mail.ru">porphirik@mail.ru</a> <br />telegram:
-        <a href="tg://resolve?domain=smollett40k">smollett40k</a>
+        <br />e-mail:
+        <a href="mailto:porphirik@mail.ru" target="_blank" rel="noopener noreferrer"
+          >porphirik@mail.ru</a
+        >
+        <br />telegram:
+        <a href="tg://resolve?domain=smollett40k" target="_blank" rel="noopener noreferrer"
+          >smollett40k</a
+        >
       </mat-dialog-content>
       <mat-dialog-actions>
         <div class="osm-copyright">
           <p>
             Map data from
-            <a href="https://www.openstreetmap.org/copyright" title="OpenStreetMap copyright rules"
+            <a
+              href="https://www.openstreetmap.org/copyright"
+              title="OpenStreetMap copyright rules"
+              target="_blank"
+              rel="noopener noreferrer"
               >OpenStreetMap</a
             >
           </p>
