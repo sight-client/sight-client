@@ -84,8 +84,8 @@
   position: absolute;
   right: -22px;
   bottom: 97px;
-  width: 150px;
-  height: 150px;
+  width: var(--compass-widget-width);
+  height: var(--compass-widget-width);
   pointer-events: auto;
   touch-action: none;
   -webkit-touch-callout: none;

@@ -12,7 +12,7 @@ parent: 2026-09-17-sight-product-design.md
 
 ## Composition
 
-Правая панель: `ToolsPanel` — три группы: drawing, measuring, camera (UI камеры описан в viewer-crs). С `tablet` ≤767 панель по центру снизу; `column-reverse` у групп всегда. `renderToolsGroupTemplates` / `moveToolToDefault` не переписывать. Видимость хостов кнопок — `setNormalButtonsVisibility` (`display`), не `MutationObserver`. Хром — [ui-theme](./2026-09-17-sight-ui-theme-design.md).
+Правая панель: `ToolsPanel` — три группы: drawing, measuring, camera (UI камеры описан в viewer-crs). С `tablet` ≤767 панель по центру снизу; с `mobile` ≤460 — по центру полосы слева от компаса (`--compass-widget-width`), не по центру всей ширины. `column-reverse` у групп всегда. `renderToolsGroupTemplates` / `moveToolToDefault` не переписывать. Видимость хостов кнопок — `setNormalButtonsVisibility` (`display`), не `MutationObserver`. Хром — [ui-theme](./2026-09-17-sight-ui-theme-design.md).
 
 Слева: `DrawingsList` (список вкладки рисования, подлёт, переименование, импорт/экспорт).
 

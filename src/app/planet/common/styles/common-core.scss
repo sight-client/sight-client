@@ -16,6 +16,8 @@
   --coords-panel-left: 15px;
   --coords-panel-width: 130px;
   --tools-panel-left: 510px;
+  // Бокс `.compass` (znemz). На телефоне tools-panel центрируется в 100% минус это.
+  --compass-widget-width: 150px;
 }
 
 // Стек телефона: высота и coords — разные компоненты, общий якорь только здесь.

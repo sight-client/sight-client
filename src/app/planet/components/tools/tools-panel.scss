@@ -19,6 +19,12 @@
       transform: translateX(-50%);
       bottom: calc(15px + env(safe-area-inset-bottom, 0px));
     }
+
+    @include media-breakpoints-global.mobile {
+      // Центр полосы слева от компаса. left: 50% на --right-part-min-width (350px)
+      // загоняет раскрытую левую группу под hit-box компаса.
+      left: calc((100% - var(--compass-widget-width)) / 2);
+    }
     // width: 35px;
     width: max-content;
     height: max-content;
