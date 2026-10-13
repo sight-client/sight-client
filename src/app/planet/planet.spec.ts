@@ -231,12 +231,52 @@ describe('MainSight', () => {
       };
     }
 
-    function touchEvent(x: number, y: number, count = 1): TouchEvent {
+    function overlaySwipeHost() {
+      return component as unknown as {
+        onOverlaySidenavTouchStart(event: TouchEvent): void;
+        onOverlaySidenavTouchMove(event: TouchEvent): void;
+        onOverlaySidenavTouchEnd(event: TouchEvent, sidenav: MatSidenav): void;
+      };
+    }
+
+    function touchEvent(
+      x: number,
+      y: number,
+      count = 1,
+      extra: {
+        target?: EventTarget | null;
+        cancelable?: boolean;
+        preventDefault?: () => void;
+      } = {},
+    ): TouchEvent {
       const touches = Array.from({ length: count }, (_, index) => ({
         clientX: x + index,
         clientY: y,
       }));
-      return { touches, stopPropagation() {} } as unknown as TouchEvent;
+      const preventDefault =
+        extra.preventDefault ??
+        function (this: { cancelable?: boolean }) {
+          if (this.cancelable === false) {
+            throw new Error(
+              'Ignored attempt to cancel a touchend event with cancelable=false',
+            );
+          }
+        };
+      return {
+        touches,
+        target: extra.target ?? null,
+        cancelable: extra.cancelable,
+        stopPropagation() {},
+        preventDefault,
+      } as unknown as TouchEvent;
+    }
+
+    async function openOverlaySidenav(): Promise<MatSidenav> {
+      const sidenav = sidenavInstance();
+      await sidenav.open();
+      fixture.detectChanges();
+      expect(sidenav.opened).toBe(true);
+      return sidenav;
     }
 
     it('shows the edge catcher for tablet and phone layouts, not for a wide desktop', async () => {
@@ -273,6 +313,57 @@ describe('MainSight', () => {
       host.onSidenavEdgeTouchStart(touchEvent(4, 200, 2));
       host.onSidenavEdgeTouchMove(touchEvent(80, 200, 2), sidenav);
       expect(sidenav.opened).toBe(false);
+    });
+
+    it('closes the overlay sidenav on a one-finger swipe left on the backdrop', async () => {
+      await setupSidenavTest(false, signal(true));
+      const sidenav = await openOverlaySidenav();
+      const backdrop = fixture.nativeElement.querySelector('.mat-drawer-backdrop');
+      expect(backdrop).toBeTruthy();
+      const host = overlaySwipeHost();
+      host.onOverlaySidenavTouchStart(touchEvent(220, 200, 1, { target: backdrop }));
+      host.onOverlaySidenavTouchMove(touchEvent(160, 208, 1, { target: backdrop }));
+      host.onOverlaySidenavTouchEnd(
+        touchEvent(160, 208, 1, { target: backdrop, cancelable: false }),
+        sidenav,
+      );
+      expect(sidenav.opened).toBe(false);
+    });
+
+    it('closes the overlay sidenav on a one-finger swipe left on an empty sidenav zone', async () => {
+      await setupSidenavTest(false, signal(true));
+      const sidenav = await openOverlaySidenav();
+      const emptyZone = fixture.nativeElement.querySelector('.sight-main-sidenav');
+      expect(emptyZone).toBeTruthy();
+      const host = overlaySwipeHost();
+      host.onOverlaySidenavTouchStart(touchEvent(180, 80, 1, { target: emptyZone }));
+      host.onOverlaySidenavTouchMove(touchEvent(120, 84, 1, { target: emptyZone }));
+      host.onOverlaySidenavTouchEnd(touchEvent(120, 84, 1, { target: emptyZone }), sidenav);
+      expect(sidenav.opened).toBe(false);
+    });
+
+    it('does not close the overlay sidenav on a swipe that starts on the drawings list scroller', async () => {
+      await setupSidenavTest(false, signal(true));
+      const sidenav = await openOverlaySidenav();
+      const scroller = document.createElement('div');
+      scroller.className = 'drawings-list-accordion-wrapper';
+      fixture.nativeElement.querySelector('.sight-main-sidenav').appendChild(scroller);
+      const host = overlaySwipeHost();
+      host.onOverlaySidenavTouchStart(touchEvent(180, 240, 1, { target: scroller }));
+      host.onOverlaySidenavTouchMove(touchEvent(100, 248, 1, { target: scroller }));
+      host.onOverlaySidenavTouchEnd(touchEvent(100, 248, 1, { target: scroller }), sidenav);
+      expect(sidenav.opened).toBe(true);
+    });
+
+    it('does not close the overlay sidenav on a vertical move on the backdrop', async () => {
+      await setupSidenavTest(false, signal(true));
+      const sidenav = await openOverlaySidenav();
+      const backdrop = fixture.nativeElement.querySelector('.mat-drawer-backdrop');
+      const host = overlaySwipeHost();
+      host.onOverlaySidenavTouchStart(touchEvent(220, 200, 1, { target: backdrop }));
+      host.onOverlaySidenavTouchMove(touchEvent(210, 280, 1, { target: backdrop }));
+      host.onOverlaySidenavTouchEnd(touchEvent(210, 280, 1, { target: backdrop }), sidenav);
+      expect(sidenav.opened).toBe(true);
     });
   });
 });

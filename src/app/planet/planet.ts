@@ -2,11 +2,13 @@ import { reportError } from '@global/lib/report-error.lib';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   ViewChild,
   afterNextRender,
   computed,
   effect,
+  inject,
   linkedSignal,
   signal,
   untracked,
@@ -141,6 +143,7 @@ export class Planet {
     afterNextRender(() => {
       // Определение контейнера для отслеживания перемещения курсора мыши (для координат)
       this.$cursorCoordsService.getWatchedContainerRef(this.mainSightContainerRef.nativeElement);
+      this.attachOverlaySidenavSwipe();
     });
     effect(() => {
       try {
@@ -163,9 +166,13 @@ export class Planet {
     // });
   }
   @ViewChild('mainSightContainer') public mainSightContainerRef!: ElementRef<Element>;
+  @ViewChild('sidenavRef') private sidenavPanelRef?: MatSidenav;
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly sidenavOpened = signal(false);
   private sidenavEdgeSwipeStart: { x: number; y: number } | null = null;
+  private overlaySidenavSwipeStart: { x: number; y: number } | null = null;
+  private overlaySidenavShouldClose = false;
 
   protected onSidenavEdgeTouchStart(event: TouchEvent): void {
     if (event) event.stopPropagation();
@@ -213,6 +220,108 @@ export class Planet {
 
   protected onSidenavEdgeTouchEnd(): void {
     this.sidenavEdgeSwipeStart = null;
+  }
+
+  private isOverlaySidenav(): boolean {
+    const mobile = this.$checkMobileDeviceService;
+    return (mobile.isMobile && !mobile.wideMobile()) || mobile.tabletLayout();
+  }
+
+  private isOverlaySidenavSwipeTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof Element)) {
+      return false;
+    }
+    if (target.closest('.mat-drawer-backdrop')) {
+      return true;
+    }
+    if (!target.closest('.sight-main-sidenav')) {
+      return false;
+    }
+    return !target.closest('.drawings-list-accordion-wrapper');
+  }
+
+  protected onOverlaySidenavTouchStart(event: TouchEvent): void {
+    this.overlaySidenavShouldClose = false;
+    if (!this.isOverlaySidenav() || !this.sidenavOpened()) {
+      this.overlaySidenavSwipeStart = null;
+      return;
+    }
+    if (!this.isOverlaySidenavSwipeTarget(event.target)) {
+      this.overlaySidenavSwipeStart = null;
+      return;
+    }
+    if (event.touches.length !== 1) {
+      this.overlaySidenavSwipeStart = null;
+      return;
+    }
+    const touch = event.touches[0];
+    this.overlaySidenavSwipeStart = { x: touch.clientX, y: touch.clientY };
+  }
+
+  protected onOverlaySidenavTouchMove(event: TouchEvent): void {
+    const start = this.overlaySidenavSwipeStart;
+    if (!start || event.touches.length !== 1) {
+      return;
+    }
+    const touch = event.touches[0];
+    const dx = start.x - touch.clientX;
+    const dy = start.y - touch.clientY;
+    if (dx >= 48 && dx > Math.abs(dy)) {
+      this.overlaySidenavShouldClose = true;
+    }
+  }
+
+  protected onOverlaySidenavTouchEnd(event: TouchEvent, sidenav: MatSidenav): void {
+    const shouldClose = this.overlaySidenavShouldClose;
+    this.overlaySidenavSwipeStart = null;
+    this.overlaySidenavShouldClose = false;
+    if (!shouldClose) {
+      return;
+    }
+    // Chrome: touchend is often cancelable=false while scrolling. Never call
+    // preventDefault unless the event can actually be canceled.
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    this.sidenavOpened.set(false);
+    void sidenav.close();
+  }
+
+  private attachOverlaySidenavSwipe(): void {
+    const container = this.mainSightContainerRef.nativeElement.querySelector(
+      '.sight-main-sidenav-global',
+    );
+    const sidenav = this.sidenavPanelRef;
+    if (!(container instanceof HTMLElement) || !sidenav) {
+      return;
+    }
+    const onStart = (event: Event): void => {
+      if (event instanceof TouchEvent) {
+        this.onOverlaySidenavTouchStart(event);
+      }
+    };
+    const onMove = (event: Event): void => {
+      if (event instanceof TouchEvent) {
+        this.onOverlaySidenavTouchMove(event);
+      }
+    };
+    const onEnd = (event: Event): void => {
+      if (event instanceof TouchEvent) {
+        this.onOverlaySidenavTouchEnd(event, sidenav);
+      }
+    };
+    // touchstart/move — passive, иначе Chrome откладывает скролл списка.
+    // touchend — не passive, чтобы снять ghost-click; preventDefault только при cancelable.
+    container.addEventListener('touchstart', onStart, { passive: true });
+    container.addEventListener('touchmove', onMove, { passive: true });
+    container.addEventListener('touchend', onEnd);
+    container.addEventListener('touchcancel', onEnd);
+    this.destroyRef.onDestroy(() => {
+      container.removeEventListener('touchstart', onStart);
+      container.removeEventListener('touchmove', onMove);
+      container.removeEventListener('touchend', onEnd);
+      container.removeEventListener('touchcancel', onEnd);
+    });
   }
 
   // "Пустой" курсор 1x1 px

@@ -45,4 +45,5 @@
 
 .mat-drawer-backdrop {
   pointer-events: auto !important; // для клика вне left sidenav при мобильном отображении (mode="over")
+  touch-action: none; // горизонтальный свайп закрытия, без browser back-swipe
 }
