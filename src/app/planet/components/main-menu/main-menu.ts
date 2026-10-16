@@ -85,7 +85,7 @@ export class MainMenu {
           >hh.ru (сжатое)</a
         >,
         <a
-          href="https://drive.google.com/file/d/1KoL0vl46ANPWNx3-11SAWBzwXvtSZ5jx/view?usp=sharing"
+          href="https://drive.google.com/file/d/14JTpsA-soHVzg-J8mdFQjpQXtV1XWOiZ/view?usp=sharing"
           target="_blank"
           rel="noopener noreferrer"
           >drive.google.com (подробное)</a
